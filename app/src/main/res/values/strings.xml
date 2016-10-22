@@ -8,4 +8,7 @@
 
     <string name="nav_password">Password</string>
     <string name="nav_passphrase">Passphrase</string>
+
+    <string name="default_password_text">Hit Generate for a new password</string>
+    <string name="generate">Generate</string>
 </resources>
