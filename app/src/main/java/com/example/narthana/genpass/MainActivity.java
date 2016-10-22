@@ -1,5 +1,6 @@
 package com.example.narthana.genpass;
 
+import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -87,17 +88,22 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        Fragment fragment;
         switch (id)
         {
             case R.id.nav_password:
+                fragment = new PasswordFragment();
                 break;
             case R.id.nav_passphrase:
+                fragment = new PassphraseFragment();
                 break;
             default:
                 return false;
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+
+        getFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commit();
+
+        mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
 }
