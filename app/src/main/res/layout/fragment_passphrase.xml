@@ -4,4 +4,18 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <TextView
+        android:text="@string/default_passphrase_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textview_passphrase"
+        android:textAlignment="center"
+        android:fontFamily="serif-monospace"/>
+
+    <Button
+        android:text="Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_generate_passphrase"/>
+
 </LinearLayout>

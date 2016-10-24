@@ -9,6 +9,11 @@
     <string name="nav_password">Password</string>
     <string name="nav_passphrase">Passphrase</string>
 
-    <string name="default_password_text">Hit Generate for a new password</string>
+    <string name="default_password_text">Tap Generate for a new password</string>
+    <string name="default_passphrase_text">Tap Generate for a new passphrase</string>
     <string name="generate">Generate</string>
+
+    <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>
+    <string name="uppercase">QWERTYUIOPASDFGHJKLZXCVBNM</string>
+    <string name="numeric">1234567890</string>
 </resources>
