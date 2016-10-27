@@ -1,13 +1,19 @@
 package com.example.narthana.genpass;
 
 import android.app.Fragment;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.narthana.genpass.WordContract.WordEntry;
 
 import java.util.Random;
 
@@ -18,6 +24,8 @@ import java.util.Random;
 public class PassphraseFragment extends Fragment
 {
     private String[] mWords;
+    private boolean mAsyncComplete;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -28,10 +36,8 @@ public class PassphraseFragment extends Fragment
         final int maxWordLength = 10;
         final int minWordLength = 5;
         final String delim = " ";
-//        InputStream dictionary = rootView.getResources().openRawResource(R.raw.default_dictionary);
-//        Utility.loadDictionary(rootView.getContext(), dictionary);
 
-        mWords = Utility.getWords(rootView.getContext(), minWordLength, maxWordLength);
+        final AsyncTask task = new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
 
         final Random r = new Random();
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
@@ -41,15 +47,22 @@ public class PassphraseFragment extends Fragment
             @Override
             public void onClick(View view)
             {
-                for (int i = 0; i < n; ++i)
+                if (mAsyncComplete)
                 {
-                    int j = r.nextInt(mWords.length - i) + i; // random int in [i, words.length)
-                    swap(mWords, i, j);
-                }
-                String passphrase = concatenateRange(mWords, delim, 0, n - 1);
+                    for (int i = 0; i < n; ++i)
+                    {
+                        int j = r.nextInt(mWords.length - i) + i; // random int in [i, words.length)
+                        swap(mWords, i, j);
+                    }
+                    String passphrase = concatenateRange(mWords, delim, 0, n - 1);
 
-                TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
-                passText.setText(passphrase);
+                    TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
+                    passText.setText(passphrase);
+                }
+                else
+                {
+                    Snackbar.make(rootView, R.string.dict_load_snack, Snackbar.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -73,5 +86,53 @@ public class PassphraseFragment extends Fragment
         }
         builder.append(words[end]);
         return builder.toString();
+    }
+
+
+    // Fetch the words in the background
+    public class FetchWordListTask extends AsyncTask<Integer[], Void, String[]>
+    {
+        @Override
+        protected String[] doInBackground(Integer[]... params)
+        {
+            String[] columns = { WordEntry.COLUMN_WORD };
+            String selection = WordEntry.COLUMN_LEN + " >= ?"
+                    + " AND " + WordEntry.COLUMN_LEN + " <= ?";
+            String[] selectionArgs = { Integer.toString(params[0][0]),
+                                       Integer.toString(params[0][1]) };
+//            Why can't we do this!
+//            String[] dimens = Arrays.stream(params[0])
+//                    .map(x -> Integer.toString(x))
+//                    .toArray(String[]::new);
+
+            SQLiteDatabase db = new PreBuiltWordDBHelper(getContext()).getReadableDatabase();
+
+            Cursor c = db.query(
+                    WordEntry.TABLE_NAME,
+                    columns,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    null
+            );
+
+            int n = c.getCount();
+
+            String[] words = new String[n];
+            c.moveToFirst();
+            for (int i = 0; i < n; ++i, c.moveToNext()) words[i] = c.getString(0);
+
+            c.close();
+            db.close();
+            return words;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result)
+        {
+            mAsyncComplete = true;
+            mWords = result;
+        }
     }
 }

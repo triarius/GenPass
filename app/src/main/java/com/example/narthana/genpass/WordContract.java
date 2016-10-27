@@ -11,7 +11,7 @@ final class WordContract
     // prevent accidental instantiation
     private WordContract() {}
 
-    static class WordEntry implements BaseColumns
+    final static class WordEntry implements BaseColumns
     {
         static final String TABLE_NAME = "words";
         static final String COLUMN_WORD = "word";

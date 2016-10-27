@@ -16,4 +16,6 @@
     <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>
     <string name="uppercase">QWERTYUIOPASDFGHJKLZXCVBNM</string>
     <string name="numeric">1234567890</string>
+
+    <string name="dict_load_snack">Please wait while the dictionary is loaded</string>
 </resources>
