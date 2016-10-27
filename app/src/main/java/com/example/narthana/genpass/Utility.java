@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.narthana.genpass.WordContract.WordEntry;
 
@@ -31,29 +32,28 @@ class Utility
 
     static void loadDictionary(Context context, InputStream dictionary)
     {
-        BufferedReader b = new BufferedReader(new InputStreamReader(dictionary));
 
-        SQLiteDatabase db = new WordDbHelper(context).getWritableDatabase();
-        db.beginTransaction();
-        db.delete(WordEntry.TABLE_NAME, null, null);
-        String word;
-        try
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(dictionary));
+             SQLiteDatabase db = new NewWordDBHelper(context).getWritableDatabase())
         {
-            while ((word = b.readLine()) != null)
+            db.beginTransaction();
+            db.delete(WordEntry.TABLE_NAME, null, null);
+            ContentValues content = new ContentValues(2);
+            for (String word; (word = br.readLine()) != null;)
             {
-                ContentValues content = new ContentValues(2);
+                content.clear();
                 content.put(WordEntry.COLUMN_WORD, word);
                 content.put(WordEntry.COLUMN_LEN, word.length());
                 db.insert(WordEntry.TABLE_NAME, null, content);
             }
+            db.setTransactionSuccessful();
+            db.endTransaction();
         }
         catch (IOException e)
         {
+            Log.e(context.getClass().getName(), "Could not read text file");
             e.printStackTrace();
         }
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        db.close();
     }
 
     static String[] getWords(Context context, int minWordLen, int maxWordLen)
@@ -62,7 +62,8 @@ class Utility
         String selection = WordEntry.COLUMN_LEN + " >= ?"
                 + " AND " + WordEntry.COLUMN_LEN + " <= ?";
         String[] selectionArgs = { Integer.toString(minWordLen), Integer.toString(maxWordLen) };
-        SQLiteDatabase db = new WordDbHelper(context).getReadableDatabase();
+//        SQLiteDatabase db = new NewWordDBHelper(context).getReadableDatabase();
+        SQLiteDatabase db = new PreBuiltWordDBHelper(context).getReadableDatabase();
 
         Cursor c = db.query(
                 WordEntry.TABLE_NAME,
@@ -84,6 +85,4 @@ class Utility
         db.close();
         return words;
     }
-
-//    static String newPassphrase(int numWords)
 }

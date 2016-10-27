@@ -32,7 +32,6 @@ public class TestDB
     public void setUp()
     {
         mContext = mActivityRule.getActivity();
-//        mContext.deleteDatabase(WordDbHelper.DATABASE_NAME);
     }
 
     @Test
@@ -40,7 +39,7 @@ public class TestDB
     {
         InputStream dictionary = mContext.getResources().openRawResource(R.raw.default_dictionary);
         Utility.loadDictionary(mContext, dictionary);
-        SQLiteDatabase db = new WordDbHelper(mContext).getReadableDatabase();
+        SQLiteDatabase db = new NewWordDBHelper(mContext).getReadableDatabase();
         Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
 
         assertTrue("Could not create database", c.moveToFirst());

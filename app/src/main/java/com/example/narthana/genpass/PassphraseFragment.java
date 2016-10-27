@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.InputStream;
 import java.util.Random;
 
 /**
@@ -29,19 +28,13 @@ public class PassphraseFragment extends Fragment
         final int maxWordLength = 10;
         final int minWordLength = 5;
         final String delim = " ";
-        InputStream dictionary = rootView.getResources().openRawResource(R.raw.default_dictionary);
-        Utility.loadDictionary(rootView.getContext(), dictionary);
+//        InputStream dictionary = rootView.getResources().openRawResource(R.raw.default_dictionary);
+//        Utility.loadDictionary(rootView.getContext(), dictionary);
 
         mWords = Utility.getWords(rootView.getContext(), minWordLength, maxWordLength);
 
         final Random r = new Random();
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
-
-//        if (btnGenerate == null)
-//        {
-//            Log.e(this.getClass().getName(), "Could not create button");
-//            return rootView;
-//        }
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {

@@ -10,12 +10,12 @@ import com.example.narthana.genpass.WordContract.WordEntry;
  * Created by narthana on 23/10/16.
  */
 
-class WordDbHelper extends SQLiteOpenHelper
+class NewWordDBHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "words.db";
     private static final int DATABASE_VERSION = 1;
 
-    WordDbHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
+    NewWordDBHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase)
