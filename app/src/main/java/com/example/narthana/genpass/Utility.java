@@ -2,7 +2,6 @@ package com.example.narthana.genpass;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -39,7 +38,7 @@ class Utility
             db.beginTransaction();
             db.delete(WordEntry.TABLE_NAME, null, null);
             ContentValues content = new ContentValues(2);
-            for (String word; (word = br.readLine()) != null;)
+            for (String word; (word = br.readLine()) != null; )
             {
                 content.clear();
                 content.put(WordEntry.COLUMN_WORD, word);
@@ -54,35 +53,5 @@ class Utility
             Log.e(context.getClass().getName(), "Could not read text file");
             e.printStackTrace();
         }
-    }
-
-    static String[] getWords(Context context, int minWordLen, int maxWordLen)
-    {
-        String[] columns = { WordEntry.COLUMN_WORD };
-        String selection = WordEntry.COLUMN_LEN + " >= ?"
-                + " AND " + WordEntry.COLUMN_LEN + " <= ?";
-        String[] selectionArgs = { Integer.toString(minWordLen), Integer.toString(maxWordLen) };
-//        SQLiteDatabase db = new NewWordDBHelper(context).getReadableDatabase();
-        SQLiteDatabase db = new PreBuiltWordDBHelper(context).getReadableDatabase();
-
-        Cursor c = db.query(
-                WordEntry.TABLE_NAME,
-                columns,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                null
-        );
-
-        int n = c.getCount();
-
-        String[] words = new String[n];
-        c.moveToFirst();
-        for (int i = 0; i < n; ++i, c.moveToNext()) words[i] = c.getString(0);
-
-        c.close();
-        db.close();
-        return words;
     }
 }

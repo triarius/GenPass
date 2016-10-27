@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 
 import com.example.narthana.genpass.WordContract.WordEntry;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -23,6 +26,7 @@ import java.util.Random;
 
 public class PassphraseFragment extends Fragment
 {
+    private final String WORDS_TAG = "words";
     private String[] mWords;
     private boolean mAsyncComplete;
 
@@ -37,10 +41,24 @@ public class PassphraseFragment extends Fragment
         final int minWordLength = 5;
         final String delim = " ";
 
-        final AsyncTask task = new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
 
         final Random r = new Random();
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
+
+        if (savedInstanceState != null)
+        {
+            ArrayList<String> state = savedInstanceState.getStringArrayList(WORDS_TAG);
+            if (state != null)
+            {
+                mWords = state.toArray(new String[0]);
+                mAsyncComplete = true;
+            }
+        }
+        else
+        {
+            AsyncTask task = new FetchWordListTask()
+                    .execute(new Integer[] {minWordLength, maxWordLength});
+        }
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
@@ -59,14 +77,23 @@ public class PassphraseFragment extends Fragment
                     TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
                     passText.setText(passphrase);
                 }
-                else
-                {
-                    Snackbar.make(rootView, R.string.dict_load_snack, Snackbar.LENGTH_LONG).show();
-                }
+                else Snackbar.make(rootView, R.string.dict_load_snack, Snackbar.LENGTH_LONG).show();
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        if (mAsyncComplete)
+        {
+            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
+//            WordsParceable wordsParcel = new WordsParceable(mWords);
+//            outState.putParcelable(WORDS_TAG, wordsParcel);
+        }
     }
 
     private <T> void swap(T[] array, int i, int j)
@@ -76,6 +103,7 @@ public class PassphraseFragment extends Fragment
         array[j] = temp;
     }
 
+    @NonNull
     private String concatenateRange(String[] words, String delim, int start, int end)
     {
         StringBuilder builder = new StringBuilder();
