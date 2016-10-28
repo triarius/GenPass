@@ -17,27 +17,44 @@ import android.widget.TextView;
 
 public class PasswordFragment extends Fragment
 {
+    private final String PASSWORD_TAG = "password";
+
+    private String mPassText;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         final View rootView = inflater.inflate(R.layout.fragment_password, container, false);
-
+        final TextView passTextView = (TextView) rootView.findViewById(R.id.textview_password);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
+
+        if (savedInstanceState != null)
+        {
+            mPassText = savedInstanceState.getString(PASSWORD_TAG);
+            if (mPassText != null) passTextView.setText(mPassText);
+        }
+
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                TextView passText = (TextView) rootView.findViewById(R.id.textview_password);
                 int len = numChars();
-                passText.setText(Utility.newPassword(len));
+                mPassText = Utility.newPassword(len);
+                passTextView.setText(mPassText);
             }
         });
 
         return rootView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        if (mPassText != null) outState.putString(PASSWORD_TAG, mPassText);
+    }
 
     private int numChars()
     {

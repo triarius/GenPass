@@ -26,32 +26,37 @@ import java.util.Random;
 public class PassphraseFragment extends Fragment
 {
     private final String WORDS_TAG = "words";
+    private final String PASSPHRASE_TAG = "passphrase";
+
     private int[] mWordIds;
     private boolean mWordIdsReady;
+    private String mPassphrase;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        final View rootView = inflater.inflate(R.layout.fragment_passphrase, container, false);
-
         // TODO: put these in preferences
         final int n = 4;
         final int maxWordLength = 10;
         final int minWordLength = 5;
         final String delim = " ";
 
-
         final Random r = new Random();
+
+        final View rootView = inflater.inflate(R.layout.fragment_passphrase, container, false);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
+        final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
         if (savedInstanceState != null)
         {
+            mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
+            Log.d(getClass().getSimpleName(), "SavedInstanceState " + mPassphrase);
+            passText.setText(mPassphrase);
             mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
             if (mWordIds != null) mWordIdsReady = true;
         }
         else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
-
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
@@ -65,10 +70,10 @@ public class PassphraseFragment extends Fragment
                         int j = r.nextInt(mWordIds.length - i) + i; // random int in [i, words.length)
                         swap(mWordIds, i, j);
                     }
-                    String passphrase = createPhrase(mWordIds, delim, 0, n - 1);
+                    mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
 
-                    TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
-                    passText.setText(passphrase);
+                    passText.setText(mPassphrase);
+                    Log.d(getClass().getSimpleName(), "OnClickListener " + mPassphrase);
                 }
                 else Snackbar.make(
                         rootView,
@@ -85,6 +90,7 @@ public class PassphraseFragment extends Fragment
     public void onSaveInstanceState(Bundle outState)
     {
         super.onSaveInstanceState(outState);
+        if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
 //        {
 //            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
