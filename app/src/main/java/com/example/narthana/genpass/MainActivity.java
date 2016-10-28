@@ -4,9 +4,8 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -14,16 +13,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener
 {
+    private final String PASSWORD_FRAGMENT_TAG = "password_fragment";
+    private final String PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment";
+
     private DrawerLayout mDrawer;
+    private PasswordFragment mPasswordFragment;
+    private PassphraseFragment mPassphraseFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -47,6 +53,29 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null)
+        {
+            mPasswordFragment = (PasswordFragment) getFragmentManager()
+                    .getFragment(savedInstanceState, PASSWORD_FRAGMENT_TAG);
+            mPassphraseFragment = (PassphraseFragment) getFragmentManager()
+                    .getFragment(savedInstanceState, PASSPHRASE_FRAGMENT_TAG);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        if (mPasswordFragment != null && mPasswordFragment.isAdded())
+            getFragmentManager().putFragment(outState, PASSWORD_FRAGMENT_TAG, mPasswordFragment);
+        if (mPassphraseFragment != null && mPassphraseFragment.isAdded())
+            getFragmentManager().putFragment(outState, PASSPHRASE_FRAGMENT_TAG, mPassphraseFragment);
     }
 
     @Override
@@ -89,13 +118,16 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         Fragment fragment;
+        if (mPasswordFragment == null) mPasswordFragment = new PasswordFragment();
+        if (mPassphraseFragment == null) mPassphraseFragment = new PassphraseFragment();
+
         switch (id)
         {
             case R.id.nav_password:
-                fragment = new PasswordFragment();
+                fragment = mPasswordFragment;
                 break;
             case R.id.nav_passphrase:
-                fragment = new PassphraseFragment();
+                fragment = mPassphraseFragment;
                 break;
             default:
                 return false;

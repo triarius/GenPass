@@ -76,9 +76,7 @@ public class PassphraseFragment extends Fragment
                         swap(mWordIds, i, j);
                     }
                     mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
-
                     passText.setText(mPassphrase);
-                    Log.d(getClass().getSimpleName(), "OnClickListener " + mPassphrase);
                 }
                 else Snackbar.make(
                         rootView,
