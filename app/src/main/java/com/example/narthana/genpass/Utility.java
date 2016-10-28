@@ -11,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Random;
 
 /**
  * Created by narthana on 22/10/16.
@@ -19,16 +18,6 @@ import java.util.Random;
 
 class Utility
 {
-    static String newPassword(int len)
-    {
-        Random r = new Random();
-        String charSet = "!@#$%^&*()_+1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:|\\\"ZXCVBNM<>?";
-        char[] pass = new char[len];
-        for (int i = 0; i < len; ++i)
-            pass[i] = charSet.charAt(r.nextInt(charSet.length()));
-        return new String(pass);
-    }
-
     static void loadDictionary(Context context, InputStream dictionary)
     {
 

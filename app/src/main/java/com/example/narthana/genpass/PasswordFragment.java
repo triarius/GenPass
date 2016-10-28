@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.Random;
+
 /**
  * Created by narthana on 22/10/16.
  */
@@ -41,7 +43,7 @@ public class PasswordFragment extends Fragment
             public void onClick(View v)
             {
                 int len = numChars();
-                mPassText = Utility.newPassword(len);
+                mPassText = newPassword(len);
                 passTextView.setText(mPassText);
             }
         });
@@ -54,6 +56,16 @@ public class PasswordFragment extends Fragment
     {
         super.onSaveInstanceState(outState);
         if (mPassText != null) outState.putString(PASSWORD_TAG, mPassText);
+    }
+
+    private static String newPassword(int len)
+    {
+        Random r = new Random();
+        String charSet = "!@#$%^&*()_+1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:|\\\"ZXCVBNM<>?";
+        char[] pass = new char[len];
+        for (int i = 0; i < len; ++i)
+            pass[i] = charSet.charAt(r.nextInt(charSet.length()));
+        return new String(pass);
     }
 
     private int numChars()
