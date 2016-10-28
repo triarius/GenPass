@@ -23,6 +23,13 @@ public class PasswordFragment extends Fragment
 
     private String mPassText;
 
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) mPassText = savedInstanceState.getString(PASSWORD_TAG);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -31,11 +38,7 @@ public class PasswordFragment extends Fragment
         final TextView passTextView = (TextView) rootView.findViewById(R.id.textview_password);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
 
-        if (savedInstanceState != null)
-        {
-            mPassText = savedInstanceState.getString(PASSWORD_TAG);
-            if (mPassText != null) passTextView.setText(mPassText);
-        }
+        if (mPassText != null) passTextView.setText(mPassText);
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {

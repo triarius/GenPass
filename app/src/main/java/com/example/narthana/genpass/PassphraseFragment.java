@@ -32,31 +32,36 @@ public class PassphraseFragment extends Fragment
     private boolean mWordIdsReady;
     private String mPassphrase;
 
+    // TODO: put these in preferences
+    private final int n = 4;
+    private final int maxWordLength = 10;
+    private final int minWordLength = 5;
+    private final String delim = " ";
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null)
+        {
+            mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
+            mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
+            if (mWordIds != null) mWordIdsReady = true;
+        }
+        else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        // TODO: put these in preferences
-        final int n = 4;
-        final int maxWordLength = 10;
-        final int minWordLength = 5;
-        final String delim = " ";
-
         final Random r = new Random();
 
         final View rootView = inflater.inflate(R.layout.fragment_passphrase, container, false);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
-        if (savedInstanceState != null)
-        {
-            mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
-            Log.d(getClass().getSimpleName(), "SavedInstanceState " + mPassphrase);
-            passText.setText(mPassphrase);
-            mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
-            if (mWordIds != null) mWordIdsReady = true;
-        }
-        else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+        if (mPassphrase != null) passText.setText(mPassphrase);
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
