@@ -5,9 +5,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.example.narthana.genpass.WordContract.WordEntry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -27,8 +26,8 @@ import java.util.Random;
 public class PassphraseFragment extends Fragment
 {
     private final String WORDS_TAG = "words";
-    private String[] mWords;
-    private boolean mAsyncComplete;
+    private int[] mWordIds;
+    private boolean mWordIdsReady;
 
     @Nullable
     @Override
@@ -36,6 +35,7 @@ public class PassphraseFragment extends Fragment
     {
         final View rootView = inflater.inflate(R.layout.fragment_passphrase, container, false);
 
+        // TODO: put these in preferences
         final int n = 4;
         final int maxWordLength = 10;
         final int minWordLength = 5;
@@ -47,37 +47,34 @@ public class PassphraseFragment extends Fragment
 
         if (savedInstanceState != null)
         {
-            ArrayList<String> state = savedInstanceState.getStringArrayList(WORDS_TAG);
-            if (state != null)
-            {
-                mWords = state.toArray(new String[0]);
-                mAsyncComplete = true;
-            }
+            mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
+            if (mWordIds != null) mWordIdsReady = true;
         }
-        else
-        {
-            AsyncTask task = new FetchWordListTask()
-                    .execute(new Integer[] {minWordLength, maxWordLength});
-        }
+        else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                if (mAsyncComplete)
+                if (mWordIdsReady)
                 {
                     for (int i = 0; i < n; ++i)
                     {
-                        int j = r.nextInt(mWords.length - i) + i; // random int in [i, words.length)
-                        swap(mWords, i, j);
+                        int j = r.nextInt(mWordIds.length - i) + i; // random int in [i, words.length)
+                        swap(mWordIds, i, j);
                     }
-                    String passphrase = concatenateRange(mWords, delim, 0, n - 1);
+                    String passphrase = createPhrase(mWordIds, delim, 0, n - 1);
 
                     TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
                     passText.setText(passphrase);
                 }
-                else Snackbar.make(rootView, R.string.dict_load_snack, Snackbar.LENGTH_LONG).show();
+                else Snackbar.make(
+                        rootView,
+                        R.string.dict_load_snack,
+                        Snackbar.LENGTH_SHORT
+                ).show();
             }
         });
 
@@ -88,42 +85,88 @@ public class PassphraseFragment extends Fragment
     public void onSaveInstanceState(Bundle outState)
     {
         super.onSaveInstanceState(outState);
-        if (mAsyncComplete)
-        {
-            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
+        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
+//        {
+//            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
 //            WordsParceable wordsParcel = new WordsParceable(mWords);
 //            outState.putParcelable(WORDS_TAG, wordsParcel);
-        }
+//        }
     }
 
-    private <T> void swap(T[] array, int i, int j)
+    @Override
+    public void onPause()
     {
-        T temp = array[i];
+        super.onPause();
+    }
+
+    private void swap(int[] array, int i, int j)
+    {
+        int temp = array[i];
         array[i] = array[j];
         array[j] = temp;
     }
 
-    @NonNull
-    private String concatenateRange(String[] words, String delim, int start, int end)
+    private String createPhrase(int[] ids, String delim, int start, int end)
     {
-        StringBuilder builder = new StringBuilder();
-        for (int i = start; i < end; ++i)
+        int n = end - start + 1;
+
+        // map the ids to Strings
+        String[] selectionArgs = new String[n];
+        for (int i = 0; i < n; ++i) selectionArgs[i] = Integer.toString(ids[i]);
+
+        String selectionBase = WordEntry._ID + " = ?";
+        String selectionDelim = " OR ";
+
+        StringBuilder selection = new StringBuilder(selectionBase);
+        for (int i = start + 1; i <= end; ++i)
         {
-            builder.append(words[i]);
-            builder.append(delim);
+            selection.append(selectionDelim);
+            selection.append(selectionBase);
         }
-        builder.append(words[end]);
+
+
+        SQLiteDatabase db = new PreBuiltWordDBHelper(getActivity()).getReadableDatabase();
+        Cursor c = db.query(
+                WordEntry.TABLE_NAME,
+                new String[] { WordEntry.COLUMN_WORD },
+                selection.toString(),
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+
+        if (c.getCount() != n)
+        {
+            Log.e(this.getClass().getSimpleName(), "Wrong size " + c.getCount());
+            Log.d(this.getClass().getSimpleName(), selection.toString());
+            Log.e(this.getClass().getSimpleName(), Arrays.toString(selectionArgs));
+            return "error";
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        c.moveToFirst();
+        builder.append(c.getString(0));
+        for (int i = start + 1; i <= end; ++i)
+        {
+            c.moveToNext();
+            builder.append(delim);
+            builder.append(c.getString(0));
+        }
+        c.close();
+        db.close();
         return builder.toString();
     }
 
 
     // Fetch the words in the background
-    public class FetchWordListTask extends AsyncTask<Integer[], Void, String[]>
+    public class FetchWordListTask extends AsyncTask<Integer[], Void, int[]>
     {
         @Override
-        protected String[] doInBackground(Integer[]... params)
+        protected int[] doInBackground(Integer[]... params)
         {
-            String[] columns = { WordEntry.COLUMN_WORD };
+            String[] columns = { WordEntry._ID };
             String selection = WordEntry.COLUMN_LEN + " >= ?"
                     + " AND " + WordEntry.COLUMN_LEN + " <= ?";
             String[] selectionArgs = { Integer.toString(params[0][0]),
@@ -147,9 +190,9 @@ public class PassphraseFragment extends Fragment
 
             int n = c.getCount();
 
-            String[] words = new String[n];
+            int[] words = new int[n];
             c.moveToFirst();
-            for (int i = 0; i < n; ++i, c.moveToNext()) words[i] = c.getString(0);
+            for (int i = 0; i < n; ++i, c.moveToNext()) words[i] = c.getInt(0);
 
             c.close();
             db.close();
@@ -157,10 +200,10 @@ public class PassphraseFragment extends Fragment
         }
 
         @Override
-        protected void onPostExecute(String[] result)
+        protected void onPostExecute(int[] result)
         {
-            mAsyncComplete = true;
-            mWords = result;
+            mWordIdsReady = true;
+            mWordIds = result;
         }
     }
 }
