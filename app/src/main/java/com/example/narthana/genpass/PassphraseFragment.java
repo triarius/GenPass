@@ -92,11 +92,7 @@ public class PassphraseFragment extends Fragment
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
-//        {
 //            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
-//            WordsParceable wordsParcel = new WordsParceable(mWords);
-//            outState.putParcelable(WORDS_TAG, wordsParcel);
-//        }
     }
 
     @Override
