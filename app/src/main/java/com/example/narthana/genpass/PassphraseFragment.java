@@ -49,7 +49,7 @@ public class PassphraseFragment extends Fragment
             mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
             if (mWordIds != null) mWordIdsReady = true;
         }
-        else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+        else new FetchWordListTask().execute(new int[] {minWordLength, maxWordLength});
     }
 
     @Nullable
@@ -64,27 +64,22 @@ public class PassphraseFragment extends Fragment
 
         if (mPassphrase != null) passText.setText(mPassphrase);
 
-        btnGenerate.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
+        btnGenerate.setOnClickListener((View view) -> {
+            if (mWordIdsReady)
             {
-                if (mWordIdsReady)
+                for (int i = 0; i < n; ++i)
                 {
-                    for (int i = 0; i < n; ++i)
-                    {
-                        int j = r.nextInt(mWordIds.length - i) + i; // random int in [i, words.length)
-                        swap(mWordIds, i, j);
-                    }
-                    mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
-                    passText.setText(mPassphrase);
+                    int j = r.nextInt(mWordIds.length - i) + i; // random int in [i, words.length)
+                    swap(mWordIds, i, j);
                 }
-                else Snackbar.make(
-                        rootView,
-                        R.string.dict_load_snack,
-                        Snackbar.LENGTH_SHORT
-                ).show();
+                mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
+                passText.setText(mPassphrase);
             }
+            else Snackbar.make(
+                    rootView,
+                    R.string.dict_load_snack,
+                    Snackbar.LENGTH_SHORT
+            ).show();
         });
 
         return rootView;
@@ -96,12 +91,6 @@ public class PassphraseFragment extends Fragment
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
-    }
-
-    @Override
-    public void onPause()
-    {
-        super.onPause();
     }
 
     private void swap(int[] array, int i, int j)
@@ -160,10 +149,10 @@ public class PassphraseFragment extends Fragment
 
 
     // Fetch the words in the background
-    public class FetchWordListTask extends AsyncTask<Integer[], Void, int[]>
+    public class FetchWordListTask extends AsyncTask<int[], Void, int[]>
     {
         @Override
-        protected int[] doInBackground(Integer[]... params)
+        protected int[] doInBackground(int[]... params)
         {
             String[] columns = { WordEntry._ID };
             String selection = WordEntry.COLUMN_LEN + " >= ?"
@@ -172,7 +161,7 @@ public class PassphraseFragment extends Fragment
                                        Integer.toString(params[0][1]) };
 //            Why can't we do this!
 //            String[] dimens = Arrays.stream(params[0])
-//                    .map(x -> Integer.toString(x))
+//                    .map(Integer::toString)
 //                    .toArray(String[]::new);
 
             SQLiteDatabase db = new PreBuiltWordDBHelper(getContext()).getReadableDatabase();
