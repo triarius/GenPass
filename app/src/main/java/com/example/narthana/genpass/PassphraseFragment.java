@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -95,7 +96,6 @@ public class PassphraseFragment extends Fragment
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
-//            outState.putStringArrayList(WORDS_TAG, new ArrayList<String>(Arrays.asList(mWords)));
     }
 
     @Override
@@ -114,6 +114,7 @@ public class PassphraseFragment extends Fragment
     private String createPhrase(int[] ids, String delim, int start, int end)
     {
         int n = end - start + 1;
+        if (n < 1) return "";
 
         // map the ids to Strings
         String[] selectionArgs = new String[n];
@@ -122,46 +123,39 @@ public class PassphraseFragment extends Fragment
         String selectionBase = WordEntry._ID + " = ?";
         String selectionDelim = " OR ";
 
-        StringBuilder selection = new StringBuilder(selectionBase);
-        for (int i = start + 1; i <= end; ++i)
-        {
-            selection.append(selectionDelim);
-            selection.append(selectionBase);
-        }
-
+        // create the WHERE clause of the SQL statement
+        String[] selectionList = new String[n];
+        for (int i = 0; i < n; ++i) selectionList[i] = selectionBase;
+        String selection = TextUtils.join(selectionDelim, selectionList);
 
         SQLiteDatabase db = new PreBuiltWordDBHelper(getActivity()).getReadableDatabase();
         Cursor c = db.query(
                 WordEntry.TABLE_NAME,
                 new String[] { WordEntry.COLUMN_WORD },
-                selection.toString(),
+                selection,
                 selectionArgs,
                 null,
                 null,
                 null
         );
 
+        // we should retrieve every word
         if (c.getCount() != n)
         {
-            Log.e(this.getClass().getSimpleName(), "Wrong size " + c.getCount());
-            Log.d(this.getClass().getSimpleName(), selection.toString());
-            Log.e(this.getClass().getSimpleName(), Arrays.toString(selectionArgs));
+            Log.e(getClass().getSimpleName(), "Wrong size " + c.getCount() + " " + n);
+            Log.d(getClass().getSimpleName(), selection);
+            Log.e(getClass().getSimpleName(), Arrays.toString(selectionArgs));
             return "error";
         }
 
-        StringBuilder builder = new StringBuilder();
-
+        // put the data in the cursor into an array so that it may be joined later
+        String[] passphraseList = new String[n];
         c.moveToFirst();
-        builder.append(c.getString(0));
-        for (int i = start + 1; i <= end; ++i)
-        {
-            c.moveToNext();
-            builder.append(delim);
-            builder.append(c.getString(0));
-        }
+        for (int i = 0; i < n; ++i, c.moveToNext()) passphraseList[i] = c.getString(0);
+
         c.close();
         db.close();
-        return builder.toString();
+        return TextUtils.join(delim, passphraseList);
     }
 
 
@@ -193,15 +187,19 @@ public class PassphraseFragment extends Fragment
                     null
             );
 
-            int n = c.getCount();
+            if (!c.moveToFirst())
+            {
+                Log.e(getClass().getSimpleName(), "Database Error");
+                return null;
+            }
 
-            int[] words = new int[n];
-            c.moveToFirst();
-            for (int i = 0; i < n; ++i, c.moveToNext()) words[i] = c.getInt(0);
+            int n = c.getCount();
+            int[] ids = new int[n];
+            for (int i = 0; i < n; ++i, c.moveToNext()) ids[i] = c.getInt(0);
 
             c.close();
             db.close();
-            return words;
+            return ids;
         }
 
         @Override
