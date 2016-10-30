@@ -40,10 +40,15 @@ public class PasswordFragment extends Fragment
 
         if (mPassText != null) passTextView.setText(mPassText);
 
-        btnGenerate.setOnClickListener((View view) -> {
-            int len = numChars();
-            mPassText = newPassword(len);
-            passTextView.setText(mPassText);
+        btnGenerate.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                int len = numChars();
+                mPassText = newPassword(len);
+                passTextView.setText(mPassText);
+            }
         });
 
         return rootView;
