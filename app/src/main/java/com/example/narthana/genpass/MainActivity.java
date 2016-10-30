@@ -1,6 +1,7 @@
 package com.example.narthana.genpass;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -22,8 +23,8 @@ public class MainActivity extends AppCompatActivity
     private final String PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment";
 
     private DrawerLayout mDrawer;
-    private PasswordFragment mPasswordFragment;
-    private PassphraseFragment mPassphraseFragment;
+//    private PasswordFragment mPasswordFragment;
+//    private PassphraseFragment mPassphraseFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,41 +49,63 @@ public class MainActivity extends AppCompatActivity
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        mDrawer.setDrawerListener(toggle);
+        mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-    }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
-    {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null)
+        if (savedInstanceState == null)
         {
-            mPasswordFragment = (PasswordFragment) getFragmentManager()
-                    .getFragment(savedInstanceState, PASSWORD_FRAGMENT_TAG);
-            mPassphraseFragment = (PassphraseFragment) getFragmentManager()
-                    .getFragment(savedInstanceState, PASSPHRASE_FRAGMENT_TAG);
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.content_frame, new PasswordFragment(), PASSWORD_FRAGMENT_TAG)
+                    .addToBackStack(PASSWORD_FRAGMENT_TAG)
+                    .commit();
+            navigationView.setCheckedItem(R.id.nav_password);
         }
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState)
-    {
-        super.onSaveInstanceState(outState);
-        if (mPasswordFragment != null && mPasswordFragment.isAdded())
-            getFragmentManager().putFragment(outState, PASSWORD_FRAGMENT_TAG, mPasswordFragment);
-        if (mPassphraseFragment != null && mPassphraseFragment.isAdded())
-            getFragmentManager().putFragment(outState, PASSPHRASE_FRAGMENT_TAG, mPassphraseFragment);
-    }
+//    @Override
+//    protected void onRestoreInstanceState(Bundle savedInstanceState)
+//    {
+//        super.onRestoreInstanceState(savedInstanceState);
+//        if (savedInstanceState != null)
+//        {
+//            mPasswordFragment = (PasswordFragment) getFragmentManager()
+//                    .getFragment(savedInstanceState, PASSWORD_FRAGMENT_TAG);
+//            mPassphraseFragment = (PassphraseFragment) getFragmentManager()
+//                    .getFragment(savedInstanceState, PASSPHRASE_FRAGMENT_TAG);
+//        }
+//    }
+//
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState)
+//    {
+//        super.onSaveInstanceState(outState);
+//        if (mPasswordFragment != null && mPasswordFragment.isAdded())
+//            getFragmentManager().putFragment(outState, PASSWORD_FRAGMENT_TAG, mPasswordFragment);
+//        if (mPassphraseFragment != null && mPassphraseFragment.isAdded())
+//            getFragmentManager().putFragment(outState, PASSPHRASE_FRAGMENT_TAG, mPassphraseFragment);
+//    }
 
     @Override
     public void onBackPressed()
     {
         if (mDrawer.isDrawerOpen(GravityCompat.START)) mDrawer.closeDrawer(GravityCompat.START);
-        else super.onBackPressed();
+//        else super.onBackPressed();
+        else
+        {
+//            FragmentManager fm = getFragmentManager();
+//            Fragment pwf = fm.findFragmentByTag(PASSWORD_FRAGMENT_TAG);
+//            if (pwf != null) fm.beginTransaction().remove(pwf).commit();
+//            Log.d(getClass().getSimpleName(), Boolean.toString(pwf == null));
+//            Fragment ppf = fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG);
+//            if (ppf != null) fm.beginTransaction().remove(pwf).commit();
+////            super.onBackPressed();
+//            fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+//            super.onBackPressed();
+            finish();
+        }
     }
 
     @Override
@@ -110,32 +133,38 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-//    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        FragmentManager fm = getFragmentManager();
+        PasswordFragment pwf = (PasswordFragment) fm.findFragmentByTag(PASSWORD_FRAGMENT_TAG);
+        if (pwf == null) pwf = new PasswordFragment();
+        PassphraseFragment ppf = (PassphraseFragment) fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG);
+        if (ppf == null) ppf = new PassphraseFragment();
 
-        Fragment fragment;
-        if (mPasswordFragment == null) mPasswordFragment = new PasswordFragment();
-        if (mPassphraseFragment == null) mPassphraseFragment = new PassphraseFragment();
-
-        switch (id)
+        switch (item.getItemId())
         {
             case R.id.nav_password:
-                fragment = mPasswordFragment;
+                addFragment(pwf, PASSWORD_FRAGMENT_TAG);
                 break;
             case R.id.nav_passphrase:
-                fragment = mPassphraseFragment;
+                addFragment(ppf, PASSPHRASE_FRAGMENT_TAG);
                 break;
             default:
                 return false;
         }
 
-        getFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commit();
-
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    private void addFragment(Fragment fragment, String tag)
+    {
+        getFragmentManager().beginTransaction()
+                .replace(R.id.content_frame, fragment, tag)
+                .addToBackStack(tag)
+                .commit();
     }
 }
