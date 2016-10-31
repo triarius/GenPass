@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 
 import java.io.InputStream;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by narthana on 23/10/16.
@@ -29,15 +29,12 @@ public class TestDB
             new ActivityTestRule<>(MainActivity.class);
 
     @Before
-    public void setUp()
-    {
-        mContext = mActivityRule.getActivity();
-    }
+    public void setUp() { mContext = mActivityRule.getActivity(); }
 
     @Test
     public void loadDictionary()
     {
-        InputStream dictionary = mContext.getResources().openRawResource(R.raw.default_dictionary);
+        InputStream dictionary = mContext.getResources().openRawResource(R.raw.english);
         Utility.loadDictionary(mContext, dictionary);
         SQLiteDatabase db = new NewWordDBHelper(mContext).getReadableDatabase();
         Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);

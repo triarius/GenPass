@@ -46,7 +46,7 @@ public class PassphraseFragment extends Fragment
         if (savedInstanceState != null)
         {
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
-            mWordIds = savedInstanceState.getIntArray(WORDS_TAG);
+            mWordIds = Utility.expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG));
             if (mWordIds != null) mWordIdsReady = true;
         }
         else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
@@ -95,7 +95,9 @@ public class PassphraseFragment extends Fragment
     {
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
-        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, mWordIds);
+        int[] compressed = Utility.compressWithRanges(mWordIds);
+        Log.d(getClass().getSimpleName(), mWordIds.length + " " + compressed.length);
+        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, compressed);
     }
 
     @Override
