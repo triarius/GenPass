@@ -1,7 +1,9 @@
 package com.example.narthana.genpass;
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -9,8 +11,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -35,10 +39,13 @@ public class PasswordFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         final View rootView = inflater.inflate(R.layout.fragment_password, container, false);
-        final TextView passTextView = (TextView) rootView.findViewById(R.id.textview_password);
+        final TextView tvPass = (TextView) rootView.findViewById(R.id.password_textview);
+        final TextView tvPassLength = (TextView) rootView.findViewById(R.id.password_length_textview);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
+        final SeekBar sbLength = (SeekBar) rootView.findViewById(R.id.password_length_seekbar);
 
-        if (mPassText != null) passTextView.setText(mPassText);
+        if (mPassText != null) tvPass.setText(mPassText);
+        setSeekBarText(tvPassLength, sbLength.getProgress());
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
@@ -47,8 +54,23 @@ public class PasswordFragment extends Fragment
             {
                 int len = numChars();
                 mPassText = newPassword(len);
-                passTextView.setText(mPassText);
+                tvPass.setText(mPassText);
             }
+        });
+
+        sbLength.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean user)
+            {
+                setSeekBarText(tvPassLength, progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         return rootView;
@@ -78,5 +100,15 @@ public class PasswordFragment extends Fragment
                 "numChars",
                 getActivity().getResources().getInteger(R.integer.pref_default_password_length)
         );
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private void setSeekBarText(TextView textView, int progress)
+    {
+        Locale locale = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) ?
+        getActivity().getResources().getConfiguration().getLocales().get(0) :
+        getResources().getConfiguration().locale;
+
+        textView.setText(String.format(Locale.CANADA, "%d", progress));
     }
 }
