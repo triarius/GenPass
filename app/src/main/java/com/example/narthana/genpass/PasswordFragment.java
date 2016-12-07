@@ -3,6 +3,7 @@ package com.example.narthana.genpass;
 import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -44,6 +45,10 @@ public class PasswordFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
         final SeekBar sbLength = (SeekBar) rootView.findViewById(R.id.password_length_seekbar);
 
+        final String pwlenTag = getActivity().getString(R.string.pref_password_length);
+        final SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         if (mPassText != null) tvPass.setText(mPassText);
         setSeekBarText(tvPassLength, sbLength.getProgress());
 
@@ -58,12 +63,19 @@ public class PasswordFragment extends Fragment
             }
         });
 
+        sbLength.setProgress(sharedPreferences.getInt(
+                pwlenTag,
+                getActivity().getResources().getInteger(R.integer.pref_default_password_length)
+        ));
         sbLength.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean user)
             {
                 setSeekBarText(tvPassLength, progress);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt(pwlenTag, progress);
+                editor.apply();
             }
 
             @Override
@@ -95,10 +107,11 @@ public class PasswordFragment extends Fragment
 
     private int numChars()
     {
+        Resources res = getActivity().getResources();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return prefs.getInt(
-                "numChars",
-                getActivity().getResources().getInteger(R.integer.pref_default_password_length)
+                res.getString(R.string.pref_password_length),
+                res.getInteger(R.integer.pref_default_password_length)
         );
     }
 
@@ -109,6 +122,6 @@ public class PasswordFragment extends Fragment
         getActivity().getResources().getConfiguration().getLocales().get(0) :
         getResources().getConfiguration().locale;
 
-        textView.setText(String.format(Locale.CANADA, "%d", progress));
+        textView.setText(String.format(locale, "%d", progress));
     }
 }
