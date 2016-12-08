@@ -49,24 +49,27 @@ public class PasswordFragment extends Fragment
         final SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(getActivity());
 
+        // Set texts
         if (mPassText != null) tvPass.setText(mPassText);
         setSeekBarText(tvPassLength, sbLength.getProgress());
 
+        // attach click listener to button
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                int len = numChars();
-                mPassText = newPassword(len);
+                mPassText = newPassword(numChars());
                 tvPass.setText(mPassText);
             }
         });
 
-        sbLength.setProgress(sharedPreferences.getInt(
-                pwlenTag,
-                getActivity().getResources().getInteger(R.integer.pref_default_password_length)
-        ));
+        // set slider to saved pw lenght
+        int defaultLength = numChars();
+        setSeekBarText(tvPassLength, defaultLength);
+        sbLength.setProgress(defaultLength);
+
+        // attach click listener to seek bar
         sbLength.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
