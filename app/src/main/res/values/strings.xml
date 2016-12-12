@@ -16,8 +16,23 @@
     <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>
     <string name="uppercase">QWERTYUIOPASDFGHJKLZXCVBNM</string>
     <string name="numeric">1234567890</string>
+    <string name="symbols">"~`!@#$%^*()-_+=\\|]}[{;:/?.,&amp;&apos;&lt;&gt;"\"</string>
 
     <string name="dict_load_snack">Please wait while the dictionary is loaded</string>
 
+    <string name="password_length">Length</string>
+    <string name="password_lower">Lowercase</string>
+    <string name="password_upper">Uppercase</string>
+    <string name="password_numeric">Numeric</string>
+    <string name="password_symbols">Symbols</string>
+
     <string name="pref_password_length">pwlen</string>
+    <string name="pref_password_lower_enabled">pwlowen</string>
+    <string name="pref_password_lower_mandatory">pwlowman</string>
+    <string name="pref_password_upper_enabled">pwupen</string>
+    <string name="pref_password_upper_mandatory">pwupman</string>
+    <string name="pref_password_numeric_enabled">pwnumen</string>
+    <string name="pref_password_numeric_mandatory">pwnumman</string>
+    <string name="pref_password_symbol_enabled">pwsymben</string>
+    <string name="pref_password_symbol_mandatory">pwsymbman</string>
 </resources>

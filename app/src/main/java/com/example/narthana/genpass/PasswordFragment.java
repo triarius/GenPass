@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -45,9 +47,26 @@ public class PasswordFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
         final SeekBar sbLength = (SeekBar) rootView.findViewById(R.id.password_length_seekbar);
 
-        final String pwlenTag = getActivity().getString(R.string.pref_password_length);
-        final SharedPreferences sharedPreferences =
+        final CheckBox cbLowerEn = (CheckBox) rootView.findViewById(R.id.password_lower_enabled);
+        final CheckBox cbLowerMan = (CheckBox) rootView.findViewById(R.id.password_lower_mandatory);
+        final CheckBox cbUpperEn = (CheckBox) rootView.findViewById(R.id.password_upper_enabled);
+        final CheckBox cbUpperMan = (CheckBox) rootView.findViewById(R.id.password_upper_mandatory);
+        final CheckBox cbNumEn = (CheckBox) rootView.findViewById(R.id.password_numeric_enabled);
+        final CheckBox cbNumMan = (CheckBox) rootView.findViewById(R.id.password_numeric_mandatory);
+        final CheckBox cbSymEn = (CheckBox) rootView.findViewById(R.id.password_symbols_enabled);
+        final CheckBox cbSymMan = (CheckBox) rootView.findViewById(R.id.password_symbols_mandatory);
+
+        final SharedPreferences prefs =
                 PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        final CheckBox[] checkBoxes = new CheckBox[]{cbLowerEn, cbUpperEn, cbNumEn, cbSymEn,
+                cbLowerMan, cbUpperMan, cbNumMan, cbSymMan};
+        final int[] prefIds = new int[] {R.string.pref_password_lower_enabled,
+                R.string.pref_password_upper_enabled, R.string.pref_password_numeric_enabled,
+                R.string.pref_password_symbol_enabled, R.string.pref_password_lower_mandatory,
+                R.string.pref_password_upper_mandatory, R.string.pref_password_numeric_mandatory,
+                R.string.pref_password_symbol_mandatory};
+        final boolean[] defaultValues = {true, true, true, false, false, false, false, false};
 
         // Set texts
         if (mPassText != null) tvPass.setText(mPassText);
@@ -59,25 +78,25 @@ public class PasswordFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                mPassText = newPassword(numChars());
+                mPassText = newPassword(numChars(), prefIds, defaultValues);
                 tvPass.setText(mPassText);
             }
         });
 
-        // set slider to saved pw lenght
+        // set slider to saved pw length
         int defaultLength = numChars();
         setSeekBarText(tvPassLength, defaultLength);
         sbLength.setProgress(defaultLength);
 
-        // attach click listener to seek bar
+        // seek bar click listener
         sbLength.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean user)
             {
                 setSeekBarText(tvPassLength, progress);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt(pwlenTag, progress);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt(getResources().getString(R.string.pref_password_length), progress);
                 editor.apply();
             }
 
@@ -87,6 +106,27 @@ public class PasswordFragment extends Fragment
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+
+
+        // set checkboxes
+
+
+        for (int i = 0; i < checkBoxes.length; ++i)
+        {
+            setCheckBoxToPref(checkBoxes[i], prefIds[i], defaultValues[i]);
+
+            final int j = i; // so we can access i from the inner class
+            checkBoxes[j].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+            {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+                {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean(getResources().getString(prefIds[j]), b);
+                    editor.apply();
+                }
+            });
+        }
 
         return rootView;
     }
@@ -98,10 +138,34 @@ public class PasswordFragment extends Fragment
         if (mPassText != null) outState.putString(PASSWORD_TAG, mPassText);
     }
 
-    private static String newPassword(int len)
+    private String newPassword(int len, int[] prefIds, boolean[] defaults)
     {
         Random r = new Random();
-        String charSet = "!@#$%^&*()_+1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:|\\\"ZXCVBNM<>?";
+        String charSet = "";
+
+        SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(getActivity());
+        Resources resources = getResources();
+
+        String lower = resources.getString(R.string.lowercase);
+        String upper = resources.getString(R.string.uppercase);
+        String numeric = resources.getString(R.string.numeric);
+        String symbols = resources.getString(R.string.symbols);
+
+        String[] charSets = new String[] {lower, upper, numeric, symbols};
+
+        boolean nonEmptyCharSet = false;
+
+        for (int i = 0; i < charSets.length; ++i)
+        {
+            if (prefs.getBoolean(resources.getString(prefIds[i]), defaults[i]))
+            {
+                charSet += charSets[i];
+                nonEmptyCharSet = true;
+            }
+        }
+
+        if (!nonEmptyCharSet) return "";
+
         char[] pass = new char[len];
         for (int i = 0; i < len; ++i)
             pass[i] = charSet.charAt(r.nextInt(charSet.length()));
@@ -126,5 +190,12 @@ public class PasswordFragment extends Fragment
         getResources().getConfiguration().locale;
 
         textView.setText(String.format(locale, "%d", progress));
+    }
+
+    private void setCheckBoxToPref(CheckBox cb, int prefIds, boolean fallback)
+    {
+        Resources res = getActivity().getResources();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        cb.setChecked(prefs.getBoolean(res.getString(prefIds), fallback));
     }
 }
