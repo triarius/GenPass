@@ -110,7 +110,6 @@ public class PasswordFragment extends Fragment
 
         // set checkboxes
 
-
         for (int i = 0; i < checkBoxes.length; ++i)
         {
             setCheckBoxToPref(checkBoxes[i], prefIds[i], defaultValues[i]);
