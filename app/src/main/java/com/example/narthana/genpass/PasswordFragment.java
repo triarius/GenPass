@@ -182,7 +182,7 @@ public class PasswordFragment extends Fragment
             }
         }
 
-        if (!nonEmptyCharSet) return "";
+        if (!nonEmptyCharSet) return "Please select at least one character class";
 
         char[] pass = new char[len];
         for (int i = 0; i < len; ++i)
