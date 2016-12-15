@@ -27,6 +27,7 @@ import java.util.Random;
 public class PasswordFragment extends Fragment
 {
     private final String PASSWORD_TAG = "password";
+    private final int NUM_CHARCLASSES = 4;
 
     private String mPassText;
 
@@ -66,7 +67,7 @@ public class PasswordFragment extends Fragment
                 R.string.pref_password_symbol_enabled, R.string.pref_password_lower_mandatory,
                 R.string.pref_password_upper_mandatory, R.string.pref_password_numeric_mandatory,
                 R.string.pref_password_symbol_mandatory};
-        final boolean[] defaultValues = {true, true, true, false, false, false, false, false};
+        final boolean[] defCBStates = {true, true, true, false, false, false, false, false};
 
         // Set texts
         if (mPassText != null) tvPass.setText(mPassText);
@@ -78,7 +79,7 @@ public class PasswordFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                mPassText = newPassword(numChars(), prefIds, defaultValues);
+                mPassText = newPassword(numChars(), prefIds, defCBStates);
                 tvPass.setText(mPassText);
             }
         });
@@ -108,11 +109,10 @@ public class PasswordFragment extends Fragment
         });
 
 
-        // set checkboxes
-
+        // create checkboxes
         for (int i = 0; i < checkBoxes.length; ++i)
         {
-            setCheckBoxToPref(checkBoxes[i], prefIds[i], defaultValues[i]);
+            setCheckBoxToPref(checkBoxes[i], prefIds[i], defCBStates[i]);
 
             final int j = i; // so we can access i from the inner class
             checkBoxes[j].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
@@ -120,11 +120,30 @@ public class PasswordFragment extends Fragment
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b)
                 {
+                    // if the checkbox is enabling, en/disable the corresponding mandating checkbox
+                    if (j < NUM_CHARCLASSES)
+                    {
+                        CheckBox manCB = checkBoxes[j + NUM_CHARCLASSES];
+                        manCB.setEnabled(b);
+                        if (!b) manCB.setChecked(b);
+                    }
+
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putBoolean(getResources().getString(prefIds[j]), b);
                     editor.apply();
                 }
             });
+
+            // if a mandating checkbox, dis/enable it if corresponding enabling cb is un/checked
+            if (i >= NUM_CHARCLASSES)
+            {
+                int enId = i - NUM_CHARCLASSES;
+                boolean enabled = prefs.getBoolean(
+                        getResources().getString(prefIds[enId]),
+                        defCBStates[enId]
+                );
+                checkBoxes[i].setEnabled(enabled);
+            }
         }
 
         return rootView;
@@ -173,11 +192,10 @@ public class PasswordFragment extends Fragment
 
     private int numChars()
     {
-        Resources res = getActivity().getResources();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return prefs.getInt(
-                res.getString(R.string.pref_password_length),
-                res.getInteger(R.integer.pref_default_password_length)
+                getResources().getString(R.string.pref_password_length),
+                getResources().getInteger(R.integer.pref_default_password_length)
         );
     }
 
@@ -185,15 +203,15 @@ public class PasswordFragment extends Fragment
     private void setSeekBarText(TextView textView, int progress)
     {
         Locale locale = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) ?
-        getActivity().getResources().getConfiguration().getLocales().get(0) :
-        getResources().getConfiguration().locale;
+            getResources().getConfiguration().getLocales().get(0) :
+            getResources().getConfiguration().locale;
 
         textView.setText(String.format(locale, "%d", progress));
     }
 
     private void setCheckBoxToPref(CheckBox cb, int prefIds, boolean fallback)
     {
-        Resources res = getActivity().getResources();
+        Resources res = getResources();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         cb.setChecked(prefs.getBoolean(res.getString(prefIds), fallback));
     }
