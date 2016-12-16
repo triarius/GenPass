@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by narthana on 22/10/16.
@@ -20,9 +21,10 @@ import java.util.List;
 
 class Utility
 {
+    private static Random r;
+
     static void loadDictionary(Context context, InputStream dictionary)
     {
-
         try (BufferedReader br = new BufferedReader(new InputStreamReader(dictionary));
              SQLiteDatabase db = new NewWordDBHelper(context).getWritableDatabase())
         {
@@ -83,5 +85,39 @@ class Utility
             }
         }
         return out;
+    }
+
+    static void shuffle(char[] array)
+    {
+        if (r == null) r = new Random();
+        for (int i = array.length - 1; i > 0; --i) swapChar(array, i, r.nextInt(i + 1));
+    }
+
+    // shuffle first n elements of the array
+    static void shuffleN(int[] array, int n)
+    {
+        if (r == null) r = new Random();
+        for (int i = 0; i < n; ++i)
+        {
+            int j = r.nextInt(array.length - i) + i; // random int in [i, words.length)
+            swapInt(array, i, j);
+        }
+    }
+
+    private static void swapChar(char[] array, int i, int j)
+    {
+        if (i != j)
+        {
+            char temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+
+    private static void swapInt(int[] array, int i, int j)
+    {
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
 }

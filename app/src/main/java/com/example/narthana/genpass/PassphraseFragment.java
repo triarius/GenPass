@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.example.narthana.genpass.WordContract.WordEntry;
 
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  * Created by narthana on 22/10/16.
@@ -56,8 +55,6 @@ public class PassphraseFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        final Random r = new Random();
-
         final View rootView = inflater.inflate(R.layout.fragment_passphrase, container, false);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
@@ -71,11 +68,7 @@ public class PassphraseFragment extends Fragment
             {
                 if (mWordIdsReady)
                 {
-                    for (int i = 0; i < n; ++i)
-                    {
-                        int j = r.nextInt(mWordIds.length - i) + i; // random int in [i, words.length)
-                        swap(mWordIds, i, j);
-                    }
+                    Utility.shuffleN(mWordIds, n);
                     mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
                     passText.setText(mPassphrase);
                 }
@@ -98,13 +91,6 @@ public class PassphraseFragment extends Fragment
         int[] compressed = Utility.compressWithRanges(mWordIds);
 //        Log.d(getClass().getSimpleName(), mWordIds.length + " " + compressed.length);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, compressed);
-    }
-
-    private void swap(int[] array, int i, int j)
-    {
-        int temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
     }
 
     private String createPhrase(int[] ids, String delim, int start, int end)

@@ -12,6 +12,8 @@
     <string name="default_password_text">Tap Generate for a new password</string>
     <string name="default_passphrase_text">Tap Generate for a new passphrase</string>
     <string name="generate">Generate</string>
+    <string name="empty_charset">Please select at least one character class</string>
+    <string name="too_many_mandates">The number of mandatory characters must be fewer than length of the password</string>
 
     <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>
     <string name="uppercase">QWERTYUIOPASDFGHJKLZXCVBNM</string>

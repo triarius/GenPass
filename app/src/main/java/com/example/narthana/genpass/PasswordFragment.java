@@ -159,35 +159,60 @@ public class PasswordFragment extends Fragment
     private String newPassword(int len, int[] prefIds, boolean[] defaults)
     {
         Random r = new Random();
-        String charSet = "";
+        StringBuilder charSetBldr = new StringBuilder();
 
-        SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(getActivity());
-        Resources resources = getResources();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        Resources res = getResources();
 
-        String lower = resources.getString(R.string.lowercase);
-        String upper = resources.getString(R.string.uppercase);
-        String numeric = resources.getString(R.string.numeric);
-        String symbols = resources.getString(R.string.symbols);
+        String lower = res.getString(R.string.lowercase);
+        String upper = res.getString(R.string.uppercase);
+        String numeric = res.getString(R.string.numeric);
+        String symbols = res.getString(R.string.symbols);
+        String[] charSets = new String[]{lower, upper, numeric, symbols};
 
-        String[] charSets = new String[] {lower, upper, numeric, symbols};
-
-        boolean nonEmptyCharSet = false;
-
-        for (int i = 0; i < charSets.length; ++i)
+        // create charset to draw from
+        boolean emptyCharSet = true;
+        for (int i = 0; i < NUM_CHARCLASSES; ++i)
         {
-            if (prefs.getBoolean(resources.getString(prefIds[i]), defaults[i]))
+            if (prefs.getBoolean(res.getString(prefIds[i]), defaults[i]))
             {
-                charSet += charSets[i];
-                nonEmptyCharSet = true;
+                charSetBldr.append(charSets[i]);
+                emptyCharSet = false;
             }
         }
 
-        if (!nonEmptyCharSet) return "Please select at least one character class";
+        // the user has not checked any character classes to add to the charset
+        if (emptyCharSet) return res.getString(R.string.empty_charset);
 
-        char[] pass = new char[len];
-        for (int i = 0; i < len; ++i)
-            pass[i] = charSet.charAt(r.nextInt(charSet.length()));
-        return new String(pass);
+        // collect the mandatory preferences into an array, and count them
+        boolean[] mandates = new boolean[NUM_CHARCLASSES];
+        int numMadates = 0;
+        for (int i = 0; i < NUM_CHARCLASSES; ++i)
+        {
+            mandates[i] = prefs.getBoolean(
+                    res.getString(prefIds[i + NUM_CHARCLASSES]),
+                    defaults[i + NUM_CHARCLASSES]
+            );
+            if (mandates[i]) ++numMadates;
+        }
+
+        // TODO: prevent the UI from allowing this to occur
+        if (numMadates > len) return res.getString(R.string.too_many_mandates);
+
+        // select the mandated characters
+        char[] password = new char[len];
+        int pos = 0;
+        for (int i = 0; i < NUM_CHARCLASSES; ++i)
+            if (mandates[i]) password[pos++] = charSets[i].charAt(r.nextInt(charSets[i].length()));
+
+        // fill out rest of the password with arbitrary chars from the entire set
+        String charSet = charSetBldr.toString();
+        for (; pos < len; ++pos) password[pos] = charSet.charAt(r.nextInt(charSet.length()));
+
+        // shuffle the password so that the mandatory characters are in random positions
+        Utility.shuffle(password);
+
+        return new String(password);
     }
 
     private int numChars()
