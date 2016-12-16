@@ -96,14 +96,8 @@ public class PassphraseFragment extends Fragment
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         int[] compressed = Utility.compressWithRanges(mWordIds);
-        Log.d(getClass().getSimpleName(), mWordIds.length + " " + compressed.length);
+//        Log.d(getClass().getSimpleName(), mWordIds.length + " " + compressed.length);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, compressed);
-    }
-
-    @Override
-    public void onPause()
-    {
-        super.onPause();
     }
 
     private void swap(int[] array, int i, int j)
