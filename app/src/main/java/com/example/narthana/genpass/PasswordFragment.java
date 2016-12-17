@@ -27,7 +27,7 @@ import java.util.Random;
 public class PasswordFragment extends Fragment
 {
     private final String PASSWORD_TAG = "password";
-    private final int NUM_CHARCLASSES = 4;
+    private final int NUM_CHAR_SUBSETS = 4;
 
     private String mPassText;
 
@@ -121,9 +121,9 @@ public class PasswordFragment extends Fragment
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b)
                 {
                     // if the checkbox is enabling, en/disable the corresponding mandating checkbox
-                    if (j < NUM_CHARCLASSES)
+                    if (j < NUM_CHAR_SUBSETS)
                     {
-                        CheckBox manCB = checkBoxes[j + NUM_CHARCLASSES];
+                        CheckBox manCB = checkBoxes[j + NUM_CHAR_SUBSETS];
                         manCB.setEnabled(b);
                         if (!b) manCB.setChecked(b);
                     }
@@ -135,9 +135,9 @@ public class PasswordFragment extends Fragment
             });
 
             // if a mandating checkbox, dis/enable it if corresponding enabling cb is un/checked
-            if (i >= NUM_CHARCLASSES)
+            if (i >= NUM_CHAR_SUBSETS)
             {
-                int enId = i - NUM_CHARCLASSES;
+                int enId = i - NUM_CHAR_SUBSETS;
                 boolean enabled = prefs.getBoolean(
                         getResources().getString(prefIds[enId]),
                         defCBStates[enId]
@@ -168,30 +168,30 @@ public class PasswordFragment extends Fragment
         String upper = res.getString(R.string.uppercase);
         String numeric = res.getString(R.string.numeric);
         String symbols = res.getString(R.string.symbols);
-        String[] charSets = new String[]{lower, upper, numeric, symbols};
+        String[] charSubsets = new String[]{lower, upper, numeric, symbols};
 
         // create charset to draw from
         boolean emptyCharSet = true;
-        for (int i = 0; i < NUM_CHARCLASSES; ++i)
+        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
         {
             if (prefs.getBoolean(res.getString(prefIds[i]), defaults[i]))
             {
-                charSetBldr.append(charSets[i]);
+                charSetBldr.append(charSubsets[i]);
                 emptyCharSet = false;
             }
         }
 
-        // the user has not checked any character classes to add to the charset
+        // the user has not checked any char subsets to add to the charset
         if (emptyCharSet) return res.getString(R.string.empty_charset);
 
         // collect the mandatory preferences into an array, and count them
-        boolean[] mandates = new boolean[NUM_CHARCLASSES];
+        boolean[] mandates = new boolean[NUM_CHAR_SUBSETS];
         int numMadates = 0;
-        for (int i = 0; i < NUM_CHARCLASSES; ++i)
+        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
         {
             mandates[i] = prefs.getBoolean(
-                    res.getString(prefIds[i + NUM_CHARCLASSES]),
-                    defaults[i + NUM_CHARCLASSES]
+                    res.getString(prefIds[i + NUM_CHAR_SUBSETS]),
+                    defaults[i + NUM_CHAR_SUBSETS]
             );
             if (mandates[i]) ++numMadates;
         }
@@ -202,8 +202,8 @@ public class PasswordFragment extends Fragment
         // select the mandated characters
         char[] password = new char[len];
         int pos = 0;
-        for (int i = 0; i < NUM_CHARCLASSES; ++i)
-            if (mandates[i]) password[pos++] = charSets[i].charAt(r.nextInt(charSets[i].length()));
+        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
+            if (mandates[i]) password[pos++] = charSubsets[i].charAt(r.nextInt(charSubsets[i].length()));
 
         // fill out rest of the password with arbitrary chars from the entire set
         String charSet = charSetBldr.toString();

@@ -88,9 +88,7 @@ public class PassphraseFragment extends Fragment
     {
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
-        int[] compressed = Utility.compressWithRanges(mWordIds);
-//        Log.d(getClass().getSimpleName(), mWordIds.length + " " + compressed.length);
-        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, compressed);
+        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, Utility.compressWithRanges(mWordIds));
     }
 
     private String createPhrase(int[] ids, String delim, int start, int end)
@@ -157,7 +155,7 @@ public class PassphraseFragment extends Fragment
 //                    .map(x -> Integer.toString(x))
 //                    .toArray(String[]::new);
 
-            SQLiteDatabase db = new PreBuiltWordDBHelper(getContext()).getReadableDatabase();
+            SQLiteDatabase db = new PreBuiltWordDBHelper(getActivity()).getReadableDatabase();
 
             Cursor c = db.query(
                     WordEntry.TABLE_NAME,
