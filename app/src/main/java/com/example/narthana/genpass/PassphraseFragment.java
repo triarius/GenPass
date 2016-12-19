@@ -1,6 +1,9 @@
 package com.example.narthana.genpass;
 
 import android.app.Fragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -77,6 +80,21 @@ public class PassphraseFragment extends Fragment
                         R.string.dict_load_snack,
                         Snackbar.LENGTH_SHORT
                 ).show();
+            }
+        });
+
+        passText.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                ClipboardManager clipboard = (ClipboardManager)
+                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(
+                        getString(R.string.clipboard_text),
+                        passText.getText()
+                );
+                clipboard.setPrimaryClip(clip);
             }
         });
 

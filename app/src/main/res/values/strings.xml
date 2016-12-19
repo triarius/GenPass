@@ -22,6 +22,8 @@
 
     <string name="dict_load_snack">Please wait while the dictionary is loaded</string>
 
+    <string name="clipboard_text">password</string>
+
     <string name="password_length">Length</string>
     <string name="password_lower">Lowercase</string>
     <string name="password_upper">Uppercase</string>

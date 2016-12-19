@@ -2,6 +2,9 @@ package com.example.narthana.genpass;
 
 import android.annotation.TargetApi;
 import android.app.Fragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Build;
@@ -72,6 +75,21 @@ public class PasswordFragment extends Fragment
         // Set texts
         if (mPassText != null) tvPass.setText(mPassText);
         setSeekBarText(tvPassLength, sbLength.getProgress());
+
+        tvPass.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                ClipboardManager clipboard = (ClipboardManager)
+                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(
+                        getString(R.string.clipboard_text),
+                        tvPass.getText()
+                );
+                clipboard.setPrimaryClip(clip);
+            }
+        });
 
         // attach click listener to button
         btnGenerate.setOnClickListener(new View.OnClickListener()
