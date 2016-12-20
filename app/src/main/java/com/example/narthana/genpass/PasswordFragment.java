@@ -6,7 +6,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -127,7 +126,7 @@ public class PasswordFragment extends Fragment
             {
                 setSeekBarText(tvPassLength, progress);
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt(getResources().getString(R.string.pref_password_length), progress);
+                editor.putInt(getString(R.string.pref_password_length), progress);
                 editor.apply();
             }
 
@@ -159,7 +158,7 @@ public class PasswordFragment extends Fragment
                     }
 
                     SharedPreferences.Editor editor = prefs.edit();
-                    editor.putBoolean(getResources().getString(prefIds[j]), b);
+                    editor.putBoolean(getString(prefIds[j]), b);
                     editor.apply();
                 }
             });
@@ -168,10 +167,7 @@ public class PasswordFragment extends Fragment
             if (i >= NUM_CHAR_SUBSETS)
             {
                 int enId = i - NUM_CHAR_SUBSETS;
-                boolean enabled = prefs.getBoolean(
-                        getResources().getString(prefIds[enId]),
-                        defCBStates[enId]
-                );
+                boolean enabled = prefs.getBoolean(getString(prefIds[enId]), defCBStates[enId]);
                 checkBoxes[i].setEnabled(enabled);
             }
         }
@@ -193,19 +189,18 @@ public class PasswordFragment extends Fragment
         StringBuilder charSetBldr = new StringBuilder();
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        Resources res = getResources();
 
-        String lower = res.getString(R.string.lowercase);
-        String upper = res.getString(R.string.uppercase);
-        String numeric = res.getString(R.string.numeric);
-        String symbols = res.getString(R.string.symbols);
+        String lower = getString(R.string.lowercase);
+        String upper = getString(R.string.uppercase);
+        String numeric = getString(R.string.numeric);
+        String symbols = getString(R.string.symbols);
         String[] charSubsets = new String[]{lower, upper, numeric, symbols};
 
         // create charset to draw from
         boolean emptyCharSet = true;
         for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
         {
-            if (prefs.getBoolean(res.getString(prefIds[i]), defaults[i]))
+            if (prefs.getBoolean(getString(prefIds[i]), defaults[i]))
             {
                 charSetBldr.append(charSubsets[i]);
                 emptyCharSet = false;
@@ -213,7 +208,7 @@ public class PasswordFragment extends Fragment
         }
 
         // the user has not checked any char subsets to add to the charset
-        if (emptyCharSet) return res.getString(R.string.empty_charset);
+        if (emptyCharSet) return getString(R.string.empty_charset);
 
         // collect the mandatory preferences into an array, and count them
         boolean[] mandates = new boolean[NUM_CHAR_SUBSETS];
@@ -221,14 +216,14 @@ public class PasswordFragment extends Fragment
         for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
         {
             mandates[i] = prefs.getBoolean(
-                    res.getString(prefIds[i + NUM_CHAR_SUBSETS]),
+                    getString(prefIds[i + NUM_CHAR_SUBSETS]),
                     defaults[i + NUM_CHAR_SUBSETS]
             );
             if (mandates[i]) ++numMadates;
         }
 
         // TODO: prevent the UI from allowing this to occur
-        if (numMadates > len) return res.getString(R.string.too_many_mandates);
+        if (numMadates > len) return getString(R.string.too_many_mandates);
 
         // select the mandated characters
         char[] password = new char[len];
@@ -250,7 +245,7 @@ public class PasswordFragment extends Fragment
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return prefs.getInt(
-                getResources().getString(R.string.pref_password_length),
+                getString(R.string.pref_password_length),
                 getResources().getInteger(R.integer.pref_default_password_length)
         );
     }
@@ -267,8 +262,7 @@ public class PasswordFragment extends Fragment
 
     private void setCheckBoxToPref(CheckBox cb, int prefIds, boolean fallback)
     {
-        Resources res = getResources();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        cb.setChecked(prefs.getBoolean(res.getString(prefIds), fallback));
+        cb.setChecked(prefs.getBoolean(getString(prefIds), fallback));
     }
 }
