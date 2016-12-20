@@ -30,9 +30,11 @@ public class PassphraseFragment extends Fragment
 {
     private final String WORDS_TAG = "words";
     private final String PASSPHRASE_TAG = "passphrase";
+    private final String COPYABLE_TAG = "copyable";
 
     private int[] mWordIds;
     private boolean mWordIdsReady;
+    private boolean mPassphraseCopyable = false;
     private String mPassphrase;
 
     // TODO: put these in preferences
@@ -47,6 +49,7 @@ public class PassphraseFragment extends Fragment
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
         {
+            mPassphraseCopyable = savedInstanceState.getBoolean(COPYABLE_TAG);
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
             mWordIds = Utility.expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG));
             if (mWordIds != null) mWordIdsReady = true;
@@ -74,6 +77,7 @@ public class PassphraseFragment extends Fragment
                     Utility.shuffleN(mWordIds, n);
                     mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
                     passText.setText(mPassphrase);
+                    mPassphraseCopyable = true;
                 }
                 else Snackbar.make(
                         rootView,
@@ -88,13 +92,16 @@ public class PassphraseFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ClipboardManager clipboard = (ClipboardManager)
-                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(
-                        getString(R.string.clipboard_text),
-                        passText.getText()
-                );
-                clipboard.setPrimaryClip(clip);
+                if (mPassphraseCopyable)
+                {
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText(
+                            getString(R.string.clipboard_text),
+                            passText.getText()
+                    );
+                    clipboard.setPrimaryClip(clip);
+                }
             }
         });
 

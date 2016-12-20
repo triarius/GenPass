@@ -30,15 +30,21 @@ import java.util.Random;
 public class PasswordFragment extends Fragment
 {
     private final String PASSWORD_TAG = "password";
+    private final String COPYABLE_TAG = "copyable";
     private final int NUM_CHAR_SUBSETS = 4;
 
+    private boolean mPasswordCopyable = false;
     private String mPassText;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) mPassText = savedInstanceState.getString(PASSWORD_TAG);
+        if (savedInstanceState != null)
+        {
+            mPassText = savedInstanceState.getString(PASSWORD_TAG);
+            mPasswordCopyable = savedInstanceState.getBoolean(COPYABLE_TAG);
+        }
     }
 
     @Nullable
@@ -47,7 +53,8 @@ public class PasswordFragment extends Fragment
     {
         final View rootView = inflater.inflate(R.layout.fragment_password, container, false);
         final TextView tvPass = (TextView) rootView.findViewById(R.id.password_textview);
-        final TextView tvPassLength = (TextView) rootView.findViewById(R.id.password_length_textview);
+        final TextView tvPassLength =
+                (TextView) rootView.findViewById(R.id.password_length_textview);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
         final SeekBar sbLength = (SeekBar) rootView.findViewById(R.id.password_length_seekbar);
 
@@ -76,18 +83,22 @@ public class PasswordFragment extends Fragment
         if (mPassText != null) tvPass.setText(mPassText);
         setSeekBarText(tvPassLength, sbLength.getProgress());
 
+        // set listener to copy password
         tvPass.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                ClipboardManager clipboard = (ClipboardManager)
-                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(
-                        getString(R.string.clipboard_text),
-                        tvPass.getText()
-                );
-                clipboard.setPrimaryClip(clip);
+                if (mPasswordCopyable)
+                {
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText(
+                            getString(R.string.clipboard_text),
+                            tvPass.getText()
+                    );
+                    clipboard.setPrimaryClip(clip);
+                }
             }
         });
 
@@ -97,6 +108,7 @@ public class PasswordFragment extends Fragment
             @Override
             public void onClick(View v)
             {
+                mPasswordCopyable = true;
                 mPassText = newPassword(numChars(), prefIds, defCBStates);
                 tvPass.setText(mPassText);
             }
@@ -143,7 +155,7 @@ public class PasswordFragment extends Fragment
                     {
                         CheckBox manCB = checkBoxes[j + NUM_CHAR_SUBSETS];
                         manCB.setEnabled(b);
-                        if (!b) manCB.setChecked(b);
+                        if (!b) manCB.setChecked(false);
                     }
 
                     SharedPreferences.Editor editor = prefs.edit();
@@ -172,6 +184,7 @@ public class PasswordFragment extends Fragment
     {
         super.onSaveInstanceState(outState);
         if (mPassText != null) outState.putString(PASSWORD_TAG, mPassText);
+        outState.putBoolean(COPYABLE_TAG, mPasswordCopyable);
     }
 
     private String newPassword(int len, int[] prefIds, boolean[] defaults)
