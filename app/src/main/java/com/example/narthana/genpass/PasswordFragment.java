@@ -141,8 +141,10 @@ public class PasswordFragment extends Fragment
         // create checkboxes
         for (int i = 0; i < checkBoxes.length; ++i)
         {
-            setCheckBoxToPref(checkBoxes[i], prefIds[i], defCBStates[i]);
+            // set the checked state to match the preference
+            checkBoxes[i].setChecked(prefs.getBoolean(getString(prefIds[i]), defCBStates[i]));
 
+            // set the click listener
             final int j = i; // so we can access i from the inner class
             checkBoxes[j].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
             {
@@ -166,9 +168,11 @@ public class PasswordFragment extends Fragment
             // if a mandating checkbox, dis/enable it if corresponding enabling cb is un/checked
             if (i >= NUM_CHAR_SUBSETS)
             {
-                int enId = i - NUM_CHAR_SUBSETS;
-                boolean enabled = prefs.getBoolean(getString(prefIds[enId]), defCBStates[enId]);
-                checkBoxes[i].setEnabled(enabled);
+                int corrEnablingId = i - NUM_CHAR_SUBSETS;
+                checkBoxes[i].setEnabled(prefs.getBoolean(
+                        getString(prefIds[corrEnablingId]),
+                        defCBStates[corrEnablingId])
+                );
             }
         }
 
@@ -258,11 +262,5 @@ public class PasswordFragment extends Fragment
             getResources().getConfiguration().locale;
 
         textView.setText(String.format(locale, "%d", progress));
-    }
-
-    private void setCheckBoxToPref(CheckBox cb, int prefIds, boolean fallback)
-    {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        cb.setChecked(prefs.getBoolean(getString(prefIds), fallback));
     }
 }
