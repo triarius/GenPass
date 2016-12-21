@@ -29,15 +29,15 @@
     <string name="password_numeric">Numeric</string>
     <string name="password_symbols">Symbols</string>
 
-    <string name="clipboard_text">password</string>
+    <string name="clipboard_text" translatable="false">password</string>
 
-    <string name="pref_password_length">pwlen</string>
-    <string name="pref_password_lower_enabled">pwlowen</string>
-    <string name="pref_password_lower_mandatory">pwlowman</string>
-    <string name="pref_password_upper_enabled">pwupen</string>
-    <string name="pref_password_upper_mandatory">pwupman</string>
-    <string name="pref_password_numeric_enabled">pwnumen</string>
-    <string name="pref_password_numeric_mandatory">pwnumman</string>
-    <string name="pref_password_symbol_enabled">pwsymben</string>
-    <string name="pref_password_symbol_mandatory">pwsymbman</string>
+    <string name="pref_password_length" translatable="false">pwlen</string>
+    <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
+    <string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>
+    <string name="pref_password_upper_enabled" translatable="false">pwupen</string>
+    <string name="pref_password_upper_mandatory" translatable="false">pwupman</string>
+    <string name="pref_password_numeric_enabled" translatable="false">pwnumen</string>
+    <string name="pref_password_numeric_mandatory" translatable="false">pwnumman</string>
+    <string name="pref_password_symbol_enabled" translatable="false">pwsymben</string>
+    <string name="pref_password_symbol_mandatory" translatable="false">pwsymbman</string>
 </resources>
