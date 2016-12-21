@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +52,7 @@ public class PasswordFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         final View rootView = inflater.inflate(R.layout.fragment_password, container, false);
+
         final TextView tvPass = (TextView) rootView.findViewById(R.id.password_textview);
         final TextView tvPassLength =
                 (TextView) rootView.findViewById(R.id.password_length_textview);
@@ -108,8 +110,9 @@ public class PasswordFragment extends Fragment
             public void onClick(View v)
             {
                 mPasswordCopyable = true;
-                mPassText = newPassword(numChars(), prefIds, defCBStates);
-                tvPass.setText(mPassText);
+                mPassText = newPassword(numChars(), prefIds, defCBStates, rootView);
+
+                if (mPassText != null) tvPass.setText(mPassText);
             }
         });
 
@@ -187,8 +190,14 @@ public class PasswordFragment extends Fragment
         outState.putBoolean(COPYABLE_TAG, mPasswordCopyable);
     }
 
-    private String newPassword(int len, int[] prefIds, boolean[] defaults)
+    private String newPassword(int len, int[] prefIds, boolean[] defaults, View rootView)
     {
+        if (len < 1)
+        {
+            Snackbar.make(rootView, R.string.zero_length, Snackbar.LENGTH_SHORT).show();
+            return "";
+        }
+
         Random r = new Random();
         StringBuilder charSetBldr = new StringBuilder();
 
@@ -212,7 +221,11 @@ public class PasswordFragment extends Fragment
         }
 
         // the user has not checked any char subsets to add to the charset
-        if (emptyCharSet) return getString(R.string.empty_charset);
+        if (emptyCharSet)
+        {
+            Snackbar.make(rootView, R.string.empty_charset, Snackbar.LENGTH_SHORT).show();
+            return null;
+        }
 
         // collect the mandatory preferences into an array, and count them
         boolean[] mandates = new boolean[NUM_CHAR_SUBSETS];
@@ -227,7 +240,11 @@ public class PasswordFragment extends Fragment
         }
 
         // TODO: prevent the UI from allowing this to occur
-        if (numMadates > len) return getString(R.string.too_many_mandates);
+        if (numMadates > len)
+        {
+            Snackbar.make(rootView, R.string.too_many_mandates, Snackbar.LENGTH_SHORT).show();
+            return null;
+        }
 
         // select the mandated characters
         char[] password = new char[len];
