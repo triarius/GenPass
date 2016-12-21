@@ -9,7 +9,7 @@
         android:text="@string/default_passphrase_text"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:textAlignment="center"
+        android:gravity="center"
         android:fontFamily="serif-monospace"
         android:layout_alignParentTop="true"/>
 
