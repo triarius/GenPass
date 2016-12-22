@@ -101,6 +101,7 @@ public class PassphraseFragment extends Fragment
                             passText.getText()
                     );
                     clipboard.setPrimaryClip(clip);
+                    Snackbar.make(rootView, R.string.copy_msg, Snackbar.LENGTH_SHORT).show();
                 }
             }
         });

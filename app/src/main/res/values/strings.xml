@@ -26,6 +26,7 @@
     <string name="empty_charset">Please select at least one character class</string>
     <string name="too_many_mandates">The number of mandatory characters must be fewer than length of the password</string>
     <string name="zero_length">You selected a length of zero</string>
+    <string name="copy_msg">Copied to clipboard</string>
 
     <string name="password_length">Length</string>
     <string name="password_lower">Lowercase</string>

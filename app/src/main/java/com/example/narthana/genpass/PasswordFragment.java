@@ -99,6 +99,7 @@ public class PasswordFragment extends Fragment
                             tvPass.getText()
                     );
                     clipboard.setPrimaryClip(clip);
+                    Snackbar.make(rootView, R.string.copy_msg, Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
