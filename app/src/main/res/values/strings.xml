@@ -10,6 +10,9 @@
     <string name="nav_password">Password</string>
     <string name="nav_passphrase">Passphrase</string>
 
+    <string name="password_enabled">Enabled</string>
+    <string name="password_mandatory">Mandatory</string>
+
     <string name="default_password_text">Tap Generate for a new password</string>
     <string name="default_passphrase_text">Tap Generate for a new passphrase</string>
     <string name="generate">Generate</string>
