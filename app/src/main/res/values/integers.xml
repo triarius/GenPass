@@ -2,5 +2,5 @@
 <resources>
     <integer name="pref_max_password_length">128</integer>
     <integer name="pref_default_password_length">32</integer>
-    <integer name="pref_default_passphrase_length">4</integer>
+    <integer name="pref_default_passphrase_num_words">4</integer>
 </resources>

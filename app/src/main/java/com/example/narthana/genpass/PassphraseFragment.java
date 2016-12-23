@@ -4,18 +4,25 @@ import android.app.Fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.narthana.genpass.WordContract.WordEntry;
@@ -38,10 +45,10 @@ public class PassphraseFragment extends Fragment
     private String mPassphrase;
 
     // TODO: put these in preferences
-    private final int n = 4;
+//    private final int n = 4;
     private final int maxWordLength = 10;
     private final int minWordLength = 5;
-    private final String delim = " ";
+//    private final String delim = " ";
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -65,7 +72,33 @@ public class PassphraseFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
+        final EditText etDelim = (EditText) rootView.findViewById(R.id.delimiter_edit_text);
+        final EditText etNumWords = (EditText) rootView.findViewById(R.id.num_words_edit_text);
+        final CheckBox cbForceCap = (CheckBox) rootView.findViewById(R.id.force_cap_checkbox);
+
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         if (mPassphrase != null) passText.setText(mPassphrase);
+
+
+        etDelim.setText(prefs.getString(
+                getString(R.string.pref_passphrase_delimiter),
+                getString(R.string.passphrase_default_delimiter)
+        ));
+
+        etNumWords.setText(String.valueOf(prefs.getInt(
+                getString(R.string.pref_passphrase_num_words),
+                getResources().getInteger(R.integer.pref_default_passphrase_num_words)
+        )));
+
+        cbForceCap.setChecked(prefs.getBoolean(
+                getString(R.string.pref_passphrase_force_cap),
+                false
+        ));
+
+
+        // set click listeners
 
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
@@ -74,8 +107,20 @@ public class PassphraseFragment extends Fragment
             {
                 if (mWordIdsReady)
                 {
+                    int n = prefs.getInt(
+                            getString(R.string.pref_passphrase_num_words),
+                            getResources().getInteger(R.integer.pref_default_passphrase_num_words)
+                    );
+                    String delim = prefs.getString(
+                            getString(R.string.pref_passphrase_delimiter),
+                            getString(R.string.passphrase_default_delimiter)
+                    );
+                    boolean cap = prefs.getBoolean(
+                            getString(R.string.pref_passphrase_force_cap),
+                            false
+                    );
                     Utility.shuffleN(mWordIds, n);
-                    mPassphrase = createPhrase(mWordIds, delim, 0, n - 1);
+                    mPassphrase = createPhrase(mWordIds, delim, cap, 0, n - 1);
                     passText.setText(mPassphrase);
                     mPassphraseCopyable = true;
                 }
@@ -106,6 +151,56 @@ public class PassphraseFragment extends Fragment
             }
         });
 
+        etDelim.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+                prefs.edit().putString(
+                        getString(R.string.pref_passphrase_delimiter),
+                        s.toString()
+                ).apply();
+            }
+        });
+
+        etNumWords.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable e)
+            {
+                String s = e.toString();
+                if (!s.equals(""))
+                    prefs.edit().putInt(
+                            getString(R.string.pref_passphrase_num_words),
+                            Integer.parseInt(s)
+                    ).apply();
+            }
+        });
+
+        cbForceCap.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+            {
+                prefs.edit().putBoolean(
+                        getString(R.string.pref_passphrase_force_cap),
+                        isChecked
+                ).apply();
+            }
+        });
+
         return rootView;
     }
 
@@ -117,7 +212,7 @@ public class PassphraseFragment extends Fragment
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, Utility.compressWithRanges(mWordIds));
     }
 
-    private String createPhrase(int[] ids, String delim, int start, int end)
+    private String createPhrase(int[] ids, String delim, boolean cap, int start, int end)
     {
         int n = end - start + 1;
         if (n < 1) return "";
@@ -158,6 +253,10 @@ public class PassphraseFragment extends Fragment
         String[] passphraseList = new String[n];
         c.moveToFirst();
         for (int i = 0; i < n; ++i, c.moveToNext()) passphraseList[i] = c.getString(0);
+
+        if (cap) for (int i = 0; i < n; ++i)
+            passphraseList[i] = passphraseList[i].substring(0, 1).toUpperCase()
+                    + passphraseList[i].substring(1);
 
         c.close();
         db.close();
