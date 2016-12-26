@@ -13,7 +13,7 @@
         android:fontFamily="serif-monospace"
         android:layout_alignParentTop="true"/>
 
-    <!--Todo: use the preferenece framework-->
+    <!--Todo: use the preference framework-->
 
     <TableLayout
         android:layout_width="match_parent"
@@ -69,7 +69,7 @@
     <Button
         android:id="@id/button_generate_passphrase"
         android:text="@string/generate"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/password_spacer"/>
 
