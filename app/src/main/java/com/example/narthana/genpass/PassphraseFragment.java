@@ -210,6 +210,7 @@ public class PassphraseFragment extends Fragment
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, Utility.compressWithRanges(mWordIds));
+        outState.putBoolean(COPYABLE_TAG, mPassphraseCopyable);
     }
 
     private String createPhrase(int[] ids, String delim, boolean cap, int start, int end)
