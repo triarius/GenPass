@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/textview_passphrase"
@@ -10,15 +11,13 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:gravity="center"
-        android:fontFamily="serif-monospace"
-        android:layout_alignParentTop="true"/>
+        android:fontFamily="serif-monospace"/>
 
     <!--Todo: use the preference framework-->
 
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button_generate_passphrase"
         android:stretchColumns="0">
 
         <TableRow>
@@ -67,16 +66,10 @@
     </TableLayout>
 
     <Button
-        android:id="@id/button_generate_passphrase"
+        android:id="@+id/button_generate_passphrase"
         android:text="@string/generate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/password_spacer"/>
+        android:layout_gravity="center_horizontal"/>
 
-    <Space
-        android:id="@id/password_spacer"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_alignParentBottom="true"/>
-
-</RelativeLayout>
+</LinearLayout>
