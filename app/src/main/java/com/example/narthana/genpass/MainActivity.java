@@ -12,18 +12,20 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener
 {
-    private final String PASSWORD_FRAGMENT_TAG = "password_fragment";
-    private final String PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment";
+    private static final String PASSWORD_FRAGMENT_TAG = "password_fragment";
+    private static final String PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment";
+    private static final String NAV_MENU_ITEM_TAG = "nav_menu_item";
 
+    private int mNavMenuItemId;
+    private NavigationView mNavView;
     private DrawerLayout mDrawer;
-//    private PasswordFragment mPasswordFragment;
-//    private PassphraseFragment mPassphraseFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -37,8 +39,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // create FAB
-
+//        // create FAB
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener()
 //        {
@@ -57,65 +58,50 @@ public class MainActivity extends AppCompatActivity
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        // set listner to open drawer
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        // set listener to open drawer
+        mNavView = (NavigationView) findViewById(R.id.nav_view);
+        mNavView.setNavigationItemSelectedListener(this);
 
-        // open password fragment if on first start
+        // if a new run or if restoring from prev state
         if (savedInstanceState == null)
         {
+            // open password fragment
             getFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, new PasswordFragment(), PASSWORD_FRAGMENT_TAG)
                     .addToBackStack(PASSWORD_FRAGMENT_TAG)
                     .commit();
-            navigationView.setCheckedItem(R.id.nav_password);
+
+            // assign menu item id for later use in the nav bar
+            mNavMenuItemId = R.id.nav_password;
         }
+        else mNavMenuItemId = savedInstanceState.getInt(NAV_MENU_ITEM_TAG);
+
+        Log.d(this.getClass().getSimpleName(), "mMenuItemId = " + String.valueOf(mNavMenuItemId));
 
         // set default preferences
         PreferenceManager.setDefaultValues(this, R.xml.pref_password, false);
     }
 
-//    @Override
-//    protected void onRestoreInstanceState(Bundle savedInstanceState)
-//    {
-//        super.onRestoreInstanceState(savedInstanceState);
-//        if (savedInstanceState != null)
-//        {
-//            mPasswordFragment = (PasswordFragment) getFragmentManager()
-//                    .getFragment(savedInstanceState, PASSWORD_FRAGMENT_TAG);
-//            mPassphraseFragment = (PassphraseFragment) getFragmentManager()
-//                    .getFragment(savedInstanceState, PASSPHRASE_FRAGMENT_TAG);
-//        }
-//    }
-//
-//    @Override
-//    protected void onSaveInstanceState(Bundle outState)
-//    {
-//        super.onSaveInstanceState(outState);
-//        if (mPasswordFragment != null && mPasswordFragment.isAdded())
-//            getFragmentManager().putFragment(outState, PASSWORD_FRAGMENT_TAG, mPasswordFragment);
-//        if (mPassphraseFragment != null && mPassphraseFragment.isAdded())
-//            getFragmentManager().putFragment(outState, PASSPHRASE_FRAGMENT_TAG, mPassphraseFragment);
-//    }
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        // set the selected item in the nav bar
+        mNavView.setCheckedItem(mNavMenuItemId);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        outState.putInt(NAV_MENU_ITEM_TAG, mNavMenuItemId);
+    }
 
     @Override
     public void onBackPressed()
     {
         if (mDrawer.isDrawerOpen(GravityCompat.START)) mDrawer.closeDrawer(GravityCompat.START);
-//        else super.onBackPressed();
-        else
-        {
-//            FragmentManager fm = getFragmentManager();
-//            Fragment pwf = fm.findFragmentByTag(PASSWORD_FRAGMENT_TAG);
-//            if (pwf != null) fm.beginTransaction().remove(pwf).commit();
-//            Log.d(getClass().getSimpleName(), Boolean.toString(pwf == null));
-//            Fragment ppf = fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG);
-//            if (ppf != null) fm.beginTransaction().remove(pwf).commit();
-////            super.onBackPressed();
-//            fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-//            super.onBackPressed();
-            finish();
-        }
+        else finish();
     }
 
     @Override
@@ -134,7 +120,6 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
             startActivity(new Intent(this, SettingsActivity.class));
@@ -154,17 +139,26 @@ public class MainActivity extends AppCompatActivity
         PassphraseFragment ppf = (PassphraseFragment) fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG);
         if (ppf == null) ppf = new PassphraseFragment();
 
+        int itemId = item.getItemId();
+
+        // if current item was selected
+        if (itemId == mNavMenuItemId) return true;
+
         // Handle navigation view item clicks here.
-        switch (item.getItemId())
+        switch (itemId)
         {
             case R.id.nav_password:
                 addFragment(pwf, PASSWORD_FRAGMENT_TAG);
+                mNavMenuItemId = itemId;
                 break;
             case R.id.nav_passphrase:
                 addFragment(ppf, PASSPHRASE_FRAGMENT_TAG);
+                mNavMenuItemId = itemId;
                 break;
             case R.id.nav_manage:
                 startActivity(new Intent(this, SettingsActivity.class));
+                // do not assign mNavMenuId here so that drawer reverts to right selection when
+                // coming back from the SettingsActivity
                 break;
             default:
                 return false;
