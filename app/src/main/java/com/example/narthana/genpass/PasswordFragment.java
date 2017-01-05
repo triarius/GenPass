@@ -267,7 +267,7 @@ public class PasswordFragment extends Fragment
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return prefs.getInt(
-                getString(R.string.pref_password_length),
+                getString(R.string.pref_password_length_key),
                 getResources().getInteger(R.integer.pref_default_password_length)
         );
     }

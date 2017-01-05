@@ -3,4 +3,11 @@
     <integer name="pref_max_password_length">128</integer>
     <integer name="pref_default_password_length">32</integer>
     <integer name="pref_default_passphrase_num_words">4</integer>
+
+    <integer-array name="pref_password_charsets_default_values">
+        <item>1</item>
+        <item>1</item>
+        <item>1</item>
+        <item>0</item>
+    </integer-array>
 </resources>

@@ -2,7 +2,9 @@ package com.example.narthana.genpass;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -28,9 +30,14 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
 
+        // pick layout
         setContentView(R.layout.activity_main);
+
+        // create action bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // create FAB
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener()
@@ -43,15 +50,18 @@ public class MainActivity extends AppCompatActivity
 //            }
 //        });
 
+        // create nav Drawer
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
+        // set listner to open drawer
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // open password fragment if on first start
         if (savedInstanceState == null)
         {
             getFragmentManager().beginTransaction()
@@ -60,6 +70,9 @@ public class MainActivity extends AppCompatActivity
                     .commit();
             navigationView.setCheckedItem(R.id.nav_password);
         }
+
+        // set default preferences
+        PreferenceManager.setDefaultValues(this, R.xml.pref_password, false);
     }
 
 //    @Override
@@ -124,6 +137,7 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -147,6 +161,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.nav_passphrase:
                 addFragment(ppf, PASSPHRASE_FRAGMENT_TAG);
+                break;
+            case R.id.nav_manage:
+                startActivity(new Intent(this, SettingsActivity.class));
                 break;
             default:
                 return false;

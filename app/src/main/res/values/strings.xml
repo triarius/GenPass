@@ -43,7 +43,30 @@
 
     <string name="clipboard_text" translatable="false">password</string>
 
-    <string name="pref_password_length" translatable="false">pwlen</string>
+    <string name="pref_password_length_key" translatable="false">pwlen</string>
+    <string name="pref_password_char_sets_key" translatable="false">pwcharsets</string>
+    <string-array name="pref_password_char_set_keys" translatable="false">
+        <item>pwlowen</item>
+        <item>pwupen</item>
+        <item>pwnumen</item>
+        <item>pwsymben</item>
+    </string-array>
+
+    <string name="pref_password_length">Length</string>
+    <string name="pref_password_char_sets">Character Sets</string>
+    <string-array name="pref_password_char_set_names">
+        <item>Lowercase</item>
+        <item>Uppercase</item>
+        <item>Numeric</item>
+        <item>Symbol</item>
+    </string-array>
+    <string-array name="pref_password_char_set_default">
+        <item>Lowercase</item>
+        <item>Uppercase</item>
+        <item>Numeric</item>
+    </string-array>
+
+
     <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
     <string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>
     <string name="pref_password_upper_enabled" translatable="false">pwupen</string>
@@ -56,4 +79,10 @@
     <string name="pref_passphrase_delimiter" translatable="false">ppdelim</string>
     <string name="pref_passphrase_num_words" translatable="false">ppnumwords</string>
     <string name="pref_passphrase_force_cap" translatable="false">ppforcecap</string>
+
+    <string name="title_activity_settings">Settings</string>
+
+    <string name="pref_password_length_default">32</string>
+    <string name="pref_password_length_max">128</string>
+
 </resources>
