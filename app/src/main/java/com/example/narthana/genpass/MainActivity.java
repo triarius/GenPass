@@ -147,13 +147,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)
     {
-        // Handle navigation view item clicks here.
+        // Gather fragments
         FragmentManager fm = getFragmentManager();
         PasswordFragment pwf = (PasswordFragment) fm.findFragmentByTag(PASSWORD_FRAGMENT_TAG);
         if (pwf == null) pwf = new PasswordFragment();
         PassphraseFragment ppf = (PassphraseFragment) fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG);
         if (ppf == null) ppf = new PassphraseFragment();
 
+        // Handle navigation view item clicks here.
         switch (item.getItemId())
         {
             case R.id.nav_password:
