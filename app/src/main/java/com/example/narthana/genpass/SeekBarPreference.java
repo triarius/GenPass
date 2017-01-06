@@ -73,12 +73,6 @@ public class SeekBarPreference extends DialogPreference
     }
 
     @Override
-    protected void onBindDialogView(View view)
-    {
-        super.onBindDialogView(view);
-    }
-
-    @Override
     protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue)
     {
         if (restorePersistedValue) mValue = getPersistedInt(DEFAULT_VALUE);
@@ -95,10 +89,7 @@ public class SeekBarPreference extends DialogPreference
 
     @Override
     protected void onDialogClosed(boolean positiveResult)
-    {
-//        super.onDialogClosed(positiveResult);
-        if (positiveResult) persistInt(mValue);
-    }
+    { if (positiveResult) persistInt(mValue); }
 
     @Override
     protected Parcelable onSaveInstanceState()
