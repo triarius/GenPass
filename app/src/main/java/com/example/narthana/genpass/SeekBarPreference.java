@@ -16,12 +16,10 @@ import android.widget.TextView;
 
 public class SeekBarPreference extends DialogPreference
 {
-    private static final String ANDROIDNS ="http://schemas.android.com/apk/res/android";
     private static final int DEFAULT_VALUE = 15;
+    private static final int MAX_VALUE = 201;
 
-    private final Context mContext;
-    private final String mTitle, mMessage;
-    private final int mDefault, mMax;
+    private final int mMax;
 
     private int mValue;
     private TextView mSeekBarValue;
@@ -31,15 +29,17 @@ public class SeekBarPreference extends DialogPreference
     public SeekBarPreference(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-//        setPersistent(false);
         setDialogLayoutResource(R.layout.seekbar_peference);
 
-        mContext = context;
+        TypedArray a = context.getTheme().obtainStyledAttributes(
+                attrs,
+                R.styleable.SeekBarPreference,
+                0,
+                0
+        );
 
-        mTitle = getXMLResource(context, attrs, ANDROIDNS, "title");
-        mMessage = getXMLResource(context, attrs, ANDROIDNS, "dialogMessage");
-        mDefault = attrs.getAttributeIntValue(ANDROIDNS, "defaultValue", DEFAULT_VALUE);
-        mMax = attrs.getAttributeIntValue(ANDROIDNS, "max", 100);
+        try { mMax = a.getInt(R.styleable.SeekBarPreference_max, MAX_VALUE); }
+        finally { a.recycle(); }
     }
 
     @Override
@@ -81,7 +81,7 @@ public class SeekBarPreference extends DialogPreference
     @Override
     protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue)
     {
-        if (restorePersistedValue) mValue = getPersistedInt(mDefault);
+        if (restorePersistedValue) mValue = getPersistedInt(DEFAULT_VALUE);
         else
         {
             mValue = (Integer) defaultValue;
@@ -91,7 +91,7 @@ public class SeekBarPreference extends DialogPreference
 
     @Override
     protected Object onGetDefaultValue(TypedArray a, int index)
-    { return a.getInteger(index, mDefault); }
+    { return a.getInteger(index, DEFAULT_VALUE); }
 
     @Override
     protected void onDialogClosed(boolean positiveResult)
