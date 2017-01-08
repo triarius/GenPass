@@ -6,7 +6,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -14,62 +16,56 @@ import android.widget.TextView;
  * Created by narthana on 28/12/16.
  */
 
-public class SeekBarPreference extends DialogPreference
+public class SeekBarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener
 {
-    private static final int DEFAULT_VALUE = 15;
-    private static final int MAX_VALUE = 201;
+    private static final int DEFAULT_VALUE = 0;
+    private static final int MAX_VALUE = 100;
 
-    private final int mMax;
+    private SeekBar mSeekBar;
+    private TextView mValueText;
+
+    private final AttributeSet mAttrs;
 
     private int mValue;
-    private TextView mSeekBarValue;
-    private SeekBar mSeekBar;
-
+    private boolean mValueSet;
 
     public SeekBarPreference(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        setDialogLayoutResource(R.layout.seekbar_peference);
-
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs,
-                R.styleable.SeekBarPreference,
-                0,
-                0
-        );
-
-        try { mMax = a.getInt(R.styleable.SeekBarPreference_max, MAX_VALUE); }
-        finally { a.recycle(); }
+        mAttrs = attrs;
     }
 
     @Override
     protected View onCreateDialogView()
     {
-        View rootView = super.onCreateDialogView();
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
 
-        mSeekBarValue = (TextView) rootView.findViewById(R.id.seek_bar_preference_value);
-        mSeekBar = (SeekBar) rootView.findViewById(R.id.seek_bar_preference_seek_bar);
+        LinearLayout layout = new LinearLayout(getContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(6, 6, 6, 6);
 
-        mSeekBar.setMax(mMax);
+        mSeekBar = new SeekBar(getContext(), mAttrs);
+        mSeekBar.setOnSeekBarChangeListener(this);
+
+        mValueText = new TextView(getContext(), null);
+        mValueText.setGravity(Gravity.CENTER_HORIZONTAL);
+        mValueText.setTextSize(20);
+
+        layout.addView(mValueText, lp);
+        layout.addView(mSeekBar, lp);
+
+        return layout;
+    }
+
+    @Override
+    protected void onBindDialogView(View view)
+    {
+        super.onBindDialogView(view);
         mSeekBar.setProgress(mValue);
-        mSeekBarValue.setText(String.valueOf(mSeekBar.getProgress()));
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-        {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-            {
-                mSeekBarValue.setText(String.valueOf(progress));
-                mValue = progress;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        return rootView;
+        mValueText.setText(String.valueOf(mSeekBar.getProgress()));
     }
 
     @Override
@@ -121,14 +117,6 @@ public class SeekBarPreference extends DialogPreference
         mSeekBar.setProgress(castState.value);
     }
 
-    private String getXMLResource(Context context, AttributeSet attrs, String namespace, String attribute)
-    {
-        int id = attrs.getAttributeResourceValue(namespace, attribute, -1);
-        return (id == -1) ? attrs.getAttributeValue(namespace, attribute) :
-                            context.getString(id);
-    }
-
-
     private static class SavedState extends BaseSavedState
     {
         // Member that holds the setting's value
@@ -163,4 +151,17 @@ public class SeekBarPreference extends DialogPreference
             public SavedState[] newArray(int size) { return new SavedState[size]; }
         };
     }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+    {
+        mValueText.setText(String.valueOf(progress));
+        mValue = progress;
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {}
 }
