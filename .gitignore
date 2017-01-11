@@ -46,4 +46,4 @@ build/
 #Misc
 *.pdf
 aux
-.bak
+*.bak
