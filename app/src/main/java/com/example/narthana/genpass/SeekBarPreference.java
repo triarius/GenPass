@@ -6,8 +6,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -24,7 +26,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     private SeekBar mSeekBar;
     private TextView mValueText;
 
-    private final AttributeSet mAttrs;
+//    private final AttributeSet mAttrs;
 
     private int mValue;
     private boolean mValueSet;
@@ -32,7 +34,8 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     public SeekBarPreference(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        mAttrs = attrs;
+//        mAttrs = attrs;
+        mSeekBar = new SeekBar(context, attrs);
     }
 
     @Override
@@ -47,7 +50,14 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(6, 6, 6, 6);
 
-        mSeekBar = new SeekBar(getContext(), mAttrs);
+        ViewGroup seekBarParent = (ViewGroup) mSeekBar.getParent();
+        if (seekBarParent != null)
+        {
+            seekBarParent.removeAllViews();
+            mValue = getPersistedInt(DEFAULT_VALUE);
+            Log.d(getClass().getSimpleName(), "just removed parents");
+        }
+//        mSeekBar = new SeekBar(getContext(), mAttrs);
         mSeekBar.setOnSeekBarChangeListener(this);
 
         mValueText = new TextView(getContext(), null);
@@ -65,6 +75,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     {
         super.onBindDialogView(view);
         mSeekBar.setProgress(mValue);
+        Log.d(getClass().getSimpleName(), "in onBindDialogView");
         mValueText.setText(String.valueOf(mSeekBar.getProgress()));
     }
 
@@ -85,7 +96,14 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
 
     @Override
     protected void onDialogClosed(boolean positiveResult)
-    { if (positiveResult) persistInt(mValue); }
+    {
+        if (positiveResult) persistInt(mValue);
+        else
+        {
+//            mValue = getPersistedInt(DEFAULT_VALUE);
+            Log.d(getClass().getSimpleName(), "In onDialogClosed");
+        }
+    }
 
     @Override
     protected Parcelable onSaveInstanceState()
