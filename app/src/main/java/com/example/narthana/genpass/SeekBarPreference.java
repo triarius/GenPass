@@ -6,7 +6,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,21 +20,24 @@ import android.widget.TextView;
 public class SeekBarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener
 {
     private static final int DEFAULT_VALUE = 0;
-    private static final int MAX_VALUE = 100;
 
     private SeekBar mSeekBar;
     private TextView mValueText;
 
-//    private final AttributeSet mAttrs;
-
     private int mValue;
-    private boolean mValueSet;
 
-    public SeekBarPreference(Context context, AttributeSet attrs)
+    public SeekBarPreference(Context context) { this(context, null); }
+
+    public SeekBarPreference(Context context, AttributeSet attrs)  { this(context, attrs, 0); }
+
+    public SeekBarPreference(Context context, AttributeSet attrs, int defStyleAttr)
+    { this(context, attrs, defStyleAttr, defStyleAttr); }
+
+    public SeekBarPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
     {
+//        super(context, attrs, defStyleAttr, defStyleRes);
         super(context, attrs);
-//        mAttrs = attrs;
-        mSeekBar = new SeekBar(context, attrs);
+        mSeekBar = new SeekBar(context, attrs); // we need to create this here to pass attrs ???
     }
 
     @Override
@@ -46,18 +48,18 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
 
+        // create a linear layout container
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(6, 6, 6, 6);
 
+        // remove seekbar from previous parent
         ViewGroup seekBarParent = (ViewGroup) mSeekBar.getParent();
         if (seekBarParent != null)
         {
             seekBarParent.removeAllViews();
             mValue = getPersistedInt(DEFAULT_VALUE);
-            Log.d(getClass().getSimpleName(), "just removed parents");
         }
-//        mSeekBar = new SeekBar(getContext(), mAttrs);
         mSeekBar.setOnSeekBarChangeListener(this);
 
         mValueText = new TextView(getContext(), null);
@@ -75,7 +77,6 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     {
         super.onBindDialogView(view);
         mSeekBar.setProgress(mValue);
-        Log.d(getClass().getSimpleName(), "in onBindDialogView");
         mValueText.setText(String.valueOf(mSeekBar.getProgress()));
     }
 
@@ -85,43 +86,40 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         if (restorePersistedValue) mValue = getPersistedInt(DEFAULT_VALUE);
         else
         {
-            mValue = (Integer) defaultValue;
+            mValue = (int) defaultValue;
             persistInt(mValue);
         }
     }
 
     @Override
     protected Object onGetDefaultValue(TypedArray a, int index)
-    { return a.getInteger(index, DEFAULT_VALUE); }
+    { return a.getInt(index, DEFAULT_VALUE); }
 
     @Override
     protected void onDialogClosed(boolean positiveResult)
-    {
-        if (positiveResult) persistInt(mValue);
-        else
-        {
-//            mValue = getPersistedInt(DEFAULT_VALUE);
-            Log.d(getClass().getSimpleName(), "In onDialogClosed");
-        }
-    }
+    { if (positiveResult) persistInt(mValue); }
 
+    // handle saved states
     @Override
     protected Parcelable onSaveInstanceState()
     {
         final Parcelable superState = super.onSaveInstanceState();
 
-        // If persistent, can return superclass's state
-        if (isPersistent()) return superState;
+       // commented out to support rotation
+//        // If persistent, can return superclass's state
+//        if (isPersistent()) return superState;
 
         final SavedState state = new SavedState(superState);
         state.value = mValue;
+//        state.value = getPersistedInt(DEFAULT_VALUE);
+//        state.displayedValue = mValue;
         return state;
     }
 
     @Override
     protected void onRestoreInstanceState(Parcelable state)
     {
-        // Check whether we have not already saved the state
+        // check whether we have already saved the state
         if (state == null || !state.getClass().equals(SavedState.class))
         {
             super.onRestoreInstanceState(state);
@@ -132,7 +130,8 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         super.onRestoreInstanceState(castState.getSuperState());
 
         // restore widget state
-        mSeekBar.setProgress(castState.value);
+        mValue = castState.value;
+        mSeekBar.setProgress(mValue);
     }
 
     private static class SavedState extends BaseSavedState
@@ -170,6 +169,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         };
     }
 
+    // seekbar listener
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
     {
