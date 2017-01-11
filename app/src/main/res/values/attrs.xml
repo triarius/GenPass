@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MultiSelectMultiListPreference">
+        <attr name="android:entries"/>
+        <attr name="android:entryValues"/>
+        <attr name="android:defaultValue"/>
+        <attr name="columnEntries" format="reference"/>
+    </declare-styleable>
+</resources>

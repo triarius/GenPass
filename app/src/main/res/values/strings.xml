@@ -46,10 +46,10 @@
     <string name="pref_password_length_key" translatable="false">pwlen</string>
     <string name="pref_password_char_sets_key" translatable="false">pwcharsets</string>
     <string-array name="pref_password_char_set_keys" translatable="false">
-        <item>pwlowen</item>
-        <item>pwupen</item>
-        <item>pwnumen</item>
-        <item>pwsymben</item>
+        <item>pwlow</item>
+        <item>pwup</item>
+        <item>pwnum</item>
+        <item>pwsymb</item>
     </string-array>
 
     <string name="pref_password_length">Length</string>
@@ -60,10 +60,21 @@
         <item>Numeric</item>
         <item>Symbol</item>
     </string-array>
-    <string-array name="pref_password_char_set_default">
-        <item>Lowercase</item>
-        <item>Uppercase</item>
-        <item>Numeric</item>
+
+    <string-array name="pref_password_char_set_default_enabled">
+        <item>pwlow</item>
+        <item>pwup</item>
+        <item>pwnum</item>
+    </string-array>
+    <string-array name="pref_password_char_set_default_mandatory"/>
+    <array name="pref_password_char_set_default_value">
+        <item>@array/pref_password_char_set_default_enabled</item>
+        <item>@array/pref_password_char_set_default_mandatory</item>
+    </array>
+
+    <string-array name="pref_password_column_entries">
+        <item>Enabled</item>
+        <item>Mandatory</item>
     </string-array>
 
 
