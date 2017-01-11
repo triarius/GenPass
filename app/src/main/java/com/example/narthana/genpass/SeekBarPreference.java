@@ -105,14 +105,12 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     {
         final Parcelable superState = super.onSaveInstanceState();
 
-       // commented out to support rotation
+// commented out to support rotation
 //        // If persistent, can return superclass's state
 //        if (isPersistent()) return superState;
 
         final SavedState state = new SavedState(superState);
         state.value = mValue;
-//        state.value = getPersistedInt(DEFAULT_VALUE);
-//        state.displayedValue = mValue;
         return state;
     }
 
