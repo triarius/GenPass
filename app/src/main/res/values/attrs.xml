@@ -5,5 +5,7 @@
         <attr name="android:entryValues"/>
         <attr name="android:defaultValue"/>
         <attr name="columnEntries" format="reference"/>
+        <attr name="columnEntryValues" format="reference"/>
+        <attr name="columnDependencies" format="reference"/>
     </declare-styleable>
 </resources>

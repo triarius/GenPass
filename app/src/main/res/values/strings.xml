@@ -76,6 +76,10 @@
         <item>Enabled</item>
         <item>Mandatory</item>
     </string-array>
+    <string-array name="pref_password_column_entry_value_mods">
+        <item>en</item>
+        <item>man</item>
+    </string-array>
 
 
     <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
