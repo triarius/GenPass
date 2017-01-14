@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
-import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -17,6 +17,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -191,15 +192,12 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
     @Override
     protected void onDialogClosed(boolean positiveResult)
-    {
-        super.onDialogClosed(positiveResult);
-        if (positiveResult && mPreferenceChanged) persistValues(mValues);
-        mPreferenceChanged = false;
-    }
+    { if (positiveResult && mPreferenceChanged) persistValues(mValues); }
 
     @Override
     protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue)
     {
+        Log.d(getClass().getSimpleName(), String.valueOf(restorePersistedValue));
         persistValues(restorePersistedValue ? getValuesFromResources(mValues)
                                              : (Map<String , Set<String>>) defaultValue);
     }
@@ -208,12 +206,24 @@ public class MultiSelectMultiListPreference extends DialogPreference
     {
         Map<String, Set<String>> values = new HashMap<>(numCols);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences prefs = getSharedPreferences();
         for (int j = 0; j < numCols; ++j)
-            values.put(String.valueOf(j), prefs.getStringSet(
+        {
+            // Note: do not remove the cloning of the list variable. It is necessary for
+            // new data to be written to the preferences. Android expects the output of
+            // Preference.getStringSet to not be modified. Thus when it receives it back
+            // in onDialogClosed, it just keeps the old data we got here
+            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
+            // source: developer.android.com/reference/android/content/SharedPreferences.html
+            //     "Objects that are returned from the various get methods must be treated as
+            //      immutable by the application."
+
+            Set<String> list = prefs.getStringSet(
                     getKey() + String.valueOf(j),
                     defaultValue != null ? defaultValue.get(String.valueOf(j)) : null
-            ));
+            );
+            if (list != null) values.put(String.valueOf(j), new HashSet<String>(list));
+        }
         return values;
     }
 
@@ -241,11 +251,14 @@ public class MultiSelectMultiListPreference extends DialogPreference
     private void persistValues(Map<String, Set<String>> values)
     {
         mValues = values;
-        SharedPreferences.Editor editor = getEditor();
-        editor.putBoolean(getKey(), true);
-        for (Map.Entry<String, Set<String>> entry : values.entrySet())
-            editor.putStringSet(getKey() + entry.getKey(), entry.getValue());
-        editor.apply();
+        if (shouldPersist())
+        {
+            SharedPreferences.Editor editor = getEditor();
+            editor.putBoolean(getKey(), true);
+            for (Map.Entry<String, Set<String>> entry : values.entrySet())
+                editor.putStringSet(getKey() + entry.getKey(), entry.getValue());
+            editor.apply();
+        }
         mPreferenceChanged = false;
     }
 
@@ -256,5 +269,14 @@ public class MultiSelectMultiListPreference extends DialogPreference
                 length,
                 getContext().getResources().getDisplayMetrics()
         );
+    }
+
+    private String valuesToString(Map<String, Set<String>> values)
+    {
+        String keys = Arrays.toString(values.keySet().toArray());
+        StringBuilder valuesArrays = new StringBuilder();
+        for (Map.Entry<String, Set<String>> e : values.entrySet())
+            valuesArrays.append(Arrays.toString(e.getValue().toArray()));
+        return keys + valuesArrays.toString();
     }
 }
