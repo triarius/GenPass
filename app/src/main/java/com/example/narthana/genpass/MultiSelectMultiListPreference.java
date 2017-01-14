@@ -7,7 +7,6 @@ import android.content.res.TypedArray;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,7 +79,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
         // the 0th column should stretch to fill to screen
         table.setColumnStretchable(0, true);
-        int padding = dpToPx(14);
+        int padding = Utility.dpToPx(getContext(), 14);
         table.setPaddingRelative(padding, padding, padding, padding);
 
         // create header row
@@ -93,7 +92,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
         );
         table.addView(header, fistRowParams);
 
-        int pad = dpToPx(3);
+        int pad = Utility.dpToPx(getContext(), 3);
         // loop to create the column headings and put them in the header row
         for (int j = 0; j < numCols;)
         {
@@ -262,15 +261,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
         mPreferenceChanged = false;
     }
 
-    private int dpToPx(int length)
-    {
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                length,
-                getContext().getResources().getDisplayMetrics()
-        );
-    }
-
     private String valuesToString(Map<String, Set<String>> values)
     {
         String keys = Arrays.toString(values.keySet().toArray());
@@ -279,4 +269,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
             valuesArrays.append(Arrays.toString(e.getValue().toArray()));
         return keys + valuesArrays.toString();
     }
+
+
 }

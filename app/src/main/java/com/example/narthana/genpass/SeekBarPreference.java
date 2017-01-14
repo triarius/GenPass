@@ -51,7 +51,8 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         // create a linear layout container
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(6, 6, 6, 6);
+        int pad = Utility.dpToPx(getContext(), 3);
+        layout.setPadding(pad, pad, pad, pad);
 
         // remove seekbar from previous parent
         ViewGroup seekBarParent = (ViewGroup) mSeekBar.getParent();
