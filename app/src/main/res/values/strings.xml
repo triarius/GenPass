@@ -38,20 +38,6 @@
     <string name="passphrase_num_words_label">Number of words</string>
     <string name="passphrase_force_capitalised_label">Force capitalised</string>
 
-    <string name="passphrase_default_delimiter"> </string>
-    <string name="passphrase_default_num_words">4</string>
-
-    <string name="clipboard_text" translatable="false">password</string>
-
-    <string name="pref_password_length_key" translatable="false">pwlen</string>
-    <string name="pref_password_char_sets_key" translatable="false">pwcharsets</string>
-    <string-array name="pref_password_char_set_keys" translatable="false">
-        <item>pwlow</item>
-        <item>pwup</item>
-        <item>pwnum</item>
-        <item>pwsymb</item>
-    </string-array>
-
     <string name="pref_password_length">Length</string>
     <string name="pref_password_char_sets">Character Sets</string>
     <string-array name="pref_password_char_set_names">
@@ -61,43 +47,10 @@
         <item>Symbol</item>
     </string-array>
 
-    <string-array name="pref_password_char_set_default_enabled">
-        <item>pwlow</item>
-        <item>pwup</item>
-        <item>pwnum</item>
-    </string-array>
-    <string-array name="pref_password_char_set_default_mandatory"/>
-    <array name="pref_password_char_set_default_value">
-        <item>@array/pref_password_char_set_default_enabled</item>
-        <item>@array/pref_password_char_set_default_mandatory</item>
-    </array>
-
     <string-array name="pref_password_column_entries">
         <item>Enabled</item>
         <item>Mandatory</item>
     </string-array>
-    <string-array name="pref_password_column_entry_value_mods">
-        <item>en</item>
-        <item>man</item>
-    </string-array>
-
-
-    <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
-    <string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>
-    <string name="pref_password_upper_enabled" translatable="false">pwupen</string>
-    <string name="pref_password_upper_mandatory" translatable="false">pwupman</string>
-    <string name="pref_password_numeric_enabled" translatable="false">pwnumen</string>
-    <string name="pref_password_numeric_mandatory" translatable="false">pwnumman</string>
-    <string name="pref_password_symbol_enabled" translatable="false">pwsymben</string>
-    <string name="pref_password_symbol_mandatory" translatable="false">pwsymbman</string>
-
-    <string name="pref_passphrase_delimiter" translatable="false">ppdelim</string>
-    <string name="pref_passphrase_num_words" translatable="false">ppnumwords</string>
-    <string name="pref_passphrase_force_cap" translatable="false">ppforcecap</string>
 
     <string name="title_activity_settings">Settings</string>
-
-    <string name="pref_password_length_default">32</string>
-    <string name="pref_password_length_max">128</string>
-
 </resources>

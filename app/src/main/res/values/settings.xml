@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clipboard_text" translatable="false">password</string>
+
+    <string-array name="pref_password_column_entry_value_mods">
+        <item>en</item>
+        <item>man</item>
+    </string-array>
+
+    <string name="pref_password_length_key" translatable="false">pwlen</string>
+    <string name="pref_password_char_sets_key" translatable="false">pwcharsets</string>
+    <string-array name="pref_password_char_set_keys" translatable="false">
+        <item>pwlow</item>
+        <item>pwup</item>
+        <item>pwnum</item>
+        <item>pwsymb</item>
+    </string-array>
+
+    <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
+    <string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>
+    <string name="pref_password_upper_enabled" translatable="false">pwupen</string>
+    <string name="pref_password_upper_mandatory" translatable="false">pwupman</string>
+    <string name="pref_password_numeric_enabled" translatable="false">pwnumen</string>
+    <string name="pref_password_numeric_mandatory" translatable="false">pwnumman</string>
+    <string name="pref_password_symbol_enabled" translatable="false">pwsymben</string>
+    <string name="pref_password_symbol_mandatory" translatable="false">pwsymbman</string>
+
+    <string name="pref_passphrase_delimiter" translatable="false">ppdelim</string>
+    <string name="pref_passphrase_num_words" translatable="false">ppnumwords</string>
+    <string name="pref_passphrase_force_cap" translatable="false">ppforcecap</string>
+</resources>

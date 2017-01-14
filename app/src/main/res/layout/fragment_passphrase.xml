@@ -44,7 +44,6 @@
             <EditText
                 android:id="@id/num_words_edit_text"
                 android:inputType="number"
-                android:text="@string/passphrase_default_num_words"
                 android:ems="2"
                 android:textAlignment="center"/>
 

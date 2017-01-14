@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="pref_default_password_length">32</integer>
+    <integer name="pref_default_passphrase_num_words">4</integer>
+
+    <string name="passphrase_default_delimiter"> </string>
+
+    <array name="pref_password_char_set_default_value">
+        <item>@array/pref_password_char_set_default_enabled</item>
+        <item>@array/pref_password_char_set_default_mandatory</item>
+    </array>
+    <string-array name="pref_password_char_set_default_enabled">
+        <item>pwlow</item>
+        <item>pwup</item>
+        <item>pwnum</item>
+    </string-array>
+    <string-array name="pref_password_char_set_default_mandatory"/>
+</resources>

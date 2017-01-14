@@ -1,37 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="pref_max_password_length">128</integer>
-    <integer name="pref_default_password_length">32</integer>
-    <integer name="pref_default_passphrase_num_words">4</integer>
-
-    <!--<integer-array name="pref_password_charsets_default_values">-->
-        <!--<item>1</item>-->
-        <!--<item>1</item>-->
-        <!--<item>1</item>-->
-        <!--<item>0</item>-->
-    <!--</integer-array>-->
-
-    <bool name="bool_true">true</bool>
-    <bool name="bool_false">false</bool>
-
-    <array name="pref_password_charsets_default_values">
-        <item>@array/pref_password_charsets_default_values_lowercase</item>
-    </array>
-
-    <array name="pref_password_charsets_default_values_lowercase">
-        <item>@bool/bool_true</item>
-        <item>@bool/bool_false</item>
-    </array>
-    <array name="pref_password_charsets_default_values_uppercase">
-        <item>@bool/bool_true</item>
-        <item>@bool/bool_false</item>
-    </array>
-    <array name="pref_password_charsets_default_values_numeric">
-        <item>@bool/bool_true</item>
-        <item>@bool/bool_false</item>
-    </array>
-    <array name="pref_password_charsets_default_values_symbol">
-        <item>@bool/bool_true</item>
-        <item>@bool/bool_false</item>
-    </array>
 </resources>
