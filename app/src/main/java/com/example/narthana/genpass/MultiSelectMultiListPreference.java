@@ -143,7 +143,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
                 CheckBox checkBox = new CheckBox(getContext());
 
-//                mCheckBoxes.get(String.valueOf(j)).put(mEntryValues[i].toString(), checkBox);
                 mCheckBoxes[i][j] = checkBox;
 
                 checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
@@ -152,8 +151,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
                     {
                         String rowEntry = mEntryValues[iPos].toString();
-//                        String colEntry = mColEntryValues[jPos].toString();
-                        String colEntry = String.valueOf(jPos);
+                        String colEntry = colValue(jPos);
 
 //                        mPreferenceChanged =
 //                                !(mValues.get(colEntry).contains(rowEntry) == isChecked);
@@ -186,7 +184,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
     protected void onBindDialogView(View view)
     {
         super.onBindDialogView(view);
-        updateCheckStates();
+        updateCheckStates(mSelectedValues);
     }
 
     @Override
@@ -224,10 +222,10 @@ public class MultiSelectMultiListPreference extends DialogPreference
             //      immutable by the application."
 
             final Set<String> list = prefs.getStringSet(
-                    getKey() + String.valueOf(j),
-                    defaultValue != null ? defaultValue.get(String.valueOf(j)) : null
+                    getKey() + colValue(j),
+                    defaultValue != null ? defaultValue.get(colValue(j)) : null
             );
-            if (list != null) values.put(String.valueOf(j), new HashSet<String>(list));
+            if (list != null) values.put(colValue(j), new HashSet<String>(list));
         }
         return values;
     }
@@ -246,7 +244,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
             for (CharSequence c : value) result.add(c.toString());
 
-            values.put(String.valueOf(j), result);
+            values.put(colValue(j), result);
         }
 
         array.recycle();
@@ -259,8 +257,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
         mSelectedValues = cloneValues(values);
         if (shouldPersist())
         {
-//            Log.d(getClass().getSimpleName(), "Saving values");
-//            Log.d(getClass().getSimpleName(), valuesToString(values));
             SharedPreferences.Editor editor = getEditor();
             editor.putBoolean(getKey(), true);
             for (Map.Entry<String, Set<String>> entry : values.entrySet())
@@ -272,9 +268,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
     @Override
     protected Parcelable onSaveInstanceState()
     {
-//        Log.d(getClass().getSimpleName(), "Saving State");
-//        Log.d(getClass().getSimpleName(), "selected values = " + valuesToString(mSelectedValues));
-//        Log.d(getClass().getSimpleName(), "values = " + valuesToString(mValues));
         final Parcelable superState = super.onSaveInstanceState();
 //        // Check whether this Preference is persistent (continually saved)
 //        // No need to save instance state since it's persistent,use superclass state
@@ -291,7 +284,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
     @Override
     protected void onRestoreInstanceState(Parcelable state)
     {
-//        Log.d(getClass().getSimpleName(), "Restoring state");
         // Check whether we saved the state in onSaveInstanceState
         if (state == null || !state.getClass().equals(SavedState.class))
         {
@@ -306,15 +298,12 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
         // Set this Preference's widget to reflect the restored state
         mSelectedValues = myState.values;
-//        Log.d(getClass().getSimpleName(), "selected values = " + valuesToString(mSelectedValues));
-//        Log.d(getClass().getSimpleName(), "values = " + valuesToString(mValues));
-        updateCheckStates();
+        updateCheckStates(mSelectedValues);
     }
 
     private static class SavedState extends BaseSavedState
     {
         // Member that holds the setting's value
-        // Change this data type to match the type saved by your Preference
         Map<String, Set<String>> values;
 
         public SavedState(Parcelable superState)
@@ -342,8 +331,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
         {
             super.writeToParcel(dest, flags);
             // Write the preference's value
-            Set<String> keySet = values.keySet();
-            String[] keysArray = keySet.toArray(new String[keySet.size()]);
+            String[] keysArray = values.keySet().toArray(new String[values.size()]);
             dest.writeInt(keysArray.length);
             dest.writeStringArray(keysArray);
             for (String key : keysArray)
@@ -363,14 +351,21 @@ public class MultiSelectMultiListPreference extends DialogPreference
         };
     }
 
-    private void updateCheckStates()
+    private void updateCheckStates(Map<String, Set<String>> values)
     {
         if (mCheckBoxes != null)
             for (int i = 0; i < numRows; ++i) for (int j = 0; j < numCols; ++j)
                 mCheckBoxes[i][j].setChecked(
-                        mSelectedValues.get(String.valueOf(j))
-                                .contains(mEntryValues[i].toString())
+                        values
+                            .get(colValue(j))
+                            .contains(mEntryValues[i].toString())
                 );
+    }
+
+    private String colValue(int j)
+    {
+        return String.valueOf(j);
+//        return mColEntryValues[j];
     }
 
     private <K, T> Map<K, Set<T>> cloneValues(Map<K, Set<T>> values)
@@ -380,13 +375,4 @@ public class MultiSelectMultiListPreference extends DialogPreference
             newValues.put(entry.getKey(), new HashSet<T>(entry.getValue()));
         return newValues;
     }
-
-//    private String valuesToString(Map<String, Set<String>> values)
-//    {
-//        String keys = Arrays.toString(values.keySet().toArray());
-//        StringBuilder valuesArrays = new StringBuilder();
-//        for (Map.Entry<String, Set<String>> e : values.entrySet())
-//            valuesArrays.append(Arrays.toString(e.getValue().toArray()));
-//        return keys + valuesArrays.toString();
-//    }
 }
