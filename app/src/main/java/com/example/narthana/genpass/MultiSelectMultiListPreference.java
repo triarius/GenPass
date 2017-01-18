@@ -8,6 +8,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,13 +30,11 @@ import java.util.Set;
 
 public class MultiSelectMultiListPreference extends DialogPreference
 {
-    private static final int DEFAULT_NUM_CHECKS = 1;
-
     private final CharSequence[] mEntries;
     private final CharSequence[] mEntryValues;
     private final CharSequence[] mColumnEntries;
     private final CharSequence[] mColEntryValues;
-    private final CharSequence[] mColumnDependencies;
+    private final SparseArray<Set<Integer>> mColumnDependencies;
 
     private final int numRows;
     private final int numCols;
@@ -44,13 +43,10 @@ public class MultiSelectMultiListPreference extends DialogPreference
     private Map<String, Set<String>> mValues;
     private Map<String, Set<String>> mSelectedValues;
 
-//    private boolean mPreferenceChanged;
-
     public MultiSelectMultiListPreference(Context context, AttributeSet attrs)
     {
         super(context, attrs);
 
-        setPersistent(true);
         final TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
                 R.styleable.MultiSelectMultiListPreference,
@@ -58,15 +54,38 @@ public class MultiSelectMultiListPreference extends DialogPreference
                 0
         );
 
-        mEntries = a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries);
-        mEntryValues = a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues);
-        mColumnEntries = a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries);
-        mColEntryValues = a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues);
-        mColumnDependencies = a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnDependencies);
+        mEntries =
+                a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries);
+        mEntryValues =
+                a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues);
+        mColumnEntries =
+                a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries);
+        mColEntryValues =
+                a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues);
+        final int columnDepsId =
+                a.getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1);
         a.recycle();
 
         numRows = mEntries.length;
         numCols = mColumnEntries.length;
+
+        // gather the data on dependencies between columns
+        final TypedArray b = context.getResources().obtainTypedArray(columnDepsId);
+        mColumnDependencies = new SparseArray<>(b.length());
+
+        for (int j = 0, n = b.length(); j < n; ++j)
+        {
+            final String[] c = context.getResources().getStringArray(b.getResourceId(j, -1));
+            final int[] depIndices = toIndices(c);
+
+            Set<Integer> depSet = new HashSet<>();
+            for (int i = 1; i < depIndices.length; ++i) depSet.add(depIndices[i]);
+
+            mColumnDependencies.put(depIndices[0], depSet);
+        }
+
+        b.recycle();
+
     }
 
     @Override
@@ -81,8 +100,10 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
         // the 0th column should stretch to fill the dialog
         table.setColumnStretchable(0, true);
-        int padding = Utility.dpToPx(getContext(), 14);
-        table.setPaddingRelative(padding, padding, padding, padding);
+        {
+            final int padding = Utility.dpToPx(getContext(), 14);
+            table.setPaddingRelative(padding, padding, padding, padding);
+        }
 
         // create header row
         TableRow header = new TableRow(getContext());
@@ -94,13 +115,13 @@ public class MultiSelectMultiListPreference extends DialogPreference
         );
         table.addView(header, fistRowParams);
 
-        int pad = Utility.dpToPx(getContext(), 3);
+        final int padding = Utility.dpToPx(getContext(), 3);
         // loop to create the column headings and put them in the header row
         for (int j = 0; j < numCols;)
         {
             TextView headingTextView = new TextView(getContext());
             headingTextView.setText(mColumnEntries[j]);
-            headingTextView.setPadding(pad, pad, pad, pad);
+            headingTextView.setPadding(padding, padding, padding, padding);
             TableRow.LayoutParams headingParams = new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT,
                     TableRow.LayoutParams.WRAP_CONTENT
@@ -124,8 +145,8 @@ public class MultiSelectMultiListPreference extends DialogPreference
         entryParams.gravity = Gravity.CENTER_VERTICAL;
         entryParams.column = 0;
 
+        // Creating the check boxes
         mCheckBoxes = new CheckBox[numRows][numCols];
-
         for (int i = 0; i < numRows; ++i)
         {
             TableRow row = new TableRow(getContext());
@@ -136,33 +157,16 @@ public class MultiSelectMultiListPreference extends DialogPreference
             row.addView(entryTextView, entryParams);
 
             // create the checkboxes
-            for (int j = 0; j < numCols;)
+            for (int j = 0; j < numCols;) // Note: increment near end of loop
             {
-                final int iPos = i;
-                final int jPos = j;
-
                 CheckBox checkBox = new CheckBox(getContext());
-
                 mCheckBoxes[i][j] = checkBox;
 
-                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-                {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-                    {
-                        String rowEntry = mEntryValues[iPos].toString();
-                        String colEntry = colValue(jPos);
-
-//                        mPreferenceChanged =
-//                                !(mValues.get(colEntry).contains(rowEntry) == isChecked);
-
-//                        if (mPreferenceChanged)
-//                        {
-                            if (isChecked) mSelectedValues.get(colEntry).add(rowEntry);
-                            else mSelectedValues.get(colEntry).remove(rowEntry);
-//                        }
-                    }
-                });
+                // Set the check change listener
+                final Set<Integer> dependents = mColumnDependencies.get(j);
+                if (dependents != null) checkBox.setOnCheckedChangeListener(
+                        new IndependentCheckChangeListener(i, j, dependents));
+                else checkBox.setOnCheckedChangeListener(new DependentCheckChangeListener(i, j));
 
                 TableRow.LayoutParams checkBoxParams = new TableRow.LayoutParams(
                         TableRow.LayoutParams.MATCH_PARENT,
@@ -190,10 +194,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
     @Override
     protected void onDialogClosed(boolean positiveResult)
     {
-//        if (positiveResult && mPreferenceChanged) persistValues(mSelectedValues);
-//        if (!positiveResult) mSelectedValues = cloneValues(mValues);
-//        mPreferenceChanged = false;
-
         if (positiveResult) persistValues(mSelectedValues);
         else mSelectedValues = cloneValues(mValues);
     }
@@ -203,31 +203,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
     {
         persistValues(restorePersistedValue ? getValuesFromResources(mValues)
                                             : (Map<String , Set<String>>) defaultValue);
-    }
-
-    private Map<String, Set<String>> getValuesFromResources(Map<String, Set<String>> defaultValue)
-    {
-        Map<String, Set<String>> values = new HashMap<>(numCols);
-
-        SharedPreferences prefs = getSharedPreferences();
-        for (int j = 0; j < numCols; ++j)
-        {
-            // Note: do not remove the cloning of the list variable. It is necessary for
-            // new data to be written to the preferences. Android expects the output of
-            // Preference.getStringSet to not be modified. Thus when it receives it back
-            // in onDialogClosed, it just keeps the old data we got here
-            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
-            // source: developer.android.com/reference/android/content/SharedPreferences.html
-            //     "Objects that are returned from the various get methods must be treated as
-            //      immutable by the application."
-
-            final Set<String> list = prefs.getStringSet(
-                    getKey() + colValue(j),
-                    defaultValue != null ? defaultValue.get(colValue(j)) : null
-            );
-            if (list != null) values.put(colValue(j), new HashSet<String>(list));
-        }
-        return values;
     }
 
     @Override
@@ -249,20 +224,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
 
         array.recycle();
         return values;
-    }
-
-    private void persistValues(Map<String, Set<String>> values)
-    {
-        mValues = values;
-        mSelectedValues = cloneValues(values);
-        if (shouldPersist())
-        {
-            SharedPreferences.Editor editor = getEditor();
-            editor.putBoolean(getKey(), true);
-            for (Map.Entry<String, Set<String>> entry : values.entrySet())
-                editor.putStringSet(getKey() + entry.getKey(), entry.getValue());
-            editor.apply();
-        }
     }
 
     @Override
@@ -301,15 +262,114 @@ public class MultiSelectMultiListPreference extends DialogPreference
         updateCheckStates(mSelectedValues);
     }
 
+    private Map<String, Set<String>> getValuesFromResources(Map<String, Set<String>> defaultValue)
+    {
+        Map<String, Set<String>> values = new HashMap<>(numCols);
+
+        SharedPreferences prefs = getSharedPreferences();
+        for (int j = 0; j < numCols; ++j)
+        {
+            // Note: do not remove the cloning of the list variable. It is necessary for
+            // new data to be written to the preferences. Android expects the output of
+            // Preference.getStringSet to not be modified. Thus when it receives it back
+            // in onDialogClosed, it just keeps the old data we got here
+            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
+            // source: developer.android.com/reference/android/content/SharedPreferences.html
+            //     "Objects that are returned from the various get methods must be treated as
+            //      immutable by the application."
+
+            final Set<String> list = prefs.getStringSet(
+                    getKey() + colValue(j),
+                    defaultValue != null ? defaultValue.get(colValue(j)) : null
+            );
+            if (list != null) values.put(colValue(j), new HashSet<String>(list));
+        }
+        return values;
+    }
+
+    private void persistValues(Map<String, Set<String>> values)
+    {
+        mValues = values;
+        mSelectedValues = cloneValues(values);
+        if (shouldPersist())
+        {
+            SharedPreferences.Editor editor = getEditor();
+            editor.putBoolean(getKey(), true);
+            for (Map.Entry<String, Set<String>> entry : values.entrySet())
+                editor.putStringSet(getKey() + entry.getKey(), entry.getValue());
+            editor.apply();
+        }
+    }
+
+    private void updateCheckStates(Map<String, Set<String>> values)
+    {
+        if (mCheckBoxes != null)
+        {
+            for (int i = 0; i < numRows; ++i)
+                for (int j = 0; j < numCols; ++j)
+                    mCheckBoxes[i][j].setChecked(
+                            values
+                                    .get(colValue(j))
+                                    .contains(mEntryValues[i].toString())
+                    );
+            for (int k = 0; k < mColumnDependencies.size(); ++k)
+            {
+                final int independentColNo = mColumnDependencies.keyAt(k);
+                Set<Integer> dependents = mColumnDependencies.get(independentColNo);
+                for (Integer d : dependents)
+                    for (int i = 0; i < numRows; ++i)
+                        mCheckBoxes[i][d].setEnabled(mCheckBoxes[i][independentColNo].isChecked());
+            }
+        }
+    }
+
+    private String colValue(int j)
+    {
+        return String.valueOf(j);
+//        return mColEntryValues[j];
+    }
+
+    private <K, T> Map<K, Set<T>> cloneValues(Map<K, Set<T>> values)
+    {
+        Map<K, Set<T>> newValues = new HashMap<>(values.size());
+        for (Map.Entry<K, Set<T>> entry : values.entrySet())
+            newValues.put(entry.getKey(), new HashSet<T>(entry.getValue()));
+        return newValues;
+    }
+
+    private int[] toIndices(String[] entryValues)
+    {
+        final int[] indices = new int[entryValues.length];
+        for (int i = 0; i < entryValues.length; ++i)
+            indices[i] = getColIndex(entryValues[i]);
+        return indices;
+    }
+
+    private int getColIndex(String colValue)
+    {
+        // do a linear search
+        for (int i = 0; i < mColEntryValues.length; ++i)
+            if (mColEntryValues[i].equals(colValue)) return i;
+        return -1;
+    }
+
     private static class SavedState extends BaseSavedState
     {
+        // Standard creator object using an instance of this class
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>()
+                {
+                    public SavedState createFromParcel(Parcel in) { return new SavedState(in); }
+                    public SavedState[] newArray(int size) { return new SavedState[size];}
+                };
+
         // Member that holds the setting's value
         Map<String, Set<String>> values;
 
-        public SavedState(Parcelable superState)
+        SavedState(Parcelable superState)
         { super(superState); }
 
-        public SavedState(Parcel source)
+        SavedState(Parcel source)
         {
             super(source);
             // Get the current preference's value
@@ -341,38 +401,49 @@ public class MultiSelectMultiListPreference extends DialogPreference
                 dest.writeStringArray(value.toArray(new String[value.size()]));
             }
         }
+    }
 
-        // Standard creator object using an instance of this class
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>()
+    private class DependentCheckChangeListener implements CompoundButton.OnCheckedChangeListener
+    {
+        final int mI, mJ;
+
+        DependentCheckChangeListener(int i, int j)
         {
-            public SavedState createFromParcel(Parcel in) { return new SavedState(in); }
-            public SavedState[] newArray(int size) { return new SavedState[size];}
-        };
+            mI = i;
+            mJ = j;
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+        {
+            String rowEntry = mEntryValues[mI].toString();
+            String colEntry = colValue(mJ);
+
+            if (isChecked) mSelectedValues.get(colEntry).add(rowEntry);
+            else mSelectedValues.get(colEntry).remove(rowEntry);
+        }
     }
 
-    private void updateCheckStates(Map<String, Set<String>> values)
+    private class IndependentCheckChangeListener extends DependentCheckChangeListener
     {
-        if (mCheckBoxes != null)
-            for (int i = 0; i < numRows; ++i) for (int j = 0; j < numCols; ++j)
-                mCheckBoxes[i][j].setChecked(
-                        values
-                            .get(colValue(j))
-                            .contains(mEntryValues[i].toString())
-                );
-    }
+        private final Set<Integer> mDependents;
 
-    private String colValue(int j)
-    {
-        return String.valueOf(j);
-//        return mColEntryValues[j];
-    }
+        IndependentCheckChangeListener(int i, int j, Set<Integer> dependents)
+        {
+            super(i, j);
+            mDependents = dependents;
+        }
 
-    private <K, T> Map<K, Set<T>> cloneValues(Map<K, Set<T>> values)
-    {
-        Map<K, Set<T>> newValues = new HashMap<>(values.size());
-        for (Map.Entry<K, Set<T>> entry : values.entrySet())
-            newValues.put(entry.getKey(), new HashSet<T>(entry.getValue()));
-        return newValues;
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+        {
+            super.onCheckedChanged(buttonView, isChecked);
+            for (Integer d : mDependents)
+            {
+                CheckBox dependentCheckBox = mCheckBoxes[super.mI][d];
+                dependentCheckBox.setEnabled(isChecked);
+                dependentCheckBox.setChecked(false);
+            }
+        }
     }
 }
