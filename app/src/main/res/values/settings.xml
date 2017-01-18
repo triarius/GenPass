@@ -2,14 +2,17 @@
 <resources>
     <string name="clipboard_text" translatable="false">password</string>
 
-    <string-array name="pref_password_column_entry_value_mods">
-        <item>en</item>
-        <item>man</item>
+    <string name="pref_password_charset_col_enabled">en</string>
+    <string name="pref_password_charset_col_mandatory">man</string>
+
+    <string-array name="pref_password_column_entry_values">
+        <item>@string/pref_password_charset_col_enabled</item>
+        <item>@string/pref_password_charset_col_mandatory</item>
     </string-array>
 
     <string name="pref_password_length_key" translatable="false">pwlen</string>
-    <string name="pref_password_char_sets_key" translatable="false">pwcharsets</string>
-    <string-array name="pref_password_char_set_keys" translatable="false">
+    <string name="pref_password_charset_key" translatable="false">pwcharsets</string>
+    <string-array name="pref_password_charset_keys" translatable="false">
         <item>pwlow</item>
         <item>pwup</item>
         <item>pwnum</item>

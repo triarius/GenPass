@@ -28,6 +28,8 @@
     <string name="zero_length">You selected a length of zero</string>
     <string name="copy_msg">Copied to clipboard</string>
 
+    <string name="title_activity_settings">Settings</string>
+
     <string name="password_length">Length</string>
     <string name="password_lower">Lowercase</string>
     <string name="password_upper">Uppercase</string>
@@ -39,8 +41,8 @@
     <string name="passphrase_force_capitalised_label">Force capitalised</string>
 
     <string name="pref_password_length">Length</string>
-    <string name="pref_password_char_sets">Character Sets</string>
-    <string-array name="pref_password_char_set_names">
+    <string name="pref_password_charsets">Character Sets</string>
+    <string-array name="pref_password_charset_names">
         <item>Lowercase</item>
         <item>Uppercase</item>
         <item>Numeric</item>
@@ -52,5 +54,12 @@
         <item>Mandatory</item>
     </string-array>
 
-    <string name="title_activity_settings">Settings</string>
+    <string-array name="pref_password_charset_col_deps">
+        <item>@array/pref_password_charset_col_dep1</item>
+    </string-array>
+
+    <string-array name="pref_password_charset_col_dep1">
+        <item>@string/pref_password_charset_col_enabled</item>
+        <item>@string/pref_password_charset_col_mandatory</item>
+    </string-array>
 </resources>

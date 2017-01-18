@@ -5,14 +5,14 @@
 
     <string name="passphrase_default_delimiter"> </string>
 
-    <array name="pref_password_char_set_default_value">
-        <item>@array/pref_password_char_set_default_enabled</item>
-        <item>@array/pref_password_char_set_default_mandatory</item>
+    <array name="pref_password_charset_default_value">
+        <item>@array/pref_password_charset_default_enabled</item>
+        <item>@array/pref_password_charset_default_mandatory</item>
     </array>
-    <string-array name="pref_password_char_set_default_enabled">
+    <string-array name="pref_password_charset_default_enabled">
         <item>pwlow</item>
         <item>pwup</item>
         <item>pwnum</item>
     </string-array>
-    <string-array name="pref_password_char_set_default_mandatory"/>
+    <string-array name="pref_password_charset_default_mandatory"/>
 </resources>
