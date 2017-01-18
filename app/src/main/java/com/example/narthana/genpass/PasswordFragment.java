@@ -1,12 +1,11 @@
 package com.example.narthana.genpass;
 
-import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -15,13 +14,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.Locale;
-import java.util.Random;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by narthana on 22/10/16.
@@ -29,12 +29,39 @@ import java.util.Random;
 
 public class PasswordFragment extends Fragment
 {
-    private final String PASSWORD_TAG = "password";
-    private final String COPYABLE_TAG = "copyable";
-    private final int NUM_CHAR_SUBSETS = 4;
+    private static final String PASSWORD_TAG = "password";
+    private static final String COPYABLE_TAG = "copyable";
+
+    private final SecureRandom mRandom = new SecureRandom();
+
+    private Map<String, String> mKeyToCharset;
+    private Set<String> mDefaultCharsetKeys;
+    private Set<String> mDefManCharsetKeys;
 
     private boolean mPasswordCopyable = false;
     private String mPassText;
+
+    @Override
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+
+        final Resources res = getResources();
+        final String[] charsets = res.getStringArray(R.array.charsets);
+        final String[] charsetKeys = res.getStringArray(R.array.pref_password_charset_keys);
+
+        mKeyToCharset = new HashMap<>(charsets.length);
+        for (int i = 0; i < charsets.length; ++i)
+            mKeyToCharset.put(charsetKeys[i], charsets[i]);
+
+        mDefaultCharsetKeys = new HashSet<>(Arrays.asList(
+                res.getStringArray(R.array.pref_password_charset_default_enabled)
+        ));
+
+        mDefManCharsetKeys = new HashSet<>(Arrays.asList(
+                res.getStringArray(R.array.pref_password_charset_default_mandatory)
+        ));
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -54,35 +81,10 @@ public class PasswordFragment extends Fragment
         final View rootView = inflater.inflate(R.layout.fragment_password, container, false);
 
         final TextView tvPass = (TextView) rootView.findViewById(R.id.password_textview);
-        final TextView tvPassLength =
-                (TextView) rootView.findViewById(R.id.password_length_textview);
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_password);
-        final SeekBar sbLength = (SeekBar) rootView.findViewById(R.id.password_length_seekbar);
-
-        final CheckBox cbLowerEn = (CheckBox) rootView.findViewById(R.id.password_lower_enabled);
-        final CheckBox cbLowerMan = (CheckBox) rootView.findViewById(R.id.password_lower_mandatory);
-        final CheckBox cbUpperEn = (CheckBox) rootView.findViewById(R.id.password_upper_enabled);
-        final CheckBox cbUpperMan = (CheckBox) rootView.findViewById(R.id.password_upper_mandatory);
-        final CheckBox cbNumEn = (CheckBox) rootView.findViewById(R.id.password_numeric_enabled);
-        final CheckBox cbNumMan = (CheckBox) rootView.findViewById(R.id.password_numeric_mandatory);
-        final CheckBox cbSymEn = (CheckBox) rootView.findViewById(R.id.password_symbols_enabled);
-        final CheckBox cbSymMan = (CheckBox) rootView.findViewById(R.id.password_symbols_mandatory);
-
-        final SharedPreferences prefs =
-                PreferenceManager.getDefaultSharedPreferences(getActivity());
-
-        final CheckBox[] checkBoxes = new CheckBox[]{cbLowerEn, cbUpperEn, cbNumEn, cbSymEn,
-                cbLowerMan, cbUpperMan, cbNumMan, cbSymMan};
-        final int[] prefIds = new int[] {R.string.pref_password_lower_enabled,
-                R.string.pref_password_upper_enabled, R.string.pref_password_numeric_enabled,
-                R.string.pref_password_symbol_enabled, R.string.pref_password_lower_mandatory,
-                R.string.pref_password_upper_mandatory, R.string.pref_password_numeric_mandatory,
-                R.string.pref_password_symbol_mandatory};
-        final boolean[] defCBStates = {true, true, true, false, false, false, false, false};
 
         // Set texts
         if (mPassText != null) tvPass.setText(mPassText);
-        setSeekBarText(tvPassLength, sbLength.getProgress());
 
         // set listener to copy password
         tvPass.setOnClickListener(new View.OnClickListener()
@@ -111,74 +113,11 @@ public class PasswordFragment extends Fragment
             public void onClick(View v)
             {
                 mPasswordCopyable = true;
-                mPassText = newPassword(numChars(), prefIds, defCBStates, rootView);
+                mPassText = newPassword(numChars(), rootView);
 
                 if (mPassText != null) tvPass.setText(mPassText);
             }
         });
-
-        // set slider to saved pw length
-        int defaultLength = numChars();
-        setSeekBarText(tvPassLength, defaultLength);
-        sbLength.setProgress(defaultLength);
-
-        // seek bar click listener
-        sbLength.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-        {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean user)
-            {
-                setSeekBarText(tvPassLength, progress);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt(getString(R.string.pref_password_length), progress);
-                editor.apply();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-
-        // create checkboxes
-        for (int i = 0; i < checkBoxes.length; ++i)
-        {
-            // set the checked state to match the preference
-            checkBoxes[i].setChecked(prefs.getBoolean(getString(prefIds[i]), defCBStates[i]));
-
-            // set the click listener
-            final int j = i; // so we can access i from the inner class
-            checkBoxes[j].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-            {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b)
-                {
-                    // if the checkbox is enabling, en/disable the corresponding mandating checkbox
-                    if (j < NUM_CHAR_SUBSETS)
-                    {
-                        CheckBox manCB = checkBoxes[j + NUM_CHAR_SUBSETS];
-                        manCB.setEnabled(b);
-                        if (!b) manCB.setChecked(false);
-                    }
-
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putBoolean(getString(prefIds[j]), b);
-                    editor.apply();
-                }
-            });
-
-            // if a mandating checkbox, dis/enable it if corresponding enabling cb is un/checked
-            if (i >= NUM_CHAR_SUBSETS)
-            {
-                int corrEnablingId = i - NUM_CHAR_SUBSETS;
-                checkBoxes[i].setEnabled(prefs.getBoolean(
-                        getString(prefIds[corrEnablingId]),
-                        defCBStates[corrEnablingId])
-                );
-            }
-        }
 
         return rootView;
     }
@@ -191,7 +130,7 @@ public class PasswordFragment extends Fragment
         outState.putBoolean(COPYABLE_TAG, mPasswordCopyable);
     }
 
-    private String newPassword(int len, int[] prefIds, boolean[] defaults, View rootView)
+    private String newPassword(int len, View rootView)
     {
         if (len < 1)
         {
@@ -199,49 +138,29 @@ public class PasswordFragment extends Fragment
             return "";
         }
 
-        Random r = new Random();
-        StringBuilder charSetBldr = new StringBuilder();
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
-        String lower = getString(R.string.lowercase);
-        String upper = getString(R.string.uppercase);
-        String numeric = getString(R.string.numeric);
-        String symbols = getString(R.string.symbols);
-        String[] charSubsets = new String[]{lower, upper, numeric, symbols};
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         // create charset to draw from
-        boolean emptyCharSet = true;
-        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
-        {
-            if (prefs.getBoolean(getString(prefIds[i]), defaults[i]))
-            {
-                charSetBldr.append(charSubsets[i]);
-                emptyCharSet = false;
-            }
-        }
+        final Set<String> selectedCharsetKeys = prefs.getStringSet(
+                getString(R.string.pref_password_charset_key) + "0",
+                mDefaultCharsetKeys
+        );
+        // collect the mandatory preferences into an array, and count them
+        final Set<String> mandatoryCharsetKeys = prefs.getStringSet(
+                getString(R.string.pref_password_charset_key) + "1",
+                mDefManCharsetKeys
+        );
 
         // the user has not checked any char subsets to add to the charset
-        if (emptyCharSet)
+        if (selectedCharsetKeys.size() == 0)
         {
             Snackbar.make(rootView, R.string.empty_charset, Snackbar.LENGTH_SHORT).show();
             return null;
         }
 
-        // collect the mandatory preferences into an array, and count them
-        boolean[] mandates = new boolean[NUM_CHAR_SUBSETS];
-        int numMadates = 0;
-        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
-        {
-            mandates[i] = prefs.getBoolean(
-                    getString(prefIds[i + NUM_CHAR_SUBSETS]),
-                    defaults[i + NUM_CHAR_SUBSETS]
-            );
-            if (mandates[i]) ++numMadates;
-        }
-
         // TODO: prevent the UI from allowing this to occur
-        if (numMadates > len)
+        if (mandatoryCharsetKeys.size() > len)
         {
             Snackbar.make(rootView, R.string.too_many_mandates, Snackbar.LENGTH_SHORT).show();
             return null;
@@ -249,13 +168,22 @@ public class PasswordFragment extends Fragment
 
         // select the mandated characters
         char[] password = new char[len];
+
         int pos = 0;
-        for (int i = 0; i < NUM_CHAR_SUBSETS; ++i)
-            if (mandates[i]) password[pos++] = charSubsets[i].charAt(r.nextInt(charSubsets[i].length()));
+        for (String s : mandatoryCharsetKeys)
+        {
+            String charSet = mKeyToCharset.get(s);
+            password[pos++] = charSet.charAt(mRandom.nextInt(charSet.length()));
+        }
+
+        // build the charset for the non mandatory part
+        StringBuilder charSetBldr = new StringBuilder();
+        for (String s : selectedCharsetKeys)
+           charSetBldr.append(mKeyToCharset.get(s));
+        String charSet = charSetBldr.toString();
 
         // fill out rest of the password with arbitrary chars from the entire set
-        String charSet = charSetBldr.toString();
-        for (; pos < len; ++pos) password[pos] = charSet.charAt(r.nextInt(charSet.length()));
+        for (; pos < len; ++pos) password[pos] = charSet.charAt(mRandom.nextInt(charSet.length()));
 
         // shuffle the password so that the mandatory characters are in random positions
         Utility.shuffle(password);
@@ -270,15 +198,5 @@ public class PasswordFragment extends Fragment
                 getString(R.string.pref_password_length_key),
                 getResources().getInteger(R.integer.pref_default_password_length)
         );
-    }
-
-    @TargetApi(Build.VERSION_CODES.N)
-    private void setSeekBarText(TextView textView, int progress)
-    {
-        Locale locale = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) ?
-            getResources().getConfiguration().getLocales().get(0) :
-            getResources().getConfiguration().locale;
-
-        textView.setText(String.format(locale, "%d", progress));
     }
 }

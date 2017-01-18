@@ -22,6 +22,13 @@
     <string name="numeric">1234567890</string>
     <string name="symbols">"~`!@#$%^*()-_+=\\|]}[{;:/?.,&amp;&apos;&lt;&gt;"\"</string>
 
+    <string-array name="charsets">
+        <item>@string/lowercase</item>
+        <item>@string/uppercase</item>
+        <item>@string/numeric</item>
+        <item>@string/symbols</item>
+    </string-array>
+
     <string name="dict_load_snack">Please wait while the dictionary is loaded</string>
     <string name="empty_charset">Please select at least one character class</string>
     <string name="too_many_mandates">The number of mandatory characters must be fewer than length of the password</string>

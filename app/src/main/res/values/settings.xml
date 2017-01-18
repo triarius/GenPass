@@ -19,14 +19,14 @@
         <item>pwsymb</item>
     </string-array>
 
-    <string name="pref_password_lower_enabled" translatable="false">pwlowen</string>
-    <string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>
-    <string name="pref_password_upper_enabled" translatable="false">pwupen</string>
-    <string name="pref_password_upper_mandatory" translatable="false">pwupman</string>
-    <string name="pref_password_numeric_enabled" translatable="false">pwnumen</string>
-    <string name="pref_password_numeric_mandatory" translatable="false">pwnumman</string>
-    <string name="pref_password_symbol_enabled" translatable="false">pwsymben</string>
-    <string name="pref_password_symbol_mandatory" translatable="false">pwsymbman</string>
+    <!--<string name="pref_password_lower_enabled" translatable="false">pwlowen</string>-->
+    <!--<string name="pref_password_lower_mandatory" translatable="false">pwlowman</string>-->
+    <!--<string name="pref_password_upper_enabled" translatable="false">pwupen</string>-->
+    <!--<string name="pref_password_upper_mandatory" translatable="false">pwupman</string>-->
+    <!--<string name="pref_password_numeric_enabled" translatable="false">pwnumen</string>-->
+    <!--<string name="pref_password_numeric_mandatory" translatable="false">pwnumman</string>-->
+    <!--<string name="pref_password_symbol_enabled" translatable="false">pwsymben</string>-->
+    <!--<string name="pref_password_symbol_mandatory" translatable="false">pwsymbman</string>-->
 
     <string name="pref_passphrase_delimiter" translatable="false">ppdelim</string>
     <string name="pref_passphrase_num_words" translatable="false">ppnumwords</string>
