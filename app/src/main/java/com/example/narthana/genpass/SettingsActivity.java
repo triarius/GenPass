@@ -35,7 +35,7 @@ public class SettingsActivity extends AppCompatActivity
 
         // Display the fragment as the main content.
         if (savedInstanceState == null) getFragmentManager().beginTransaction()
-                .replace(R.id.settings_frame, new PasswordPrefFragment())
+                .replace(R.id.settings_frame, new SettingsFragment())
                 .commit();
     }
 

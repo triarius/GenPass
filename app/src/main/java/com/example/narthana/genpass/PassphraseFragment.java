@@ -12,17 +12,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.narthana.genpass.WordContract.WordEntry;
@@ -45,10 +40,8 @@ public class PassphraseFragment extends Fragment
     private String mPassphrase;
 
     // TODO: put these in preferences
-//    private final int n = 4;
     private final int maxWordLength = 10;
     private final int minWordLength = 5;
-//    private final String delim = " ";
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -72,34 +65,12 @@ public class PassphraseFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
-        final EditText etDelim = (EditText) rootView.findViewById(R.id.delimiter_edit_text);
-        final EditText etNumWords = (EditText) rootView.findViewById(R.id.num_words_edit_text);
-        final CheckBox cbForceCap = (CheckBox) rootView.findViewById(R.id.force_cap_checkbox);
-
         final SharedPreferences prefs =
                 PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         if (mPassphrase != null) passText.setText(mPassphrase);
 
-
-        etDelim.setText(prefs.getString(
-                getString(R.string.pref_passphrase_delimiter),
-                getString(R.string.passphrase_default_delimiter)
-        ));
-
-        etNumWords.setText(String.valueOf(prefs.getInt(
-                getString(R.string.pref_passphrase_num_words),
-                getResources().getInteger(R.integer.pref_default_passphrase_num_words)
-        )));
-
-        cbForceCap.setChecked(prefs.getBoolean(
-                getString(R.string.pref_passphrase_force_cap),
-                false
-        ));
-
-
         // set click listeners
-
         btnGenerate.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -107,15 +78,15 @@ public class PassphraseFragment extends Fragment
             {
                 if (mWordIdsReady)
                 {
-                    int n = prefs.getInt(
+                    final int n = prefs.getInt(
                             getString(R.string.pref_passphrase_num_words),
                             getResources().getInteger(R.integer.pref_default_passphrase_num_words)
                     );
-                    String delim = prefs.getString(
+                    final String delim = prefs.getString(
                             getString(R.string.pref_passphrase_delimiter),
                             getString(R.string.passphrase_default_delimiter)
                     );
-                    boolean cap = prefs.getBoolean(
+                    final boolean cap = prefs.getBoolean(
                             getString(R.string.pref_passphrase_force_cap),
                             false
                     );
@@ -141,63 +112,13 @@ public class PassphraseFragment extends Fragment
                 {
                     ClipboardManager clipboard = (ClipboardManager)
                             getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText(
+                    final ClipData clip = ClipData.newPlainText(
                             getString(R.string.clipboard_text),
                             passText.getText()
                     );
                     clipboard.setPrimaryClip(clip);
                     Snackbar.make(rootView, R.string.copy_msg, Snackbar.LENGTH_SHORT).show();
                 }
-            }
-        });
-
-        etDelim.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s)
-            {
-                prefs.edit().putString(
-                        getString(R.string.pref_passphrase_delimiter),
-                        s.toString()
-                ).apply();
-            }
-        });
-
-        etNumWords.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable e)
-            {
-                String s = e.toString();
-                if (!s.equals(""))
-                    prefs.edit().putInt(
-                            getString(R.string.pref_passphrase_num_words),
-                            Integer.parseInt(s)
-                    ).apply();
-            }
-        });
-
-        cbForceCap.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-            {
-                prefs.edit().putBoolean(
-                        getString(R.string.pref_passphrase_force_cap),
-                        isChecked
-                ).apply();
             }
         });
 

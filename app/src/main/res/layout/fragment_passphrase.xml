@@ -13,57 +13,6 @@
         android:gravity="center"
         android:fontFamily="serif-monospace"/>
 
-    <!--Todo: use the preference framework-->
-
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:stretchColumns="0">
-
-        <TableRow>
-
-            <TextView
-                android:text="@string/passphrase_delimiter_label"
-                android:labelFor="@+id/delimiter_edit_text"/>
-
-            <EditText
-                android:id="@id/delimiter_edit_text"
-                android:inputType="text"
-                android:text="@string/passphrase_default_delimiter"
-                android:ems="2"
-                android:textAlignment="center"/>
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:text="@string/passphrase_num_words_label"
-                android:labelFor="@+id/num_words_edit_text"/>
-
-            <EditText
-                android:id="@id/num_words_edit_text"
-                android:inputType="number"
-                android:ems="2"
-                android:textAlignment="center"/>
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/force_cap_text"
-                android:text="@string/passphrase_force_capitalised_label"
-                android:layout_gravity="center_vertical"/>
-
-            <CheckBox
-                android:id="@+id/force_cap_checkbox"
-                android:layout_gravity="center"/>
-
-        </TableRow>
-
-    </TableLayout>
-
     <Button
         android:id="@+id/button_generate_passphrase"
         android:text="@string/generate"

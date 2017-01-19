@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:narthana="http://schemas.android.com/apk/res/com.example.narthana.genpass">
+
+    <PreferenceCategory android:title="@string/password">
+
+        <com.example.narthana.genpass.SeekBarPreference
+            android:key="@string/pref_password_length_key"
+            android:title="@string/password_length"
+            android:defaultValue="@integer/pref_default_password_length"
+            android:max="@integer/pref_max_password_length"/>
+
+        <com.example.narthana.genpass.MultiSelectMultiListPreference
+            android:key="@string/pref_password_charset_key"
+            android:title="@string/pref_password_charsets"
+            android:entries="@array/pref_password_charset_names"
+            android:entryValues="@array/pref_password_charset_keys"
+            android:defaultValue="@array/pref_password_charset_default_value"
+            narthana:columnEntries="@array/pref_password_column_entries"
+            narthana:columnEntryValues="@array/pref_password_column_entry_values"
+            narthana:columnDependencies="@array/pref_password_charset_col_deps"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/passphrase">
+
+        <EditTextPreference
+            android:key="@string/pref_passphrase_delimiter"
+            android:title="@string/passphrase_delimiter_label"
+            android:maxLength="1"
+            android:selectAllOnFocus="true"/>
+
+        <com.example.narthana.genpass.SeekBarPreference
+            android:key="@string/pref_passphrase_num_words"
+            android:title="@string/passphrase_num_words_label"
+            android:defaultValue="@integer/pref_default_passphrase_num_words"
+            android:max="@integer/pref_max_num_words"/>
+
+        <SwitchPreference
+            android:key="@string/pref_passphrase_force_cap"
+            android:title="@string/passphrase_force_capitalised_label"
+            android:defaultValue="@bool/pref_default_passphrase_force_cap"/>
+
+    </PreferenceCategory>
+</PreferenceScreen>

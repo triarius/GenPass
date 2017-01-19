@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity
         else mNavMenuItemId = savedInstanceState.getInt(NAV_MENU_ITEM_TAG);
 
         // set default preferences
-        PreferenceManager.setDefaultValues(this, R.xml.pref_password, false);
+        PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
     }
 
     @Override

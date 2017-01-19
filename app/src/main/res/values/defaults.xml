@@ -3,6 +3,8 @@
     <integer name="pref_default_password_length">32</integer>
     <integer name="pref_default_passphrase_num_words">4</integer>
 
+    <bool name="pref_default_passphrase_force_cap">false</bool>
+
     <string name="passphrase_default_delimiter"> </string>
 
     <array name="pref_password_charset_default_value">
