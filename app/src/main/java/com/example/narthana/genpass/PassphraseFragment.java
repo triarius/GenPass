@@ -33,30 +33,36 @@ public class PassphraseFragment extends Fragment
     private final String WORDS_TAG = "words";
     private final String PASSPHRASE_TAG = "passphrase";
     private final String COPYABLE_TAG = "copyable";
+    private final String MAX_WORD_LEN_TAG = "maxwordlen";
+    private final String MIN_WORD_LEN_TAG = "minwordlen";
 
+    private SharedPreferences mPrefs;
+
+    private Bundle mSavedInstanceState;
     private int[] mWordIds;
     private boolean mWordIdsReady;
     private boolean mPassphraseCopyable = false;
     private String mPassphrase;
-
-    // TODO: put these in preferences
-    private final int maxWordLength = 10;
-    private final int minWordLength = 5;
+    private int mMaxWordLength;
+    private int mMinWordLength;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        mSavedInstanceState = savedInstanceState;
+
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         if (savedInstanceState != null)
         {
+            Log.d(getClass().getSimpleName(), "Restoring state");
             mPassphraseCopyable = savedInstanceState.getBoolean(COPYABLE_TAG);
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
+            mMaxWordLength = savedInstanceState.getInt(MAX_WORD_LEN_TAG);
+            mMinWordLength = savedInstanceState.getInt(MIN_WORD_LEN_TAG);
             mWordIds = Utility.expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG));
             if (mWordIds != null) mWordIdsReady = true;
-        }
-        else
-        {
-            new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
         }
     }
 
@@ -68,8 +74,18 @@ public class PassphraseFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
-        final SharedPreferences prefs =
-                PreferenceManager.getDefaultSharedPreferences(getActivity());
+        final int n = mPrefs.getInt(
+                getString(R.string.pref_passphrase_num_words),
+                getResources().getInteger(R.integer.pref_default_passphrase_num_words)
+        );
+        final String delim = mPrefs.getString(
+                getString(R.string.pref_passphrase_delimiter),
+                getString(R.string.passphrase_default_delimiter)
+        );
+        final boolean cap = mPrefs.getBoolean(
+                getString(R.string.pref_passphrase_force_cap),
+                false
+        );
 
         if (mPassphrase != null) passText.setText(mPassphrase);
 
@@ -81,18 +97,6 @@ public class PassphraseFragment extends Fragment
             {
                 if (mWordIdsReady)
                 {
-                    final int n = prefs.getInt(
-                            getString(R.string.pref_passphrase_num_words),
-                            getResources().getInteger(R.integer.pref_default_passphrase_num_words)
-                    );
-                    final String delim = prefs.getString(
-                            getString(R.string.pref_passphrase_delimiter),
-                            getString(R.string.passphrase_default_delimiter)
-                    );
-                    final boolean cap = prefs.getBoolean(
-                            getString(R.string.pref_passphrase_force_cap),
-                            false
-                    );
                     Utility.shuffleN(mWordIds, n);
                     mPassphrase = createPhrase(mWordIds, delim, cap, 0, n - 1);
                     passText.setText(mPassphrase);
@@ -129,12 +133,37 @@ public class PassphraseFragment extends Fragment
     }
 
     @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        final int maxWordLength = mPrefs.getInt(
+                getString(R.string.pref_passphrase_max_word_length),
+                getResources().getInteger(R.integer.passpharase_default_max_word_length)
+        );
+        final int minWordLength = mPrefs.getInt(
+                getString(R.string.pref_passphrase_min_word_length),
+                getResources().getInteger(R.integer.passpharase_default_min_word_length)
+        );
+
+        if (!mWordIdsReady || maxWordLength != mMaxWordLength || minWordLength != mMinWordLength)
+        {
+            mWordIdsReady = false;
+            mMaxWordLength = maxWordLength;
+            mMinWordLength = minWordLength;
+            new FetchWordListTask().execute(new Integer[]{mMinWordLength, mMaxWordLength});
+        }
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState)
     {
         super.onSaveInstanceState(outState);
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase);
         if (mWordIdsReady) outState.putIntArray(WORDS_TAG, Utility.compressWithRanges(mWordIds));
         outState.putBoolean(COPYABLE_TAG, mPassphraseCopyable);
+        outState.putInt(MAX_WORD_LEN_TAG, mMaxWordLength);
+        outState.putInt(MIN_WORD_LEN_TAG, mMinWordLength);
     }
 
     private String createPhrase(int[] ids, String delim, boolean cap, int start, int end)
