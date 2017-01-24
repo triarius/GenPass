@@ -2,4 +2,6 @@
 <resources>
     <integer name="pref_max_password_length">128</integer>
     <integer name="pref_max_num_words">8</integer>
+    <integer name="pref_max_max_word_length">20</integer>
+    <integer name="pref_max_min_word_length">20</integer>
 </resources>

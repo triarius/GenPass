@@ -30,6 +30,8 @@
     <string name="passphrase_delimiter_label">Delimiter</string>
     <string name="passphrase_num_words_label">Number of words</string>
     <string name="passphrase_force_capitalised_label">Force capitalised</string>
+    <string name="passphrase_max_word_length">Maximum length for each word</string>
+    <string name="passphrase_min_word_length">Minimum length for each word</string>
 
     <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>
     <string name="uppercase">QWERTYUIOPASDFGHJKLZXCVBNM</string>

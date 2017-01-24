@@ -36,10 +36,23 @@
             android:defaultValue="@integer/pref_default_passphrase_num_words"
             android:max="@integer/pref_max_num_words"/>
 
+        <com.example.narthana.genpass.SeekBarPreference
+            android:key="@string/pref_passphrase_min_word_length"
+            android:title="@string/passphrase_min_word_length"
+            android:defaultValue="@integer/passpharase_default_min_word_length"
+            android:max="@integer/pref_max_min_word_length"/>
+
+        <com.example.narthana.genpass.SeekBarPreference
+            android:key="@string/pref_passphrase_max_word_length"
+            android:title="@string/passphrase_max_word_length"
+            android:defaultValue="@integer/passpharase_default_max_word_length"
+            android:max="@integer/pref_max_max_word_length"/>
+
         <SwitchPreference
             android:key="@string/pref_passphrase_force_cap"
             android:title="@string/passphrase_force_capitalised_label"
             android:defaultValue="@bool/pref_default_passphrase_force_cap"/>
 
     </PreferenceCategory>
+
 </PreferenceScreen>

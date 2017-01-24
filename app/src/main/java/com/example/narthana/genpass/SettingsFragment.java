@@ -10,6 +10,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.narthana.genpass.R.xml.prefs;
+
 /**
  * Created by narthana on 28/12/16.
  */
@@ -23,35 +25,44 @@ public class SettingsFragment extends PreferenceFragment
     @Retention(RetentionPolicy.SOURCE)
     public @interface Type{};
 
-    private Map<String, PairOfIds> mPrefKeyToId;
+    private Map<String, ResIdWithType> mPrefKeyToId;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.prefs);
+        addPreferencesFromResource(prefs);
 
         mPrefKeyToId = new HashMap<>();
+
+        // Just add a preference's keyId, defaultValueId and type to there three arrays to get it
+        // it to have its values displayed as the summary
         final int[] prefIds = new int[] {
                 R.string.pref_password_length_key,
                 R.string.pref_passphrase_num_words,
-                R.string.pref_passphrase_delimiter
+                R.string.pref_passphrase_delimiter,
+                R.string.pref_passphrase_min_word_length,
+                R.string.pref_passphrase_max_word_length
         };
         final int[] defaultIds = new int[] {
                 R.integer.pref_default_password_length,
                 R.integer.pref_default_passphrase_num_words,
-                R.string.passphrase_default_delimiter
+                R.string.passphrase_default_delimiter,
+                R.integer.passpharase_default_min_word_length,
+                R.integer.passpharase_default_max_word_length
         };
         final @Type int[] types = new int[] {
                 INT,
                 INT,
-                STRING
+                STRING,
+                INT,
+                INT
         };
 
         for (int i = 0; i < prefIds.length; ++i)
             mPrefKeyToId.put(
                     getString(prefIds[i]),
-                    new PairOfIds(defaultIds[i], types[i])
+                    new ResIdWithType(defaultIds[i], types[i])
             );
     }
 
@@ -63,13 +74,14 @@ public class SettingsFragment extends PreferenceFragment
         SharedPreferences prefs = getPreferenceScreen().getSharedPreferences();
 
         // Set the summary values initially
-        for (Map.Entry<String, PairOfIds> entry : mPrefKeyToId.entrySet())
+        for (Map.Entry<String, ResIdWithType> entry : mPrefKeyToId.entrySet())
             setPrefSummaryToValue(
                     prefs,
                     entry.getKey(),
                     entry.getValue().defaultId,
                     entry.getValue().type
             );
+
         // register the listener
         prefs.registerOnSharedPreferenceChangeListener(this);
     }
@@ -85,7 +97,7 @@ public class SettingsFragment extends PreferenceFragment
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
-        PairOfIds value = mPrefKeyToId.get(key);
+        ResIdWithType value = mPrefKeyToId.get(key);
         if (value != null)
             setPrefSummaryToValue(sharedPreferences, key, value.defaultId, value.type);
     }
@@ -93,31 +105,35 @@ public class SettingsFragment extends PreferenceFragment
     private void setPrefSummaryToValue(SharedPreferences prefs, String key,
                                        int defaultValueId, @Type int type)
     {
-        Object stuff = null;
+        String summary;
         switch (type)
         {
             case INT:
-                stuff = prefs.getInt(
+                int intPref = prefs.getInt(
                         key,
                         getResources().getInteger(defaultValueId)
                 );
+                summary = String.valueOf(intPref);
                 break;
             case STRING:
-                stuff = prefs.getString(
+                summary = prefs.getString(
                         key,
                         getString(defaultValueId)
                 );
                 break;
+            default:
+                // AN ERROR HAS OCCURRED
+                summary = null;
         }
-        findPreference(key).setSummary(String.valueOf(stuff));
+        findPreference(key).setSummary(summary);
     }
 
-    private static class PairOfIds
+    private static class ResIdWithType
     {
         final int defaultId;
         final @Type int type;
 
-        PairOfIds(int defaultId, @Type int type)
+        ResIdWithType(int defaultId, @Type int type)
         {
             this.defaultId = defaultId;
             this.type = type;

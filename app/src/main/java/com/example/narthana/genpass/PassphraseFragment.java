@@ -54,7 +54,10 @@ public class PassphraseFragment extends Fragment
             mWordIds = Utility.expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG));
             if (mWordIds != null) mWordIdsReady = true;
         }
-        else new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+        else
+        {
+            new FetchWordListTask().execute(new Integer[] {minWordLength, maxWordLength});
+        }
     }
 
     @Nullable

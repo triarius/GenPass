@@ -23,4 +23,6 @@
     <string name="pref_passphrase_delimiter" translatable="false">ppdelim</string>
     <string name="pref_passphrase_num_words" translatable="false">ppnumwords</string>
     <string name="pref_passphrase_force_cap" translatable="false">ppforcecap</string>
+    <string name="pref_passphrase_max_word_length" translatable="false">ppmaxwlen</string>
+    <string name="pref_passphrase_min_word_length" translatable="false">ppminwlen</string>
 </resources>
