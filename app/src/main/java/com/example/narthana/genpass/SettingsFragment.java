@@ -19,6 +19,8 @@ import static com.example.narthana.genpass.R.xml.prefs;
 public class SettingsFragment extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener
 {
+    public static final String SPACE_STRING = "{SPACE}";
+
     public static final int INT = 0;
     public static final int STRING = 1;
     @IntDef({INT, STRING})
@@ -120,6 +122,7 @@ public class SettingsFragment extends PreferenceFragment
                         key,
                         getString(defaultValueId)
                 );
+                if (summary.equals(" ")) summary = SPACE_STRING;
                 break;
             default:
                 // AN ERROR HAS OCCURRED
