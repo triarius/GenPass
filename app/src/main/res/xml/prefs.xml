@@ -24,11 +24,12 @@
 
     <PreferenceCategory android:title="@string/passphrase">
 
-        <EditTextPreference
+        <com.example.narthana.genpass.GraphemeEditTextPreference
             android:key="@string/pref_passphrase_delimiter"
             android:title="@string/passphrase_delimiter_label"
-            android:maxLength="1"
-            android:selectAllOnFocus="true"/>
+            android:maxLength="@integer/pref_max_delim_length"
+            android:selectAllOnFocus="true"
+            android:cursorVisible="false"/>
 
         <com.example.narthana.genpass.SeekBarPreference
             android:key="@string/pref_passphrase_num_words"

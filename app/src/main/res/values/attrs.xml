@@ -8,4 +8,7 @@
         <attr name="columnEntryValues" format="reference"/>
         <attr name="columnDependencies" format="reference"/>
     </declare-styleable>
+    <declare-styleable name="GraphemeEditTextPreference">
+        <attr name="android:maxLength"/>
+    </declare-styleable>
 </resources>
