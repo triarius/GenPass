@@ -1,4 +1,4 @@
-package com.example.narthana.genpass;
+package com.example.narthana.genpass.preference;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,6 +17,8 @@ import android.widget.CompoundButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import com.example.narthana.genpass.R;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package com.example.narthana.genpass;
+package com.example.narthana.genpass.text;
 
 import android.text.InputFilter;
 import android.text.Spanned;
@@ -9,11 +9,11 @@ import com.ibm.icu.text.BreakIterator;
  * Created by narthana on 25/01/17.
  */
 
-class GraphemeLengthFilter implements InputFilter
+public class GraphemeLengthFilter implements InputFilter
 {
     private int mMax;
 
-    GraphemeLengthFilter(int max) { mMax = max; }
+    public GraphemeLengthFilter(int max) { mMax = max; }
 
     public int getMax() { return mMax; }
 

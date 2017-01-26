@@ -4,9 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.util.TypedValue;
 
-import com.example.narthana.genpass.WordContract.WordEntry;
+import com.example.narthana.genpass.data.WordContract.WordEntry;
+import com.example.narthana.genpass.data.NewWordDBHelper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -120,14 +120,5 @@ class Utility
         int temp = array[i];
         array[i] = array[j];
         array[j] = temp;
-    }
-
-    static int dpToPx(Context context, int length)
-    {
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                length,
-                context.getResources().getDisplayMetrics()
-        );
     }
 }

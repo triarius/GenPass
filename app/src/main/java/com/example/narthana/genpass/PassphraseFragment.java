@@ -20,7 +20,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.narthana.genpass.WordContract.WordEntry;
+import com.example.narthana.genpass.data.WordContract.WordEntry;
+import com.example.narthana.genpass.data.PreBuiltWordDBHelper;
 
 import java.util.Arrays;
 
@@ -38,7 +39,7 @@ public class PassphraseFragment extends Fragment
 
     private SharedPreferences mPrefs;
 
-    private Bundle mSavedInstanceState;
+//    private Bundle mSavedInstanceState;
     private int[] mWordIds;
     private boolean mWordIdsReady;
     private boolean mPassphraseCopyable = false;
@@ -50,13 +51,13 @@ public class PassphraseFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        mSavedInstanceState = savedInstanceState;
+//        mSavedInstanceState = savedInstanceState;
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         if (savedInstanceState != null)
         {
-            Log.d(getClass().getSimpleName(), "Restoring state");
+//            Log.d(getClass().getSimpleName(), "Restoring state");
             mPassphraseCopyable = savedInstanceState.getBoolean(COPYABLE_TAG);
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG);
             mMaxWordLength = savedInstanceState.getInt(MAX_WORD_LEN_TAG);
@@ -74,19 +75,6 @@ public class PassphraseFragment extends Fragment
         final Button btnGenerate = (Button) rootView.findViewById(R.id.button_generate_passphrase);
         final TextView passText = (TextView) rootView.findViewById(R.id.textview_passphrase);
 
-        final int n = mPrefs.getInt(
-                getString(R.string.pref_passphrase_num_words),
-                getResources().getInteger(R.integer.pref_default_passphrase_num_words)
-        );
-        final String delim = mPrefs.getString(
-                getString(R.string.pref_passphrase_delimiter),
-                getString(R.string.passphrase_default_delimiter)
-        );
-        final boolean cap = mPrefs.getBoolean(
-                getString(R.string.pref_passphrase_force_cap),
-                false
-        );
-
         if (mPassphrase != null) passText.setText(mPassphrase);
 
         // set click listeners
@@ -97,8 +85,7 @@ public class PassphraseFragment extends Fragment
             {
                 if (mWordIdsReady)
                 {
-                    Utility.shuffleN(mWordIds, n);
-                    mPassphrase = createPhrase(mWordIds, delim, cap, 0, n - 1);
+                    mPassphrase = createPhrase(mWordIds);
                     passText.setText(mPassphrase);
                     mPassphraseCopyable = true;
                 }
@@ -166,10 +153,23 @@ public class PassphraseFragment extends Fragment
         outState.putInt(MIN_WORD_LEN_TAG, mMinWordLength);
     }
 
-    private String createPhrase(int[] ids, String delim, boolean cap, int start, int end)
+    private String createPhrase(int[] ids)
     {
-        int n = end - start + 1;
-        if (n < 1) return "";
+        final int n = mPrefs.getInt(
+                getString(R.string.pref_passphrase_num_words),
+                getResources().getInteger(R.integer.pref_default_passphrase_num_words)
+        );
+        final String delim = mPrefs.getString(
+                getString(R.string.pref_passphrase_delimiter),
+                getString(R.string.passphrase_default_delimiter)
+        );
+        final boolean cap = mPrefs.getBoolean(
+                getString(R.string.pref_passphrase_force_cap),
+                getResources().getBoolean(R.bool.pref_default_passphrase_force_cap)
+        );
+
+        // choose random elements for the first n positions in the array
+        Utility.shuffleN(mWordIds, n);
 
         // map the ids to Strings
         String[] selectionArgs = new String[n];

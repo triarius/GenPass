@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.example.narthana.genpass.data.PreBuiltWordDBHelper;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

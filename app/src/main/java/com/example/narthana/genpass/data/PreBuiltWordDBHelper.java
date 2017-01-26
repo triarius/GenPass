@@ -1,4 +1,4 @@
-package com.example.narthana.genpass;
+package com.example.narthana.genpass.data;
 
 import android.content.Context;
 

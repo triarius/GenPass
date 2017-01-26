@@ -1,4 +1,4 @@
-package com.example.narthana.genpass;
+package com.example.narthana.genpass.preference;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -138,9 +138,9 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         // Member that holds the setting's value
         int value;
 
-        public SavedState(Parcelable superState) { super(superState); }
+        SavedState(Parcelable superState) { super(superState); }
 
-        public SavedState(Parcel source)
+        SavedState(Parcel source)
         {
             super(source);
 

@@ -1,4 +1,4 @@
-package com.example.narthana.genpass;
+package com.example.narthana.genpass.preference;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -8,6 +8,9 @@ import android.preference.EditTextPreference;
 import android.text.InputFilter;
 import android.util.AttributeSet;
 import android.widget.EditText;
+
+import com.example.narthana.genpass.text.GraphemeLengthFilter;
+import com.example.narthana.genpass.R;
 
 /**
  * Created by narthana on 26/01/17.
