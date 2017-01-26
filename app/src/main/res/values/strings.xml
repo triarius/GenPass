@@ -17,7 +17,7 @@
     <string name="default_passphrase_text">Tap Generate for a new passphrase</string>
     <string name="generate">Generate</string>
 
-    <string name="dict_load_snack">Please wait while the dictionary is loaded</string>
+    <string name="dict_load_snack">Please wait while the dictionary is loading</string>
     <string name="empty_charset">Please select at least one character class</string>
     <string name="too_many_mandates">The number of mandatory characters must be fewer than length of the password</string>
     <string name="zero_length">You selected a length of zero</string>
