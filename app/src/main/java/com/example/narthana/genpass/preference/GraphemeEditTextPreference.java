@@ -9,8 +9,8 @@ import android.text.InputFilter;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
-import com.example.narthana.genpass.text.GraphemeLengthFilter;
 import com.example.narthana.genpass.R;
+import com.example.narthana.genpass.text.GraphemeLengthFilter;
 
 /**
  * Created by narthana on 26/01/17.

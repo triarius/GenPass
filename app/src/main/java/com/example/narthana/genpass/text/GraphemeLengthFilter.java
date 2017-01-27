@@ -5,15 +5,24 @@ import android.text.Spanned;
 
 import com.ibm.icu.text.BreakIterator;
 
+import java.util.Locale;
+
 /**
  * Created by narthana on 25/01/17.
  */
 
 public class GraphemeLengthFilter implements InputFilter
 {
-    private int mMax;
+    private final int mMax;
+    private final Locale mLocale;
 
-    public GraphemeLengthFilter(int max) { mMax = max; }
+    public GraphemeLengthFilter(int max, Locale locale)
+    {
+        mMax = max;
+        mLocale = locale;
+    }
+
+    public GraphemeLengthFilter(int max) { this(max, Locale.getDefault()); }
 
     public int getMax() { return mMax; }
 
@@ -25,23 +34,24 @@ public class GraphemeLengthFilter implements InputFilter
     {
         //  number of graphemes we must keep
         int keep = mMax - (graphemeCount(dest, 0, dest.length())
-                           - graphemeCount(dest, dstart, dend));
+                                 - graphemeCount(dest, dstart, dend));
 
         if (keep <= 0) return "";
         else if (keep >= graphemeCount(source, start, end)) return null; // keep original
         else
         {
-            BreakIterator it = BreakIterator.getCharacterInstance();
+            BreakIterator it = BreakIterator.getCharacterInstance(mLocale);
             it.setText(source.subSequence(start, end).toString());
-            int endToKeep = 0;
-            while (keep > 0 && (endToKeep = it.next()) != BreakIterator.DONE) --keep;
-            return source.subSequence(start, start + endToKeep);
+            int keepOffSet = 0;
+            // iterate though "kepp" graphemes, noting down the index in which we end up
+            while (keep > 0 && (keepOffSet = it.next()) != BreakIterator.DONE) --keep;
+            return source.subSequence(start, start + keepOffSet);
         }
     }
 
     private int graphemeCount(CharSequence seq, int beginIndex, int endIndex)
     {
-        BreakIterator it = BreakIterator.getCharacterInstance();
+        BreakIterator it = BreakIterator.getCharacterInstance(mLocale);
         it.setText(seq.subSequence(beginIndex, endIndex).toString());
         int count = 0;
         while (it.next() != BreakIterator.DONE) ++count;
