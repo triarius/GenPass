@@ -222,15 +222,13 @@ public class MultiSelectMultiListPreference extends DialogPreference
     {
         Resources res = getContext().getResources();
         Map<String, Set<String>> values = new HashMap<>();
-        TypedArray array = res.obtainTypedArray(a.getResourceId(index, -1));
+        final TypedArray array = res.obtainTypedArray(a.getResourceId(index, -1));
 
         for (int j = 0, n = array.length(); j < n; ++j)
         {
             final Set<String> result = new HashSet<>();
             CharSequence[] value = array.getTextArray(j);
-
             for (CharSequence c : value) result.add(c.toString());
-
             values.put(colValue(j), result);
         }
 
@@ -317,13 +315,12 @@ public class MultiSelectMultiListPreference extends DialogPreference
     {
         if (mCheckBoxes != null)
         {
-            for (int i = 0; i < numRows; ++i)
-                for (int j = 0; j < numCols; ++j)
-                    mCheckBoxes[i][j].setChecked(
-                            values
-                                    .get(colValue(j))
-                                    .contains(mEntryValues[i].toString())
-                    );
+            for (int i = 0; i < numRows; ++i) for (int j = 0; j < numCols; ++j)
+                mCheckBoxes[i][j].setChecked(
+                        values
+                            .get(colValue(j))
+                            .contains(mEntryValues[i].toString())
+                );
             for (int k = 0; k < mColumnDependencies.size(); ++k)
             {
                 final int independentColNo = mColumnDependencies.keyAt(k);
@@ -334,6 +331,7 @@ public class MultiSelectMultiListPreference extends DialogPreference
             }
         }
     }
+
     private String colValue(int j)
     {
         return String.valueOf(j);
