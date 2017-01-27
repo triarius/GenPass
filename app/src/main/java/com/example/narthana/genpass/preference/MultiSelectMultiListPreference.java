@@ -45,8 +45,19 @@ public class MultiSelectMultiListPreference extends DialogPreference
     private Map<String, Set<String>> mValues;
     private Map<String, Set<String>> mSelectedValues;
 
+
+    public MultiSelectMultiListPreference(Context context) { this(context, null); }
+
     public MultiSelectMultiListPreference(Context context, AttributeSet attrs)
+    { this(context, attrs, 0); }
+
+    public MultiSelectMultiListPreference(Context context, AttributeSet attrs, int defStyleAttr)
+    { this(context, attrs, defStyleAttr, defStyleAttr); }
+
+    public MultiSelectMultiListPreference(Context context, AttributeSet attrs, int defStyleAttr,
+                                          int defStyleRes)
     {
+//        super(context, attrs, defStyleAttr, defStyleRes);
         super(context, attrs);
 
         final TypedArray a = context.getTheme().obtainStyledAttributes(
@@ -87,7 +98,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
         }
 
         b.recycle();
-
     }
 
     @Override
@@ -324,7 +334,6 @@ public class MultiSelectMultiListPreference extends DialogPreference
             }
         }
     }
-
     private String colValue(int j)
     {
         return String.valueOf(j);
