@@ -38,13 +38,13 @@ public class GraphemeLengthFilter implements InputFilter
 
         if (keep <= 0) return "";
         else if (keep >= graphemeCount(source, start, end)) return null; // keep original
-        else
+        else // 0 < keep < graphemeCount(source, start, end). so move as far into source as possible
         {
             BreakIterator it = BreakIterator.getCharacterInstance(mLocale);
             it.setText(source.subSequence(start, end).toString());
+            // iterate though "keep" graphemes, noting the index at which we end up
             int keepOffSet = 0;
-            // iterate though "kepp" graphemes, noting down the index in which we end up
-            while (keep > 0 && (keepOffSet = it.next()) != BreakIterator.DONE) --keep;
+            for (; keep > 0; keepOffSet = it.next(), --keep);
             return source.subSequence(start, start + keepOffSet);
         }
     }
