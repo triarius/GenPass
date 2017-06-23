@@ -16,7 +16,7 @@ public class ArrayFunctionsTest
     public void compressArray()
     {
         int[] array = new int[] {0, 1, 2, 3, 4, 6, 8, 9, 10};
-        int[] compressed = Utility.compressWithRanges(array);
+        int[] compressed = Utility.INSTANCE.compressWithRanges(array);
         int[] expected = new int[] {9, 0, 4, -6, 8, 10};
         assertTrue(Arrays.toString(compressed), Arrays.equals(compressed, expected));
     }
@@ -25,8 +25,8 @@ public class ArrayFunctionsTest
     public void compressThenExpandArray()
     {
         int[] array = new int[] {1, 3, 4, 6, 8, 9, 10, 14};
-        int[] compressed = Utility.compressWithRanges(array);
-        int[] expanded = Utility.expandFromRanges(compressed);
+        int[] compressed = Utility.INSTANCE.compressWithRanges(array);
+        int[] expanded = Utility.INSTANCE.expandFromRanges(compressed);
         assertTrue(Arrays.toString(expanded), Arrays.equals(array, expanded));
     }
 }
