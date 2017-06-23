@@ -13,9 +13,8 @@ import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-
-    private var mNavMenuItemId: Int = 0
+class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    private var mNavMenuItemId = -1
     private var mNavView: NavigationView? = null
     private var mDrawer: DrawerLayout? = null
 
@@ -31,8 +30,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         // create nav Drawer
         mDrawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        val toggle = ActionBarDrawerToggle(
-                this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        val toggle = ActionBarDrawerToggle( this, mDrawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         mDrawer!!.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -96,24 +95,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Gather fragments
-        val fm = fragmentManager
-        val pwf = (fm.findFragmentByTag(PASSWORD_FRAGMENT_TAG) ?: PasswordFragment()) as PasswordFragment
-        val ppf = (fm.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG) ?: PassphraseFragment()) as PassphraseFragment
-
-        val itemId = item.itemId
+        val pwf = (fragmentManager.findFragmentByTag(PASSWORD_FRAGMENT_TAG)
+                   ?: PasswordFragment()) as PasswordFragment
+        val ppf = (fragmentManager.findFragmentByTag(PASSPHRASE_FRAGMENT_TAG)
+                   ?: PassphraseFragment()) as PassphraseFragment
 
         // if current item was selected
-        if (itemId == mNavMenuItemId) return true
+        if (item.itemId == mNavMenuItemId) return true
 
         // Handle navigation view item clicks here.
-        when (itemId) {
+        when (item.itemId) {
             R.id.nav_password -> {
                 addFragment(pwf, PASSWORD_FRAGMENT_TAG)
-                mNavMenuItemId = itemId
+                mNavMenuItemId = item.itemId
             }
             R.id.nav_passphrase -> {
                 addFragment(ppf, PASSPHRASE_FRAGMENT_TAG)
-                mNavMenuItemId = itemId
+                mNavMenuItemId = item.itemId
             }
             R.id.nav_manage -> startActivity(Intent(this, SettingsActivity::class.java))
             else -> return false

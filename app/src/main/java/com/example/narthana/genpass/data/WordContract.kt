@@ -7,12 +7,10 @@ import android.provider.BaseColumns
  */
 
 object WordContract {
-    class WordEntry: BaseColumns {
-        companion object {
-            val _ID = BaseColumns._ID
-            val TABLE_NAME = "words"
-            val COLUMN_WORD = "word"
-            val COLUMN_LEN = "length"
-        }
+    object WordEntry: BaseColumns {
+        val _ID = BaseColumns._ID
+        val TABLE_NAME = "words"
+        val COLUMN_WORD = "word"
+        val COLUMN_LEN = "length"
     }
 }

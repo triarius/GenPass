@@ -9,7 +9,6 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
-import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,38 +17,31 @@ import android.widget.Button
 import android.widget.TextView
 import com.example.narthana.genpass.data.PreBuiltWordDBHelper
 import com.example.narthana.genpass.data.WordContract.WordEntry
-import java.util.*
 
 /**
  * Created by narthana on 22/10/16.
  */
 
-class PassphraseFragment : Fragment() {
-    private val WORDS_TAG = "words"
-    private val PASSPHRASE_TAG = "passphrase"
-    private val COPYABLE_TAG = "copyable"
-    private val MAX_WORD_LEN_TAG = "maxwordlen"
-    private val MIN_WORD_LEN_TAG = "minwordlen"
-    private val LOG_TAG = "PassphraseFragment"
+class PassphraseFragment: Fragment() {
+    private companion object {
+        val WORDS_TAG = "words"
+        val PASSPHRASE_TAG = "passphrase"
+        val COPYABLE_TAG = "copyable"
+        val MAX_WORD_LEN_TAG = "maxwordlen"
+        val MIN_WORD_LEN_TAG = "minwordlen"
+    }
 
-    private var mPrefs: SharedPreferences? = null
-
-    //    private Bundle mSavedInstanceState;
     private var mWordIds: IntArray? = null
-    private var mWordIdsReady: Boolean = false
+    private var mWordIdsReady = false
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
-    private var mMaxWordLength: Int = 0
-    private var mMinWordLength: Int = 0
+    private var mMaxWordLength = 0
+    private var mMinWordLength = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //        mSavedInstanceState = savedInstanceState;
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(activity)
-
-        if (savedInstanceState !=
-                null) {
+        if (savedInstanceState != null) {
             mPassphraseCopyable = savedInstanceState.getBoolean(COPYABLE_TAG)
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG)
             mMaxWordLength = savedInstanceState.getInt(MAX_WORD_LEN_TAG)
@@ -72,12 +64,11 @@ class PassphraseFragment : Fragment() {
                 mPassphrase = createPhrase(mWordIds!!)
                 passText.text = mPassphrase
                 mPassphraseCopyable = true
-            } else
-                Snackbar.make(
+            } else Snackbar.make(
                         rootView,
                         R.string.dict_load_snack,
                         Snackbar.LENGTH_SHORT
-                ).show()
+                   ).show()
         }
 
         passText.setOnClickListener {
@@ -98,11 +89,11 @@ class PassphraseFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        val maxWordLength = mPrefs!!.getInt(
+        val maxWordLength = prefs().getInt(
                 getString(R.string.pref_passphrase_max_word_length),
                 resources.getInteger(R.integer.passpharase_default_max_word_length)
         )
-        val minWordLength = mPrefs!!.getInt(
+        val minWordLength = prefs().getInt(
                 getString(R.string.pref_passphrase_min_word_length),
                 resources.getInteger(R.integer.passpharase_default_min_word_length)
         )
@@ -124,34 +115,28 @@ class PassphraseFragment : Fragment() {
         outState.putInt(MIN_WORD_LEN_TAG, mMinWordLength)
     }
 
-    private fun createPhrase(ids: IntArray): String {
-        val n = mPrefs!!.getInt(
+    private fun createPhrase(ids: IntArray): String? {
+        val n = prefs().getInt(
                 getString(R.string.pref_passphrase_num_words),
                 resources.getInteger(R.integer.pref_default_passphrase_num_words)
         )
-        val delim = mPrefs!!.getString(
+        val delim = prefs().getString(
                 getString(R.string.pref_passphrase_delimiter),
                 getString(R.string.passphrase_default_delimiter)
         )
-        val cap = mPrefs!!.getBoolean(
+        val cap = prefs().getBoolean(
                 getString(R.string.pref_passphrase_force_cap),
                 resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
 
         // choose random elements for the first n positions in the array
-        Utility.shuffleN(mWordIds!!, n)
+        Utility.shuffleN(ids, n)
 
         // map the ids to Strings
-        val selectionArgs = arrayOfNulls<String>(n)
-        for (i in 0..n - 1) selectionArgs[i] = Integer.toString(ids[i])
-
-        val selectionBase = WordEntry._ID + " = ?"
-        val selectionDelim = " OR "
+        val selectionArgs = ids.take(n).map { it.toString() }.toTypedArray()
 
         // create the WHERE clause of the SQL statement
-        val selectionList = arrayOfNulls<String>(n)
-        for (i in 0..n - 1) selectionList[i] = selectionBase
-        val selection = TextUtils.join(selectionDelim, selectionList)
+        val selection = List(n) { "${WordEntry._ID} = ?" }.joinToString(" OR ")
 
         val db = PreBuiltWordDBHelper(activity).readableDatabase
         val c = db.query(
@@ -161,46 +146,38 @@ class PassphraseFragment : Fragment() {
                 selectionArgs, null, null, null
         )
 
-        // we should retrieve every word
-        if (c.count != n) {
-            Log.e(LOG_TAG, "Wrong size " + c.count + " " + n)
-            Log.d(LOG_TAG, selection)
-            Log.e(LOG_TAG, Arrays.toString(selectionArgs))
-            return "error"
-        }
-
         // put the data in the cursor into an array so that it may be joined later
-        val passphraseList = arrayOfNulls<String>(n)
-        c.moveToFirst()
-        run {
-            var i = 0
-            while (i < n) {
-                passphraseList[i] = c.getString(0)
-                ++i
-                c.moveToNext()
-            }
+        if (!c.moveToFirst()) {
+            Log.e(javaClass.simpleName, "Database Error")
+            return null
         }
 
-        if (cap)
-            for (i in 0..n - 1)
-                passphraseList[i] = passphraseList[i]?.substring(0, 1)?.toUpperCase() + passphraseList[i]?.substring(1)
+        var passphraseList = (1..c.count).map {
+            val s = c.getString(0)!!
+            c.moveToNext()
+            s
+        }
 
         c.close()
         db.close()
-        return TextUtils.join(delim, passphraseList)
+
+        // capitalise
+        if (cap) passphraseList = passphraseList.map {
+            val chars = it.toList()
+            val first = chars[0].toUpperCase()
+            (listOf<Char>(first) + chars.subList(1, chars.size)).toString()
+        }
+
+        return passphraseList.joinToString(delim)
     }
 
 
     // Fetch the words in the background
-    inner class FetchWordListTask : AsyncTask<Pair<Int, Int>, Void, IntArray>() {
-        override fun doInBackground(vararg params: Pair<Int, Int>): IntArray? {
+    inner class FetchWordListTask: AsyncTask<Pair<Int, Int>, Void, IntArray>() {
+        override fun doInBackground(vararg params: Pair<Int, Int>): IntArray {
             val columns = arrayOf(WordEntry._ID)
             val selection = "${WordEntry.COLUMN_LEN} >= ? AND ${WordEntry.COLUMN_LEN} <= ?"
-            val selectionArgs = arrayOf(Integer.toString(params[0].first), Integer.toString(params[0].second))
-            //            Why can't we do this!
-            //            String[] dimens = Arrays.stream(params[0])
-            //                    .map(x -> Integer.toString(x))
-            //                    .toArray(String[]::new);
+            val selectionArgs = arrayOf(params[0].first.toString(), params[0].second.toString())
 
             val db = PreBuiltWordDBHelper(activity).readableDatabase
 
@@ -212,22 +189,19 @@ class PassphraseFragment : Fragment() {
             )
 
             if (!c.moveToFirst()) {
-                Log.e(javaClass.getSimpleName(), "Database Error")
-                return null
+                Log.e(javaClass.simpleName, "Database Error")
+                return intArrayOf()
             }
 
-            val n = c.count
-            val ids = IntArray(n)
-            var i = 0
-            while (i < n) {
-                ids[i] = c.getInt(0)
-                ++i
+            val ids = (1..c.count).map {
+                val i = c.getInt(0)
                 c.moveToNext()
+                i
             }
 
             c.close()
             db.close()
-            return ids
+            return ids.toIntArray()
         }
 
         override fun onPostExecute(result: IntArray) {
@@ -235,4 +209,6 @@ class PassphraseFragment : Fragment() {
             mWordIds = result
         }
     }
+
+    private fun prefs(): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
 }

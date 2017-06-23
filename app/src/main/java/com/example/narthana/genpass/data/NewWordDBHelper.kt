@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper
  */
 
 class NewWordDBHelper(context: Context) : SQLiteOpenHelper(context, NewWordDBHelper.DATABASE_NAME, null, NewWordDBHelper.DATABASE_VERSION) {
-
     override fun onCreate(sqLiteDatabase: SQLiteDatabase) {
         val CREATE_WORD_TABLE = """
             CREATE TABLE ${WordContract.WordEntry.TABLE_NAME}
@@ -21,7 +20,7 @@ class NewWordDBHelper(context: Context) : SQLiteOpenHelper(context, NewWordDBHel
     }
 
     override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, i: Int, i1: Int) {
-        val DROP_WORD_TABLE = "DROP TABLE " + WordContract.WordEntry.TABLE_NAME
+        val DROP_WORD_TABLE = "DROP TABLE ${WordContract.WordEntry.TABLE_NAME}"
         sqLiteDatabase.execSQL(DROP_WORD_TABLE)
         onCreate(sqLiteDatabase)
     }

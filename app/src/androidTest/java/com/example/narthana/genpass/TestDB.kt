@@ -1,21 +1,14 @@
 package com.example.narthana.genpass
 
 import android.content.Context
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
-
 import com.example.narthana.genpass.data.NewWordDBHelper
-
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import java.io.InputStream
-
-import org.junit.Assert.*
 
 /**
  * Created by narthana on 23/10/16.

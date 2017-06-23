@@ -5,6 +5,7 @@ import android.content.Context
 import com.example.narthana.genpass.data.NewWordDBHelper
 import com.example.narthana.genpass.data.WordContract
 import java.io.InputStream
+import java.security.SecureRandom
 import java.util.*
 
 /**
@@ -12,7 +13,7 @@ import java.util.*
  */
 
 internal object Utility {
-    private var r: Random? = null
+    private val r = SecureRandom()
 
     fun loadDictionary(context: Context, dictionary: InputStream) {
         NewWordDBHelper(context).writableDatabase.use { db ->
@@ -30,26 +31,6 @@ internal object Utility {
             db.setTransactionSuccessful()
             db.endTransaction()
         }
-//        try {
-//            BufferedReader(InputStreamReader(dictionary)).use { br ->
-//                NewWordDBHelper(context).writableDatabase.use { db ->
-//                    db.beginTransaction()
-//                    db.delete(WordEntry.TABLE_NAME, null, null)
-//                    val content = ContentValues(2)
-//                    while (br.readLine() != null) {
-//                        content.clear()
-//                        content.put(WordEntry.COLUMN_WORD, word)
-//                        content.put(WordEntry.COLUMN_LEN, word.length)
-//                        db.insert(WordEntry.TABLE_NAME, null, content)
-//                    }
-//                    db.setTransactionSuccessful()
-//                    db.endTransaction()
-//                }
-//            }
-//        } catch (e: IOException) {
-//            Log.e(context::class.simpleName, "Could not read text file")
-//            e.printStackTrace()
-//        }
     }
 
     fun compressWithRanges(input: IntArray): IntArray {
@@ -95,15 +76,13 @@ internal object Utility {
     }
 
     fun shuffle(array: CharArray) {
-        if (r == null) r = Random()
-        for (i in array.size - 1 downTo 1) swapChar(array, i, r!!.nextInt(i + 1))
+        for (i in array.size - 1 downTo 1) swapChar(array, i, r.nextInt(i + 1))
     }
 
     // shuffle first n elements of the array
     fun shuffleN(array: IntArray, n: Int) {
-        if (r == null) r = Random()
         for (i in 0..n - 1) {
-            val j = r!!.nextInt(array.size - i) + i // random int in [i, words.length)
+            val j = r.nextInt(array.size - i) + i // random int in [i, words.length)
             swapInt(array, i, j)
         }
     }
