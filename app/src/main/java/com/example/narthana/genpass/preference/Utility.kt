@@ -8,11 +8,9 @@ import android.util.TypedValue
  */
 
 internal object Utility {
-    fun dpToPx(context: Context, length: Int): Int {
-        return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                length.toFloat(),
-                context.resources.displayMetrics
-        ).toInt()
-    }
+    fun dpToPx(context: Context, length: Float) = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        length,
+        context.resources.displayMetrics
+    ).toInt()
 }

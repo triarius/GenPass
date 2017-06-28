@@ -28,24 +28,27 @@ class SeekBarPreference @JvmOverloads
     private var mValue: Int = DEFAULT_VALUE
 
     override fun onCreateDialogView(): View {
+        // create a linear layout container
         val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         )
-
-        // create a linear layout container
         val layout = LinearLayout(context)
         layout.orientation = LinearLayout.VERTICAL
-        val pad = Utility.dpToPx(context, 3)
+        val pad = Utility.dpToPx(context, LAYOUT_PADDING)
         layout.setPadding(pad, pad, pad, pad)
 
-        // remove seekbar from previous parent
-        (mSeekBar.parent as ViewGroup?)?.removeAllViews()
+        // remove seekbar from previous parent (if any)
+        (mSeekBar.parent as ViewGroup?)?.removeView(mSeekBar)
+        (mValueText.parent as ViewGroup?)?.removeView(mValueText)
+
+        // get the value
         mValue = getPersistedInt(DEFAULT_VALUE)
+        // set the change listener
         mSeekBar.setOnSeekBarChangeListener(this)
 
         mValueText.gravity = Gravity.CENTER_HORIZONTAL
-        mValueText.textSize = 20f
+        mValueText.textSize = TEXT_SIZE
 
         layout.addView(mValueText, lp)
         layout.addView(mSeekBar, lp)
@@ -116,7 +119,7 @@ class SeekBarPreference @JvmOverloads
         companion object {
             // Standard creator object using an instance of this class
             val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
-                override fun createFromParcel(inParcel: Parcel)= SavedState(inParcel)
+                override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
                 override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
             }
         }
@@ -134,5 +137,7 @@ class SeekBarPreference @JvmOverloads
 
     companion object {
         private val DEFAULT_VALUE = 0
+        private val LAYOUT_PADDING = 3.0f
+        private val TEXT_SIZE = 20.0f
     }
 }
