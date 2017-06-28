@@ -13,8 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import com.example.narthana.genpass.R
-import java.util.*
-import kotlin.collections.HashSet
 
 /**
  * Created by narthana on 6/01/17.
@@ -35,11 +33,6 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
     private var mCheckBoxes: Array<Array<CheckBox>>? = null
     private var mValues: Map<String, MutableSet<String>>? = null
     private var mSelectedValues: Map<String, MutableSet<String>>? = null
-
-    companion object {
-        val DIALOG_PADDING = 14
-        val HEADING_PADDING = 3
-    }
 
     init {
         val styledAttrs = context.theme.obtainStyledAttributes(attrs, R.styleable.MultiSelectMultiListPreference, 0, 0)
@@ -166,33 +159,25 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
         val array = context.resources.obtainTypedArray(a.getResourceId(index, -1))
         val values = (0 .. numCols - 1).associate { j ->
-            Pair(colValue(j), array.getTextArray(j).map { it.toString() }.toMutableSet())
+            Pair(colValue(j), array.getTextArray(j).map { it.toString() }.toHashSet())
         }
         array.recycle()
         return values
     }
 
     private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>?):
-            Map<String, MutableSet<String>> {
-        val values = HashMap<String, MutableSet<String>>(numCols)
-
-        for (j in 0 .. numCols - 1) {
-            // Note: do not remove the cloning of the list variable. It is necessary for
-            // new data to be written to the preferences. Android expects the output of
-            // Preference.getStringSet to not be modified. Thus when it receives it back
-            // in onDialogClosed, it just keeps the old data we got here
-            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
-            // source: developer.android.com/reference/android/content/SharedPreferences.html
-            //     "Objects that are returned from the various get methods must be treated as
-            //      immutable by the application."
-
-            val list = sharedPreferences.getStringSet(
-                    key + colValue(j),
-                    defaultValue?.get(colValue(j))
-            )?.toHashSet() ?: HashSet()
-            values.put(colValue(j), list)
-        }
-        return values
+            Map<String, MutableSet<String>> = (0 .. numCols - 1).associate {
+        // Note: do not remove the cloning of v. It is necessary for
+        // new data to be written to the preferences. Android expects the output of
+        // Preference.getStringSet to not be modified. Thus when it receives it back
+        // in onDialogClosed, it just keeps the old data we got here
+        // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
+        // source: developer.android.com/reference/android/content/SharedPreferences.html
+        //     "Objects that are returned from the various get methods must be treated as
+        //      immutable by the application."
+        val k = colValue(it)
+        val v = sharedPreferences.getStringSet(key + k, defaultValue?.get(k)).toHashSet()
+        Pair(k, v)
     }
 
     private fun persistValues(values: Map<String, MutableSet<String>>?) {
@@ -201,8 +186,12 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
         mSelectedValues = cloneValues(values)
         if (shouldPersist()) {
             editor.putBoolean(key, true)
-//            values.forEach { (k, v) -> editor.putStringSet(key + k, v) }
-            for ((k, v) in values) editor.putStringSet(key + k, v)
+            values.forEach { (k, v) -> editor.putStringSet(key + k, v.toHashSet()) }
+//            for (e in values) {
+//                Log.d(javaClass.simpleName, key + e.key)
+//                Log.d(javaClass.simpleName, e.value.toString())
+//                editor.putStringSet(key + e.key, e.value.toHashSet())
+//            }
             editor.apply()
         }
     }
@@ -223,16 +212,8 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
 
     private fun colValue(j: Int): String = j.toString()
 
-    private fun <K, T> cloneValues(values: Map<K, MutableSet<T>>): Map<K, MutableSet<T>> {
-        val newValues = HashMap<K, MutableSet<T>>(values.size)
-        for ((k, v) in values) newValues.put(k, v.toMutableSet())
-        return newValues
-    }
-
-//    private fun getColIndex(colValue: String): Int {
-//        // do a linear search
-//        return mColEntryValues.indexOf(colValue)
-//    }
+    private fun <K, T> cloneValues(values: Map<K, MutableSet<T>>): Map<K, MutableSet<T>>
+            = values.entries.associate { Pair(it.key, it.value) }
 
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
@@ -265,7 +246,6 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
         updateCheckStates(mSelectedValues!!)
     }
 
-
     private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
         internal var values: Map<String, MutableSet<String>>? = null
@@ -280,7 +260,7 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
                 val n = source.readInt()
                 val value = arrayOfNulls<String>(n)
                 source.readStringArray(value)
-                it!! to value.map{it!!}.toMutableSet()
+                it!! to value.map{it!!}.toHashSet()
             }
         }
 
@@ -324,4 +304,11 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
             }
         }
     }
+
+    companion object {
+        val DIALOG_PADDING = 14.0f
+        val HEADING_PADDING = 3.0f
+    }
 }
+
+
