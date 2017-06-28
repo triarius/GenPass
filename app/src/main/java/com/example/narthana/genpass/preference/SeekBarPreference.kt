@@ -19,8 +19,8 @@ import android.widget.TextView
  */
 
 class SeekBarPreference @JvmOverloads
-        constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
-                    defStyleRes: Int = defStyleAttr):
+        constructor(context: Context, attrs: AttributeSet? = null,
+                    defStyleAttr: Int = 0, defStyleRes: Int = defStyleAttr):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
     private val mSeekBar: SeekBar = SeekBar(context, attrs)
     private val mValueText: TextView = TextView(context, null)
