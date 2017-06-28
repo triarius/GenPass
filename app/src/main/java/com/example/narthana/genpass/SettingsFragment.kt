@@ -10,9 +10,12 @@ import com.example.narthana.genpass.R.xml.prefs
  */
 
 class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private val mPrefKeyToId: Map<String, Pair<Int, Type>>
+    private var mPrefKeyToId: Map<String, Pair<Int, Type>>? = null
 
-    init {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        addPreferencesFromResource(prefs)
+
         // Just add a preference's keyId, defaultValueId and type to these three arrays to get it
         // it to have its values displayed as the summary
         val prefIds = intArrayOf(
@@ -34,16 +37,11 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
         mPrefKeyToId = prefIds.map(this::getString).zip(defaultIds.zip(types)).toMap()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        addPreferencesFromResource(prefs)
-    }
-
     override fun onResume() {
         super.onResume()
 
         // Set the summary values initially
-        mPrefKeyToId.forEach {
+        mPrefKeyToId?.forEach {
             setPrefSummaryTo(preferenceScreen.sharedPreferences, it.toPair())
         }
 
@@ -57,7 +55,7 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
-        val value = mPrefKeyToId[key]
+        val value = mPrefKeyToId?.get(key)
         if (value != null) setPrefSummaryTo(sharedPreferences, Pair(key, value))
     }
 
