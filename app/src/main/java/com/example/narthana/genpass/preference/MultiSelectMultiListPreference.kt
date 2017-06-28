@@ -14,13 +14,15 @@ import android.view.ViewGroup
 import android.widget.*
 import com.example.narthana.genpass.R
 import java.util.*
+import kotlin.collections.HashSet
 
 /**
  * Created by narthana on 6/01/17.
  */
 
-class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
-                                                               defStyleRes: Int = defStyleAttr): DialogPreference(context, attrs) {
+class MultiSelectMultiListPreference @JvmOverloads constructor(
+        context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
+        defStyleRes: Int = defStyleAttr): DialogPreference(context, attrs) {
     private val mEntries: Array<CharSequence>
     private val mEntryValues: Array<CharSequence>
     private val mColumnEntries: Array<CharSequence>
@@ -30,45 +32,35 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
     private val numRows: Int
     private val numCols: Int
 
-    private var mCheckBoxes: Array<Array<CheckBox?>>? = null
+    private var mCheckBoxes: Array<Array<CheckBox>>? = null
     private var mValues: Map<String, MutableSet<String>>? = null
-    private var mSelectedValues: MutableMap<String, MutableSet<String>>? = null
+    private var mSelectedValues: Map<String, MutableSet<String>>? = null
+
+    companion object {
+        val DIALOG_PADDING = 14
+        val HEADING_PADDING = 3
+    }
 
     init {
-
-        val a = context.theme.obtainStyledAttributes(
-                attrs,
-                R.styleable.MultiSelectMultiListPreference,
-                0,
-                0
-        )
-
-        mEntries = a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
-        mEntryValues = a.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues)
-        mColumnEntries = a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries)
-        mColEntryValues = a.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues)
-        val columnDepsId = a.getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
-        a.recycle()
+        val styledAttrs = context.theme.obtainStyledAttributes(attrs, R.styleable.MultiSelectMultiListPreference, 0, 0)
+        mEntries = styledAttrs.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
+        mEntryValues = styledAttrs.getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues)
+        mColumnEntries = styledAttrs.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries)
+        mColEntryValues = styledAttrs.getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues)
+        val columnDepsId = styledAttrs.getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
+        styledAttrs.recycle()
 
         numRows = mEntries.size
         numCols = mColumnEntries.size
 
         // gather the data on dependencies between columns
-        val b = context.resources.obtainTypedArray(columnDepsId)
-        mColumnDependencies = SparseArray<Set<Int>>(b.length())
-
-        val n = b.length()
-        for (j in 0 .. n - 1) {
-            val c = context.resources.getStringArray(b.getResourceId(j, -1))
-            val depIndices = toIndices(c)
-
-            val depSet = HashSet<Int>()
-            for (i in 1..depIndices.size - 1) depSet.add(depIndices[i])
-
-            mColumnDependencies.put(depIndices[0], depSet)
-        }
-
-        b.recycle()
+        val colDeps = context.resources.obtainTypedArray(columnDepsId)
+        mColumnDependencies = SparseArray<Set<Int>>(colDeps.length())
+        (0 .. colDeps.length() - 1)
+                .map { context.resources.getStringArray(colDeps.getResourceId(it, -1)) }
+                .map { it.map { mColEntryValues.indexOf(it) } }
+                .forEach { mColumnDependencies.put(it[0], it.slice(IntRange(1, it.lastIndex)).toSet()) }
+        colDeps.recycle()
     }
 
     override fun onCreateDialogView(): View {
@@ -82,7 +74,7 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
         // the 0th column should stretch to fill the dialog
         table.setColumnStretchable(0, true)
         run {
-            val padding = Utility.dpToPx(context, 14)
+            val padding = Utility.dpToPx(context, DIALOG_PADDING)
             table.setPaddingRelative(padding, padding, padding, padding)
         }
 
@@ -96,22 +88,19 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
         )
         table.addView(header, fistRowParams)
 
-        val padding = Utility.dpToPx(context, 3)
-        // loop to create the column headings and put them in the header row
-        run {
-            var j = 0
-            while (j < numCols) {
-                val headingTextView = TextView(context)
-                headingTextView.text = mColumnEntries[j]
-                headingTextView.setPadding(padding, padding, padding, padding)
-                val headingParams = TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.WRAP_CONTENT
-                )
-                headingParams.gravity = Gravity.CENTER_HORIZONTAL
-                headingParams.column = ++j
-                header.addView(headingTextView, headingParams)
-            }
+        // create the column headings and put them in the header row
+        val headingPadding = Utility.dpToPx(context, HEADING_PADDING)
+        val headingParams = TableRow.LayoutParams(
+                TableRow.LayoutParams.MATCH_PARENT,
+                TableRow.LayoutParams.WRAP_CONTENT
+        )
+        headingParams.gravity = Gravity.CENTER_HORIZONTAL
+        for (j in 0 .. numCols - 1) {
+            val headingTextView = TextView(context)
+            headingTextView.text = mColumnEntries[j]
+            headingTextView.setPadding(headingPadding, headingPadding, headingPadding, headingPadding)
+            headingParams.column = j
+            header.addView(headingTextView, headingParams)
         }
 
         // create the rest of rows
@@ -119,51 +108,38 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         )
-
-        // we can recycles the params for the row labels, so take them out of the loop
         val entryParams = TableRow.LayoutParams(
-                TableRow.LayoutParams.MATCH_PARENT,
+                TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT
         )
         entryParams.gravity = Gravity.CENTER_VERTICAL
         entryParams.column = 0
-
-        // Creating the check boxes
-        mCheckBoxes = Array<Array<CheckBox?>>(numRows) { arrayOfNulls<CheckBox>(numCols) }
-        for (i in 0..numRows - 1) {
+        // create the check box 2d array
+        mCheckBoxes = Array<Array<CheckBox>>(numRows){Array<CheckBox>(numCols){CheckBox(context)}}
+        for (i in mCheckBoxes!!.indices) {
             val row = TableRow(context)
-
             // create the row label and add it to the row
             val entryTextView = TextView(context)
             entryTextView.text = mEntries[i]
             row.addView(entryTextView, entryParams)
-
             // create the checkboxes
-            var j = 0
-            while (j < numCols)
-            // Note: increment near end of loop
+            for (j in mCheckBoxes!![i].indices)
             {
-                val checkBox = CheckBox(context)
-                mCheckBoxes!![i][j] = checkBox
-
+                val checkBox = mCheckBoxes!![i][j]
                 // Set the check change listener
                 val dependents = mColumnDependencies.get(j)
-                if (dependents != null)
-                    checkBox.setOnCheckedChangeListener(
-                            IndependentCheckChangeListener(i, j, dependents))
-                else
-                    checkBox.setOnCheckedChangeListener(DependentCheckChangeListener(i, j))
-
+                checkBox.setOnCheckedChangeListener(
+                        if (dependents != null) IndependentCheckChangeListener(i, j, dependents)
+                        else                    DependentCheckChangeListener(i, j)
+                )
                 val checkBoxParams = TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
+                        TableRow.LayoutParams.WRAP_CONTENT,
                         TableRow.LayoutParams.WRAP_CONTENT
                 )
                 checkBoxParams.gravity = Gravity.CENTER_HORIZONTAL
-                checkBoxParams.column = ++j
-
+                checkBoxParams.column = j
                 row.addView(checkBox, checkBoxParams)
             }
-
             table.addView(row, rowParams)
         }
 
@@ -176,7 +152,7 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
-        if (positiveResult) persistValues(mSelectedValues!!)
+        if (positiveResult) persistValues(mSelectedValues)
         else mSelectedValues = cloneValues(mValues!!)
     }
 
@@ -188,32 +164,86 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
     }
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
-        val res = context.resources
-        val values = HashMap<String, Set<String>>()
-        val array = res.obtainTypedArray(a.getResourceId(index, -1))
-
-        val n = array.length()
-        for (j in 0 .. n - 1) {
-            val result = HashSet<String>()
-            val value = array.getTextArray(j)
-            for (c in value) result.add(c.toString())
-            values.put(colValue(j), result)
+        val array = context.resources.obtainTypedArray(a.getResourceId(index, -1))
+        val values = (0 .. numCols - 1).associate { j ->
+            Pair(colValue(j), array.getTextArray(j).map { it.toString() }.toMutableSet())
         }
-
         array.recycle()
         return values
     }
 
+    private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>?):
+            Map<String, MutableSet<String>> {
+        val values = HashMap<String, MutableSet<String>>(numCols)
+
+        for (j in 0 .. numCols - 1) {
+            // Note: do not remove the cloning of the list variable. It is necessary for
+            // new data to be written to the preferences. Android expects the output of
+            // Preference.getStringSet to not be modified. Thus when it receives it back
+            // in onDialogClosed, it just keeps the old data we got here
+            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
+            // source: developer.android.com/reference/android/content/SharedPreferences.html
+            //     "Objects that are returned from the various get methods must be treated as
+            //      immutable by the application."
+
+            val list = sharedPreferences.getStringSet(
+                    key + colValue(j),
+                    defaultValue?.get(colValue(j))
+            )?.toHashSet() ?: HashSet()
+            values.put(colValue(j), list)
+        }
+        return values
+    }
+
+    private fun persistValues(values: Map<String, MutableSet<String>>?) {
+        if (values == null) return
+        mValues = values
+        mSelectedValues = cloneValues(values)
+        if (shouldPersist()) {
+            editor.putBoolean(key, true)
+//            values.forEach { (k, v) -> editor.putStringSet(key + k, v) }
+            for ((k, v) in values) editor.putStringSet(key + k, v)
+            editor.apply()
+        }
+    }
+
+    private fun updateCheckStates(values: Map<String, Set<String>>) {
+        if (mCheckBoxes != null) {
+            for (i in mCheckBoxes!!.indices) for (j in mCheckBoxes!![i].indices)
+                mCheckBoxes!![i][j].isChecked =
+                        values[colValue(j)]!!.contains(mEntryValues[i].toString())
+            for (k in 0..mColumnDependencies.size() - 1) {
+                val independentColNo = mColumnDependencies.keyAt(k)
+                val dependents = mColumnDependencies.get(independentColNo)
+                for (d in dependents) for (i in mCheckBoxes!!.indices)
+                    mCheckBoxes!![i][d].isEnabled = mCheckBoxes!![i][independentColNo].isChecked
+            }
+        }
+    }
+
+    private fun colValue(j: Int): String = j.toString()
+
+    private fun <K, T> cloneValues(values: Map<K, MutableSet<T>>): Map<K, MutableSet<T>> {
+        val newValues = HashMap<K, MutableSet<T>>(values.size)
+        for ((k, v) in values) newValues.put(k, v.toMutableSet())
+        return newValues
+    }
+
+//    private fun getColIndex(colValue: String): Int {
+//        // do a linear search
+//        return mColEntryValues.indexOf(colValue)
+//    }
+
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
-        //        // Check whether this Preference is persistent (continually saved)
-        //        // No need to save instance state since it's persistent,use superclass state
-        //        if (isPersistent()) return superState;
+
+//        // Check whether this Preference is persistent (continually saved)
+//        // No need to save instance state since it's persistent,use superclass state
+//        if (isPersistent) return superState;
 
         // Create instance of custom BaseSavedState
         val myState = SavedState(superState)
-        // Set the state's value with the class member that holds current
-        // setting value
+        // Set the state's value with the class member that holds current setting value
         myState.values = mSelectedValues!!
         return myState
     }
@@ -227,154 +257,70 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(context: Context,
         }
 
         // Cast state to custom BaseSavedState and pass to superclass
-        val myState = state as SavedState?
-        super.onRestoreInstanceState(myState!!.getSuperState())
+        val myState = state as SavedState
+        super.onRestoreInstanceState(myState.getSuperState())
 
         // Set this Preference's widget to reflect the restored state
         mSelectedValues = myState.values
         updateCheckStates(mSelectedValues!!)
     }
 
-    private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>?): Map<String, MutableSet<String>> {
-        val values = HashMap<String, MutableSet<String>>(numCols)
 
-        val prefs = sharedPreferences
-        for (j in 0..numCols - 1) {
-            // Note: do not remove the cloning of the list variable. It is necessary for
-            // new data to be written to the preferences. Android expects the output of
-            // Preference.getStringSet to not be modified. Thus when it receives it back
-            // in onDialogClosed, it just keeps the old data we got here
-            // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
-            // source: developer.android.com/reference/android/content/SharedPreferences.html
-            //     "Objects that are returned from the various get methods must be treated as
-            //      immutable by the application."
-
-            val list = prefs.getStringSet(
-                    key + colValue(j),
-                    if (defaultValue != null) defaultValue[colValue(j)] else null
-            )
-            if (list != null) values.put(colValue(j), HashSet(list))
-        }
-        return values
-    }
-
-    private fun persistValues(values: Map<String, MutableSet<String>>) {
-        mValues = values
-        mSelectedValues = cloneValues(values)
-        if (shouldPersist()) {
-            val editor = editor
-            editor.putBoolean(key, true)
-            for ((key, value) in values)
-                editor.putStringSet(key + key, value)
-            editor.apply()
-        }
-    }
-
-    private fun updateCheckStates(values: Map<String, Set<String>>) {
-        if (mCheckBoxes != null) {
-            for (i in 0..numRows - 1)
-                for (j in 0..numCols - 1)
-                    mCheckBoxes!![i][j]!!.isChecked = values[colValue(j)]!!.contains(mEntryValues[i].toString())
-            for (k in 0..mColumnDependencies.size() - 1) {
-                val independentColNo = mColumnDependencies.keyAt(k)
-                val dependents = mColumnDependencies.get(independentColNo)
-                for (d in dependents)
-                    for (i in 0..numRows - 1)
-                        mCheckBoxes!![i][d]!!.isEnabled = mCheckBoxes!![i][independentColNo]!!.isChecked
-            }
-        }
-    }
-
-    private fun colValue(j: Int): String {
-        return j.toString()
-        //        return mColEntryValues[j];
-    }
-
-    private fun <K, T> cloneValues(values: Map<K, MutableSet<T>>): MutableMap<K, MutableSet<T>> {
-        val newValues = HashMap<K, MutableSet<T>>(values.size)
-        for ((key, value) in values) newValues.put(key, HashSet(value))
-        return newValues
-    }
-
-    private fun toIndices(entryValues: Array<String>): IntArray {
-        val indices = IntArray(entryValues.size)
-        for (i in entryValues.indices)
-            indices[i] = getColIndex(entryValues[i])
-        return indices
-    }
-
-    private fun getColIndex(colValue: String): Int {
-        // do a linear search
-        for (i in mColEntryValues.indices)
-            if (mColEntryValues[i] == colValue) return i
-        return -1
-    }
-
-    private class SavedState : Preference.BaseSavedState {
-
+    private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
-        internal var values: MutableMap<String, MutableSet<String>> = HashMap<String, MutableSet<String>>()
+        internal var values: Map<String, MutableSet<String>>? = null
 
-        internal constructor(superState: Parcelable) : super(superState) {}
+        internal constructor(superState: Parcelable): super(superState) {}
 
-        internal constructor(source: Parcel) : super(source) {
-            // Get the current preference's value
+        internal constructor(source: Parcel): super(source) {
             val size = source.readInt()
-            values = HashMap<String, MutableSet<String>>(size)
             val keys = arrayOfNulls<String>(size)
             source.readStringArray(keys)
-            for (key in keys) {
+            values = keys.associate {
                 val n = source.readInt()
                 val value = arrayOfNulls<String>(n)
                 source.readStringArray(value)
-                values.put(key!!, HashSet(Arrays.asList<String>(*value)))
+                it!! to value.map{it!!}.toMutableSet()
             }
         }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
             super.writeToParcel(dest, flags)
-            // Write the preference's value
-            val keysArray = values.keys.toTypedArray()
+            val keysArray = values!!.keys.toTypedArray()
             dest.writeInt(keysArray.size)
             dest.writeStringArray(keysArray)
-            for (key in keysArray) {
-                val value = values[key]
-                dest.writeInt(value!!.size)
-                dest.writeStringArray(value.toTypedArray())
+            for (v in values!!.values) {
+                dest.writeInt(v.size)
+                dest.writeStringArray(v.toTypedArray())
             }
         }
 
         companion object {
             // Standard creator object using an instance of this class
-            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
-                override fun createFromParcel(`in`: Parcel): SavedState {
-                    return SavedState(`in`)
-                }
-
-                override fun newArray(size: Int): Array<SavedState?> {
-                    return arrayOfNulls(size)
-                }
+            val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
+                override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
+                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
             }
         }
     }
 
-    private open inner class DependentCheckChangeListener internal constructor(internal val mI: Int, internal val mJ: Int) : CompoundButton.OnCheckedChangeListener {
+    private open inner class DependentCheckChangeListener internal constructor(
+            internal val mI: Int, internal val mJ: Int): CompoundButton.OnCheckedChangeListener {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             val rowEntry = mEntryValues[mI].toString()
             val colEntry = colValue(mJ)
-
             if (isChecked) mSelectedValues!![colEntry]!!.add(rowEntry)
             else mSelectedValues!![colEntry]!!.remove(rowEntry)
         }
     }
 
-    private inner class IndependentCheckChangeListener internal constructor(i: Int, j: Int, private val mDependents: Set<Int>) : DependentCheckChangeListener(i, j) {
+    private inner class IndependentCheckChangeListener internal constructor(
+            i: Int, j: Int, private val mDependents: Set<Int>): DependentCheckChangeListener(i, j) {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             super.onCheckedChanged(buttonView, isChecked)
             for (d in mDependents) {
-                val dependentCheckBox = mCheckBoxes!![super.mI][d]
-                dependentCheckBox!!.isEnabled = isChecked
-                dependentCheckBox.isChecked = false
+                mCheckBoxes!![mI][d].isEnabled = isChecked
+                mCheckBoxes!![mI][d].isChecked = false
             }
         }
     }

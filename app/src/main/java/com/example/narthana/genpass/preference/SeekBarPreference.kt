@@ -18,14 +18,14 @@ import android.widget.TextView
  * Created by narthana on 28/12/16.
  */
 
-class SeekBarPreference @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = defStyleAttr) : DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
+class SeekBarPreference @JvmOverloads
+        constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
+                    defStyleRes: Int = defStyleAttr):
+        DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
+    private val mSeekBar: SeekBar = SeekBar(context, attrs)
+    private val mValueText: TextView = TextView(context, null)
 
-    private val mSeekBar: SeekBar
-    private var mValueText: TextView? = null
-
-    private var mValue: Int = 0
-
-    init { mSeekBar = SeekBar(context, attrs) } // we need to create this here to pass attrs ???
+    private var mValue: Int = DEFAULT_VALUE
 
     override fun onCreateDialogView(): View {
         val lp = LinearLayout.LayoutParams(
@@ -40,14 +40,12 @@ class SeekBarPreference @JvmOverloads constructor(context: Context, attrs: Attri
         layout.setPadding(pad, pad, pad, pad)
 
         // remove seekbar from previous parent
-        val seekBarParent = mSeekBar.parent as ViewGroup?
-        seekBarParent?.removeAllViews()
+        (mSeekBar.parent as ViewGroup?)?.removeAllViews()
         mValue = getPersistedInt(DEFAULT_VALUE)
         mSeekBar.setOnSeekBarChangeListener(this)
 
-        mValueText = TextView(context, null)
-        mValueText!!.gravity = Gravity.CENTER_HORIZONTAL
-        mValueText!!.textSize = 20f
+        mValueText.gravity = Gravity.CENTER_HORIZONTAL
+        mValueText.textSize = 20f
 
         layout.addView(mValueText, lp)
         layout.addView(mSeekBar, lp)
@@ -58,7 +56,7 @@ class SeekBarPreference @JvmOverloads constructor(context: Context, attrs: Attri
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
         mSeekBar.progress = mValue
-        mValueText!!.text = mSeekBar.progress.toString()
+        mValueText.text = mSeekBar.progress.toString()
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
@@ -70,13 +68,9 @@ class SeekBarPreference @JvmOverloads constructor(context: Context, attrs: Attri
         }
     }
 
-    override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
-        return a.getInt(index, DEFAULT_VALUE)
-    }
+    override fun onGetDefaultValue(a: TypedArray, index: Int) = a.getInt(index, DEFAULT_VALUE)
 
-    override fun onDialogClosed(positiveResult: Boolean) {
-        if (positiveResult) persistInt(mValue)
-    }
+    override fun onDialogClosed(positiveResult: Boolean) { if (positiveResult) persistInt(mValue) }
 
     // handle saved states
     override fun onSaveInstanceState(): Parcelable {
@@ -92,58 +86,45 @@ class SeekBarPreference @JvmOverloads constructor(context: Context, attrs: Attri
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
-        // check whether we have already saved the state
+        // check whether state is one that we have already saved
         if (state == null || state.javaClass != SavedState::class.java) {
             super.onRestoreInstanceState(state)
             return
         }
 
-        val castState = state as SavedState?
-        super.onRestoreInstanceState(castState!!.getSuperState())
+        val castState = state as SavedState
+        super.onRestoreInstanceState(castState.superState)
 
         // restore widget state
         mValue = castState.value
         mSeekBar.progress = mValue
     }
 
-    private class SavedState : Preference.BaseSavedState {
+    private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
         internal var value: Int = 0
 
         internal constructor(superState: Parcelable) : super(superState) {}
 
-        internal constructor(source: Parcel) : super(source) {
-
-            // Get the current preference's value
-            value = source.readInt()
-        }
+        internal constructor(source: Parcel) : super(source) { value = source.readInt() }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
             super.writeToParcel(dest, flags)
-
-            // Write the preference's value
             dest.writeInt(value)
         }
 
         companion object {
-
             // Standard creator object using an instance of this class
-            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
-
-                override fun createFromParcel(`in`: Parcel): SavedState {
-                    return SavedState(`in`)
-                }
-
-                override fun newArray(size: Int): Array<SavedState?> {
-                    return arrayOfNulls(size)
-                }
+            val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
+                override fun createFromParcel(inParcel: Parcel)= SavedState(inParcel)
+                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
             }
         }
     }
 
     // seekbar listener
     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-        mValueText!!.text = progress.toString()
+        mValueText.text = progress.toString()
         mValue = progress
     }
 

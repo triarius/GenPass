@@ -26,8 +26,6 @@ class SettingsActivity : AppCompatActivity() {
         // action bar back button
         val ab = supportActionBar
         ab?.setDisplayHomeAsUpEnabled(true)
-        //        else Log.d(this.getClass().getSimpleName(), "action bar could not be set up");
-
 
         // Display the fragment as the main content.
         if (savedInstanceState == null)
