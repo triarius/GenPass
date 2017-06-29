@@ -92,13 +92,14 @@ class PasswordFragment: Fragment() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
 
         // create charset to draw from
+        val key = getString(R.string.pref_password_charset_key)
         val selectedCharsetKeys = prefs.getStringSet(
-                "${getString(R.string.pref_password_charset_key)}0",
+                key + getString(R.string.pref_password_charset_col_enabled),
                 mDefaultCharsetKeys
         )!!
         // collect the mandatory preferences into an array, and count them
         val mandatoryCharsetKeys = prefs.getStringSet(
-                "${getString(R.string.pref_password_charset_key)}1",
+                key + getString(R.string.pref_password_charset_col_mandatory),
                 mDefManCharsetKeys
         )!!
 
