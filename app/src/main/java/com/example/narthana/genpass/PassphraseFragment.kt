@@ -65,10 +65,10 @@ class PassphraseFragment: Fragment() {
                 passText.text = mPassphrase
                 mPassphraseCopyable = true
             } else Snackbar.make(
-                        rootView,
-                        R.string.dict_load_snack,
-                        Snackbar.LENGTH_SHORT
-                   ).show()
+                    rootView,
+                    R.string.dict_load_snack,
+                    Snackbar.LENGTH_SHORT
+            ).show()
         }
 
         passText.setOnClickListener {
@@ -163,9 +163,9 @@ class PassphraseFragment: Fragment() {
 
         // capitalise
         if (cap) passphraseList = passphraseList.map {
-            val chars = it.toList()
-            val first = chars[0].toUpperCase()
-            (listOf<Char>(first) + chars.subList(1, chars.size)).toString()
+            val chars = it.toMutableList()
+            chars[0] = chars[0].toUpperCase()
+            chars.joinToString("")
         }
 
         return passphraseList.joinToString(delim)
