@@ -36,8 +36,10 @@ class PasswordFragment: Fragment() {
 
         // create map charsetKeys -> charsets
         mKeyToCharset = charsetKeys.zip(charsets).associate { it }
-        mDefaultCharsetKeys = resources.getStringArray(R.array.pref_password_charset_default_enabled).toSet()
-        mDefManCharsetKeys = resources.getStringArray(R.array.pref_password_charset_default_mandatory).toSet()
+        mDefaultCharsetKeys = resources
+                .getStringArray(R.array.pref_password_charset_default_enabled).toSet()
+        mDefManCharsetKeys = resources
+                .getStringArray(R.array.pref_password_charset_default_mandatory).toSet()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +48,8 @@ class PasswordFragment: Fragment() {
         mPasswordCopyable = savedInstanceState?.getBoolean(COPYABLE_TAG) ?: false
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup, savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_password, container, false)
         val tvPass = rootView.findViewById(R.id.password_textview) as TextView
         val btnGenerate = rootView.findViewById(R.id.button_generate_password) as Button
@@ -124,7 +127,7 @@ class PasswordFragment: Fragment() {
         val password = charSets.map { it!![mRandom.nextInt(it.length)] }.toCharArray()
 
         // shuffle the password so that the mandatory characters are in random positions
-        Utility.shuffle(password)
+        shuffle(password, r)
 
         return String(password)
     }
@@ -140,5 +143,6 @@ class PasswordFragment: Fragment() {
     companion object {
         private val PASSWORD_TAG = "password"
         private val COPYABLE_TAG = "copyable"
+        private val r = SecureRandom()
     }
 }
