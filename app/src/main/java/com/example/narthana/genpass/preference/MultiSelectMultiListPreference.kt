@@ -185,14 +185,10 @@ class MultiSelectMultiListPreference @JvmOverloads constructor(
         mValues = values
         mSelectedValues = cloneValues(values)
         if (shouldPersist()) {
-            editor.putBoolean(key, true)
-            values.forEach { (k, v) -> editor.putStringSet(key + k, v.toHashSet()) }
-//            for (e in values) {
-//                Log.d(javaClass.simpleName, key + e.key)
-//                Log.d(javaClass.simpleName, e.value.toString())
-//                editor.putStringSet(key + e.key, e.value.toHashSet())
-//            }
-            editor.apply()
+            MSMLSavePreference.save(editor, key, values)
+//            editor.putBoolean(key, true)
+//            values.forEach { (k, v) -> editor.putStringSet(key + k, v.toHashSet()) }
+//            editor.apply()
         }
     }
 
