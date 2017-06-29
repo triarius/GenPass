@@ -51,7 +51,7 @@ fun compressWithRanges(input: IntArray): IntArray {
     return out
 }
 
-fun expandFromRanges(input: IntArray): WordListResult {
+fun expandFromRanges(input: IntArray): IntArray {
     val out = IntArray(input[0])
     var i = 0
     var j = 1
@@ -69,7 +69,7 @@ fun expandFromRanges(input: IntArray): WordListResult {
             j += 2
         }
     }
-    return WordList(out)
+    return out
 }
 
 fun shuffle(array: CharArray, r: SecureRandom) {
@@ -100,9 +100,13 @@ fun shuffleFirst(array: IntArray, n: Int, r: SecureRandom) {
 
 
 sealed class WordListResult
-data class WordList(val array: IntArray): WordListResult() {
-    override fun equals(other: Any?): Boolean =
-            other === this && other is WordList && Arrays.equals(other.array, array)
+data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: Int):
+        WordListResult() {
+    override fun equals(other: Any?): Boolean = other === this
+            && other is WordList
+            && Arrays.equals(other.array, array)
+            && other.minWordLen == minWordLen
+            && other.maxWordLen == maxWordLen
     override fun hashCode(): Int = Arrays.hashCode(array)
 }
 object WordListError: WordListResult()

@@ -30,24 +30,23 @@ class PassphraseFragment: Fragment() {
         val COPYABLE_TAG = "copyable"
         val MAX_WORD_LEN_TAG = "maxwordlen"
         val MIN_WORD_LEN_TAG = "minwordlen"
-        val r = SecureRandom()
+        val random = SecureRandom()
     }
 
     private var mWordIds: WordListResult = WordListError
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
-    private var mMaxWordLength = 0
-    private var mMinWordLength = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (savedInstanceState != null) {
-            mPassphraseCopyable = savedInstanceState.getBoolean(COPYABLE_TAG)
-            mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG)
-            mMaxWordLength = savedInstanceState.getInt(MAX_WORD_LEN_TAG)
-            mMinWordLength = savedInstanceState.getInt(MIN_WORD_LEN_TAG)
-            mWordIds = expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG))
+        savedInstanceState?.run {
+            mPassphraseCopyable = getBoolean(COPYABLE_TAG)
+            mPassphrase = getString(PASSPHRASE_TAG)
+            mWordIds = WordList(
+                    expandFromRanges(getIntArray(WORDS_TAG)),
+                    getInt(MIN_WORD_LEN_TAG),
+                    getInt(MAX_WORD_LEN_TAG)
+            )
         }
     }
 
@@ -56,7 +55,7 @@ class PassphraseFragment: Fragment() {
         val btnGenerate = rootView.findViewById(R.id.button_generate_passphrase) as Button
         val passText = rootView.findViewById(R.id.textview_passphrase) as TextView
 
-        if (mPassphrase != null) passText.text = mPassphrase
+        mPassphrase?.run { passText.text = this }
 
         // set click listeners
         btnGenerate.setOnClickListener {
@@ -89,32 +88,36 @@ class PassphraseFragment: Fragment() {
     override fun onResume() {
         super.onResume()
 
-        val maxWordLength = prefs().getInt(
-                getString(R.string.pref_passphrase_max_word_length),
-                resources.getInteger(R.integer.passpharase_default_max_word_length)
-        )
-        val minWordLength = prefs().getInt(
+        val minWordLen = prefs().getInt(
                 getString(R.string.pref_passphrase_min_word_length),
                 resources.getInteger(R.integer.passpharase_default_min_word_length)
         )
+        val maxWordLen = prefs().getInt(
+                getString(R.string.pref_passphrase_max_word_length),
+                resources.getInteger(R.integer.passpharase_default_max_word_length)
+        )
 
-        if (mWordIds is WordListError) {
-            mMaxWordLength = maxWordLength
-            mMinWordLength = minWordLength
-            FetchWordListTask().execute(Pair(mMinWordLength, mMaxWordLength))
+        val wordList = mWordIds
+        when (wordList) {
+            is WordListError -> FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
+            is WordList ->
+                if (minWordLen != wordList.minWordLen || maxWordLen != wordList.maxWordLen)
+                    FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase)
-        if (mWordIds is WordList) outState.putIntArray(
-                    WORDS_TAG,
-                    compressWithRanges((mWordIds as WordList).array)
-        )
-        outState.putBoolean(COPYABLE_TAG, mPassphraseCopyable)
-        outState.putInt(MAX_WORD_LEN_TAG, mMaxWordLength)
-        outState.putInt(MIN_WORD_LEN_TAG, mMinWordLength)
+        with (outState) {
+            mPassphrase?.run { putString(PASSPHRASE_TAG, this) }
+            val wordList = mWordIds
+            if (wordList is WordList) {
+                putIntArray(WORDS_TAG, compressWithRanges(wordList.array))
+                putInt(MAX_WORD_LEN_TAG, wordList.minWordLen)
+                putInt(MIN_WORD_LEN_TAG, wordList.maxWordLen)
+            }
+            putBoolean(COPYABLE_TAG, mPassphraseCopyable)
+        }
     }
 
     private fun createPhrase(wordIds: WordList): String? {
@@ -132,7 +135,7 @@ class PassphraseFragment: Fragment() {
         )
 
         // choose random elements for the first n positions in the array
-        shuffleFirst(wordIds.array, n, r)
+        shuffleFirst(wordIds.array, n, random)
 
         // look up those words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase
@@ -197,8 +200,11 @@ class PassphraseFragment: Fragment() {
 
             c.close()
             db.close()
-            return WordList(ids.toIntArray())
+            val (min, max) = params[0]
+            return WordList(ids.toIntArray(), min, max)
         }
+
+        override fun onPreExecute() { mWordIds = WordListError }
 
         override fun onPostExecute(result: WordListResult) { mWordIds = result }
     }
