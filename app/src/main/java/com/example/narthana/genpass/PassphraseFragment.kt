@@ -17,6 +17,7 @@ import android.widget.Button
 import android.widget.TextView
 import com.example.narthana.genpass.data.PreBuiltWordDBHelper
 import com.example.narthana.genpass.data.WordContract.WordEntry
+import java.security.SecureRandom
 
 /**
  * Created by narthana on 22/10/16.
@@ -29,10 +30,10 @@ class PassphraseFragment: Fragment() {
         val COPYABLE_TAG = "copyable"
         val MAX_WORD_LEN_TAG = "maxwordlen"
         val MIN_WORD_LEN_TAG = "minwordlen"
+        val r = SecureRandom()
     }
 
-    private var mWordIds: IntArray? = null
-    private var mWordIdsReady = false
+    private var mWordIds: WordListResult = WordListError
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
     private var mMaxWordLength = 0
@@ -46,8 +47,7 @@ class PassphraseFragment: Fragment() {
             mPassphrase = savedInstanceState.getString(PASSPHRASE_TAG)
             mMaxWordLength = savedInstanceState.getInt(MAX_WORD_LEN_TAG)
             mMinWordLength = savedInstanceState.getInt(MIN_WORD_LEN_TAG)
-            mWordIds = Utility.expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG))
-            if (mWordIds != null) mWordIdsReady = true
+            mWordIds = expandFromRanges(savedInstanceState.getIntArray(WORDS_TAG))
         }
     }
 
@@ -60,8 +60,8 @@ class PassphraseFragment: Fragment() {
 
         // set click listeners
         btnGenerate.setOnClickListener {
-            if (mWordIdsReady) {
-                mPassphrase = createPhrase(mWordIds!!)
+            if (mWordIds is WordList) {
+                mPassphrase = createPhrase((mWordIds as WordList))
                 passText.text = mPassphrase
                 mPassphraseCopyable = true
             } else Snackbar.make(
@@ -98,8 +98,7 @@ class PassphraseFragment: Fragment() {
                 resources.getInteger(R.integer.passpharase_default_min_word_length)
         )
 
-        if (!mWordIdsReady || maxWordLength != mMaxWordLength || minWordLength != mMinWordLength) {
-            mWordIdsReady = false
+        if (mWordIds is WordListError) {
             mMaxWordLength = maxWordLength
             mMinWordLength = minWordLength
             FetchWordListTask().execute(Pair(mMinWordLength, mMaxWordLength))
@@ -109,13 +108,16 @@ class PassphraseFragment: Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (mPassphrase != null) outState.putString(PASSPHRASE_TAG, mPassphrase)
-        if (mWordIdsReady) outState.putIntArray(WORDS_TAG, Utility.compressWithRanges(mWordIds!!))
+        if (mWordIds is WordList) outState.putIntArray(
+                    WORDS_TAG,
+                    compressWithRanges((mWordIds as WordList).array)
+        )
         outState.putBoolean(COPYABLE_TAG, mPassphraseCopyable)
         outState.putInt(MAX_WORD_LEN_TAG, mMaxWordLength)
         outState.putInt(MIN_WORD_LEN_TAG, mMinWordLength)
     }
 
-    private fun createPhrase(ids: IntArray): String? {
+    private fun createPhrase(wordIds: WordList): String? {
         val n = prefs().getInt(
                 getString(R.string.pref_passphrase_num_words),
                 resources.getInteger(R.integer.pref_default_passphrase_num_words)
@@ -130,20 +132,16 @@ class PassphraseFragment: Fragment() {
         )
 
         // choose random elements for the first n positions in the array
-        Utility.shuffleN(ids, n)
+        shuffleFirst(wordIds.array, n, r)
 
-        // map the ids to Strings
-        val selectionArgs = ids.take(n).map { it.toString() }.toTypedArray()
-
-        // create the WHERE clause of the SQL statement
-        val selection = List(n) { "${WordEntry._ID} = ?" }.joinToString(" OR ")
-
+        // look up those words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase
         val c = db.query(
                 WordEntry.TABLE_NAME,
                 arrayOf(WordEntry.COLUMN_WORD),
-                selection,
-                selectionArgs, null, null, null
+                List(n) { "${WordEntry._ID} = ?" }.joinToString(" OR "),
+                wordIds.array.take(n).map(Int::toString).toTypedArray(),
+                null, null, null
         )
 
         // put the data in the cursor into an array so that it may be joined later
@@ -171,26 +169,24 @@ class PassphraseFragment: Fragment() {
         return passphraseList.joinToString(delim)
     }
 
-
     // Fetch the words in the background
-    inner class FetchWordListTask: AsyncTask<Pair<Int, Int>, Void, IntArray>() {
-        override fun doInBackground(vararg params: Pair<Int, Int>): IntArray {
-            val columns = arrayOf(WordEntry._ID)
-            val selection = "${WordEntry.COLUMN_LEN} >= ? AND ${WordEntry.COLUMN_LEN} <= ?"
-            val selectionArgs = arrayOf(params[0].first.toString(), params[0].second.toString())
-
+    private inner class FetchWordListTask: AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
+        override fun doInBackground(vararg params: Pair<Int, Int>): WordListResult {
             val db = PreBuiltWordDBHelper(activity).readableDatabase
 
             val c = db.query(
                     WordEntry.TABLE_NAME,
-                    columns,
-                    selection,
-                    selectionArgs, null, null, null
+                    arrayOf(WordEntry._ID),
+                    "${WordEntry.COLUMN_LEN} >= ? AND ${WordEntry.COLUMN_LEN} <= ?",
+                    params[0].toList().map(Int::toString).toTypedArray(),
+                    null, null, null
             )
 
             if (!c.moveToFirst()) {
                 Log.e(javaClass.simpleName, "Database Error")
-                return intArrayOf()
+                c.close()
+                db.close()
+                return WordListError
             }
 
             val ids = (1..c.count).map {
@@ -201,13 +197,10 @@ class PassphraseFragment: Fragment() {
 
             c.close()
             db.close()
-            return ids.toIntArray()
+            return WordList(ids.toIntArray())
         }
 
-        override fun onPostExecute(result: IntArray) {
-            mWordIdsReady = true
-            mWordIds = result
-        }
+        override fun onPostExecute(result: WordListResult) { mWordIds = result }
     }
 
     private fun prefs(): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
