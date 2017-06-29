@@ -7,7 +7,6 @@ import android.os.Parcelable
 import android.preference.DialogPreference
 import android.preference.Preference
 import android.util.AttributeSet
-import android.util.Log
 import android.util.SparseArray
 import android.view.Gravity
 import android.view.View
@@ -59,7 +58,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         // gather the data on dependencies between columns
         val colDeps = context.resources.obtainTypedArray(columnDepsId)
         mColumnDeps = SparseArray<Set<Int>>(colDeps.length())
-        (0 .. colDeps.length() - 1)
+        (0 until colDeps.length())
                 .map { context.resources.getStringArray(colDeps.getResourceId(it, -1)) }
                 .map { it.map { mColEntryValues.indexOf(it) } }
                 .forEach { mColumnDeps.put(it[0], it.slice(IntRange(1, it.lastIndex)).toSet()) }
@@ -80,7 +79,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         // the 0th column should stretch to fill the dialog
         table.setColumnStretchable(0, true)
         run {
-            val padding = Utility.dpToPx(context, DIALOG_PADDING)
+            val padding = dpToPx(context, DIALOG_PADDING)
             table.setPaddingRelative(padding, padding, padding, padding)
         }
 
@@ -95,7 +94,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         table.addView(header, fistRowParams)
 
         // create the column headings and put them in the header row
-        val headingPadding = Utility.dpToPx(context, HEADING_PADDING)
+        val headingPadding = dpToPx(context, HEADING_PADDING)
         val headingParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
@@ -131,10 +130,10 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             {
                 val checkBox = mCheckBoxes[i][j]
                 // Set the check change listener
-                val dependents = mColumnDeps.get(j)
+                val dependents = mColumnDeps[j]
                 checkBox.setOnCheckedChangeListener(
-                        if (dependents != null) IndependentCheckChangeListener(i, j, dependents)
-                        else                    DependentCheckChangeListener(i, j)
+                        dependents?.run {IndependentCheckChangeListener(i, j, dependents)}
+                                ?: DependentCheckChangeListener(i, j)
                 )
                 val checkBoxParams = TableRow.LayoutParams(
                         TableRow.LayoutParams.WRAP_CONTENT,
@@ -162,19 +161,15 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-        try {
             persistValues(
                     if (restorePersistedValue) getValuesFromResources(mValues)
-                    else defaultValue as Map<String, MutableSet<String>>
+                    else defaultValue as? Map<String, MutableSet<String>>
             )
-        } catch (e: ClassCastException) {
-            Log.e(javaClass.simpleName, "Default value cannot be read.")
-        }
     }
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
         val array = context.resources.obtainTypedArray(a.getResourceId(index, -1))
-        val values = (0 .. numCols - 1).associate { j ->
+        val values = (0 until numCols).associate { j ->
             j.asCol() to array.getTextArray(j).map(CharSequence::toString).toHashSet()
         }
         array.recycle()
@@ -190,15 +185,14 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
     private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>?):
-            Map<String, MutableSet<String>> = (0 .. numCols - 1).associate {
+            Map<String, MutableSet<String>> = (0 until numCols).associate {
         val k = it.asCol()
         val v = sharedPreferences
                 .getStringSet(key + k, defaultValue?.get(k))?.toHashSet() ?: HashSet()
         Pair(k, v)
     }
 
-    private fun persistValues(values: Map<String, MutableSet<String>>?) {
-        if (values == null) return
+    private fun persistValues(values: Map<String, MutableSet<String>>?) = values?.let {
         mValues = values
         mSelectedValues = cloneValues(values)
         if (shouldPersist()) {
@@ -244,10 +238,12 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         // Check whether we saved the state in onSaveInstanceState
-        if (state == null || state.javaClass != SavedState::class.java) {
-            // Didn't save the state, so call superclass
-            super.onRestoreInstanceState(state)
-            return
+        state?.let {
+            if (state.javaClass != SavedState::class.java) {
+                // Didn't save the state, so call superclass
+                super.onRestoreInstanceState(state)
+                return
+            }
         }
 
         // Cast state to custom BaseSavedState and pass to superclass
