@@ -30,9 +30,8 @@ class PassphraseFragment: Fragment() {
         savedInstanceState?.run {
             mPassphraseCopyable = getBoolean(COPYABLE_TAG)
             mPassphrase = getString(PASSPHRASE_TAG)
-            val wordArray: IntArray? = getIntArray(WORDS_TAG)
-            mWordIds = wordArray?.run {
-                WordList(wordArray, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
+            mWordIds = getIntArray(WORDS_TAG)?.run {
+                WordList(expandFromRanges(this), getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
         }
     }
