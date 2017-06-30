@@ -46,16 +46,16 @@ class PasswordFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // Set texts
-        mPassText?.run { password_textview.text = this }
+        mPassText?.run { textview_password.text = this }
 
         // set listener to copy password
-        password_textview.setOnClickListener {
+        textview_password.setOnClickListener {
             if (mPasswordCopyable) {
 //                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText(
                         getString(R.string.clipboard_text),
-                        password_textview.text
+                        textview_password.text
                 )
                 clipboard.primaryClip = clip
                 Snackbar.make(view, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
@@ -66,7 +66,7 @@ class PasswordFragment: Fragment() {
         button_generate_password.setOnClickListener {
             mPasswordCopyable = true
             mPassText = newPassword(numChars(), view)
-            mPassText?.run { password_textview.text = this }
+            mPassText?.run { textview_password.text = this }
         }
     }
 
