@@ -18,9 +18,7 @@ import android.widget.TextView
  * Created by narthana on 28/12/16.
  */
 
-class SeekBarPreference @JvmOverloads
-        constructor(context: Context, attrs: AttributeSet? = null,
-                    defStyleAttr: Int = 0, defStyleRes: Int = defStyleAttr):
+class SeekBarPreference (context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
     private val mSeekBar: SeekBar = SeekBar(context, attrs)
     private val mValueText: TextView = TextView(context, null)
@@ -118,6 +116,7 @@ class SeekBarPreference @JvmOverloads
 
         companion object {
             // Standard creator object using an instance of this class
+            @JvmField
             val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
                 override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
                 override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
@@ -136,8 +135,8 @@ class SeekBarPreference @JvmOverloads
     override fun onStopTrackingTouch(seekBar: SeekBar) {}
 
     companion object {
-        private val DEFAULT_VALUE = 0
-        private val LAYOUT_PADDING = 3.0f
-        private val TEXT_SIZE = 20.0f
+        private const val DEFAULT_VALUE = 0
+        private const val LAYOUT_PADDING = 3.0f
+        private const val TEXT_SIZE = 20.0f
     }
 }

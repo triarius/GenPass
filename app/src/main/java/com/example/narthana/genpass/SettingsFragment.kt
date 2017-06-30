@@ -76,6 +76,6 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
     enum class Type { INT, STRING }
 
     companion object {
-        val SPACE_STRING = "{SPACE}"
+        private const val SPACE_STRING = "{SPACE}"
     }
 }

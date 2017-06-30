@@ -131,8 +131,8 @@ class PasswordFragment: Fragment() {
     )
 
     companion object {
-        private val PASSWORD_TAG = "password"
-        private val COPYABLE_TAG = "copyable"
+        private const val PASSWORD_TAG = "password"
+        private const val COPYABLE_TAG = "copyable"
         private val random = SecureRandom()
     }
 }

@@ -61,7 +61,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         (0 until colDeps.length())
                 .map { context.resources.getStringArray(colDeps.getResourceId(it, -1)) }
                 .map { it.map { mColEntryValues.indexOf(it) } }
-                .forEach { mColumnDeps.put(it[0], it.slice(IntRange(1, it.lastIndex)).toSet()) }
+                .forEach { mColumnDeps.put(it[0], it.drop(1).toSet()) }
         colDeps.recycle()
 
         // create the check box 2d array
@@ -286,6 +286,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
         companion object {
             // Standard creator object using an instance of this class
+            @JvmField
             val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
                 override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
                 override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
@@ -315,8 +316,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     }
 
     companion object {
-        val DIALOG_PADDING = 14.0f
-        val HEADING_PADDING = 3.0f
+        private const val DIALOG_PADDING = 14.0f
+        private const val HEADING_PADDING = 3.0f
     }
 }
 

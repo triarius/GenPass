@@ -10,8 +10,8 @@ import android.view.MenuItem
  */
 
 class SettingsActivity : AppCompatActivity() {
-    private val PASSWORD_PREF_FRAGMENT_TAG = "password_pref_fragment"
-    private val PASSPHRASE_PREF_FRAGMENT_TAG = "passphrase_pref_fragment"
+//    private val PASSWORD_PREF_FRAGMENT_TAG = "password_pref_fragment"
+//    private val PASSPHRASE_PREF_FRAGMENT_TAG = "passphrase_pref_fragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

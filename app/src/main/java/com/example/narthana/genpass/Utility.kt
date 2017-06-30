@@ -80,10 +80,8 @@ fun shuffleFirst(array: IntArray, n: Int, r: SecureRandom) {
         }
     }
 
-    for (i in 0..n - 1) swapInt(i, r.nextInt(array.lastIndex) + i)
+    for (i in 0 until n) swapInt(i, r.nextInt(array.lastIndex) + i)
 }
-
-
 
 sealed class WordListResult
 data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: Int):

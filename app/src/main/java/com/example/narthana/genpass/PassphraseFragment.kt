@@ -197,11 +197,11 @@ class PassphraseFragment: Fragment() {
     }
 
     companion object {
-        private val WORDS_TAG = "words"
-        private val PASSPHRASE_TAG = "passphrase"
-        private val COPYABLE_TAG = "copyable"
-        private val MAX_WORD_LEN_TAG = "maxwordlen"
-        private val MIN_WORD_LEN_TAG = "minwordlen"
+        private const val WORDS_TAG = "words"
+        private const val PASSPHRASE_TAG = "passphrase"
+        private const val COPYABLE_TAG = "copyable"
+        private const val MAX_WORD_LEN_TAG = "maxwordlen"
+        private const val MIN_WORD_LEN_TAG = "minwordlen"
         private val random = SecureRandom()
     }
 }
