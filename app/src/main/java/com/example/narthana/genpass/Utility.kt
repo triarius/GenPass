@@ -19,10 +19,12 @@ fun loadDictionary(context: Context, dictionary: InputStream) {
         val content = ContentValues(2)
         dictionary.bufferedReader().useLines { lines ->
             lines.forEach { line ->
-                content.clear()
-                content.put(WordContract.WordEntry.COLUMN_WORD, line)
-                content.put(WordContract.WordEntry.COLUMN_WORD, line.length)
-                db.insert(WordContract.WordEntry.TABLE_NAME, null, content)
+                content.run {
+                    clear()
+                    put(WordContract.WordEntry.COLUMN_WORD, line)
+                    put(WordContract.WordEntry.COLUMN_WORD, line.length)
+                    db.insert(WordContract.WordEntry.TABLE_NAME, null, this)
+                }
             }
         }
         db.setTransactionSuccessful()
@@ -30,46 +32,28 @@ fun loadDictionary(context: Context, dictionary: InputStream) {
     }
 }
 
-fun compressWithRanges(input: IntArray): IntArray {
-    val ranges = ArrayList<Int>(input.size / 4)
-    ranges.add(input.size)
-    run {
-        var i = 0
-        val n = input.size - 1
-        while (i <= n) {
-            val j = i
-            while (i < n && input[i + 1] == input[i] + 1) ++i
-            if (i != j) {
-                ranges.add(input[j])
-                ranges.add(input[i])
-            } else ranges.add(-input[i])
-            ++i
-        }
+fun compressWithRanges(input: IntArray): IntArray = input.foldIndexed(mutableListOf<Int>()) {
+    i, list, x -> list.apply {
+        if (i == 0) add(if (x + 1 == input[1]) x else -x)
+        else if (i == input.lastIndex) add(if (x - 1 == input[i - 1]) x else -x)
+        else if (x - 1 != input[i - 1] && x + 1 != input[i + 1]) add(-x)
+        else if (x - 1 != input[i - 1] || x + 1 != input[i + 1]) add(x)
     }
-    val out = IntArray(ranges.size)
-    for (i in out.indices) out[i] = ranges[i]
-    return out
-}
+}.toIntArray()
 
 fun expandFromRanges(input: IntArray): IntArray {
-    val out = IntArray(input[0])
+    val (singles, ranges) = input.partition { it < 0 }
+    val (starts, ends) = ranges.partitionIndexed { i, _ -> i % 2 == 0 }
+    val expandedRanges = starts.zip(ends).flatMap { IntRange(it.first, it.second).toList() }
+    return (singles.map { -it } + expandedRanges).toIntArray()
+}
+
+fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean): Pair<List<T>, List<T>> {
+    val first = mutableListOf<T>()
+    val second = mutableListOf<T>()
     var i = 0
-    var j = 1
-    while (j < input.size) {
-        if (input[j] < 0) {
-            out[i++] = -input[j++]
-        } else {
-            val n = input[j + 1] - input[j] + 1
-            var k = 0
-            while (k < n) {
-                out[i] = input[j] + k
-                ++k
-                ++i
-            }
-            j += 2
-        }
-    }
-    return out
+    for (x in this) if (predicate(i++, x)) first.add(x) else second.add(x)
+    return Pair(first, second)
 }
 
 fun shuffle(array: CharArray, r: SecureRandom) {
@@ -107,6 +91,11 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
             && Arrays.equals(other.array, array)
             && other.minWordLen == minWordLen
             && other.maxWordLen == maxWordLen
-    override fun hashCode(): Int = Arrays.hashCode(array)
+    override fun hashCode(): Int {
+        var code = Arrays.hashCode(array)
+        code += 31 * code + minWordLen
+        code += 31 * code + maxWordLen
+        return code
+    }
 }
 object WordListError: WordListResult()

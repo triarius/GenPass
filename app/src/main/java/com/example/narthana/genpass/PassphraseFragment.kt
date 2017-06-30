@@ -42,11 +42,10 @@ class PassphraseFragment: Fragment() {
         savedInstanceState?.run {
             mPassphraseCopyable = getBoolean(COPYABLE_TAG)
             mPassphrase = getString(PASSPHRASE_TAG)
-            mWordIds = WordList(
-                    expandFromRanges(getIntArray(WORDS_TAG)),
-                    getInt(MIN_WORD_LEN_TAG),
-                    getInt(MAX_WORD_LEN_TAG)
-            )
+            val wordArray: IntArray? = getIntArray(WORDS_TAG)
+            mWordIds = wordArray?.run {
+                WordList(wordArray, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG) )
+            } ?: WordListError
         }
     }
 
@@ -107,7 +106,6 @@ class PassphraseFragment: Fragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
         with (outState) {
             mPassphrase?.run { putString(PASSPHRASE_TAG, this) }
             val wordList = mWordIds
