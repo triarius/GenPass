@@ -9,8 +9,7 @@ import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
+import kotlinx.android.synthetic.main.fragment_password.*
 import java.security.SecureRandom
 
 /**
@@ -42,36 +41,33 @@ class PasswordFragment: Fragment() {
         mPasswordCopyable = savedInstanceState?.getBoolean(COPYABLE_TAG) ?: false
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup,
-                              savedInstanceState: Bundle?): View? {
-        val rootView = inflater.inflate(R.layout.fragment_password, container, false)
-        val tvPass = rootView.findViewById(R.id.password_textview) as TextView
-        val btnGenerate = rootView.findViewById(R.id.button_generate_password) as Button
+    override fun onCreateView(inflater: LayoutInflater, cntr: ViewGroup?, state: Bundle?): View
+        = inflater.inflate(R.layout.fragment_password, cntr, false)
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // Set texts
-        mPassText?.run { tvPass.text = this }
+        mPassText?.run { password_textview.text = this }
 
         // set listener to copy password
-        tvPass.setOnClickListener {
+        password_textview.setOnClickListener {
             if (mPasswordCopyable) {
+//                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText(
                         getString(R.string.clipboard_text),
-                        tvPass.text
+                        password_textview.text
                 )
                 clipboard.primaryClip = clip
-                Snackbar.make(rootView, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(view, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
             }
         }
 
         // attach click listener to button
-        btnGenerate.setOnClickListener {
+        button_generate_password.setOnClickListener {
             mPasswordCopyable = true
-            mPassText = newPassword(numChars(), rootView)
-            mPassText?.run { tvPass.text = this }
+            mPassText = newPassword(numChars(), view)
+            mPassText?.run { password_textview.text = this }
         }
-
-        return rootView
     }
 
     override fun onSaveInstanceState(outState: Bundle) = with (outState) {

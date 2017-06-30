@@ -2,8 +2,8 @@ package com.example.narthana.genpass
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.view.MenuItem
+import kotlinx.android.synthetic.main.app_bar_settings.*
 
 /**
  * Created by narthana on 28/12/16.
@@ -20,8 +20,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
 
         // set the action bar
-        val toolbar = findViewById(R.id.toolbar_settings) as Toolbar
-        setSupportActionBar(toolbar)
+        setSupportActionBar(toolbar_settings)
 
         // action bar back button
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

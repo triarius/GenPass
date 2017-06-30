@@ -6,17 +6,15 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.app_bar_main.*
 
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var mNavMenuItemId = -1
-    private var mNavView: NavigationView? = null
-    private var mDrawer: DrawerLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,22 +23,19 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         setContentView(R.layout.activity_main)
 
         // create action bar
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
         // create nav Drawer
-        mDrawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        val toggle = ActionBarDrawerToggle( this, mDrawer, toolbar,
+        val toggle = ActionBarDrawerToggle( this, drawer_layout, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        mDrawer!!.addDrawerListener(toggle)
+        drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
         // set listener to open drawer
-        mNavView = findViewById(R.id.nav_view) as NavigationView
-        mNavView!!.setNavigationItemSelectedListener(this)
+        nav_view.setNavigationItemSelectedListener(this)
 
         // if a new run or if restoring from prev state
-        if (savedInstanceState == null) {
+        mNavMenuItemId = savedInstanceState?.getInt(NAV_MENU_ITEM_TAG) ?: run {
             // open password fragment
             fragmentManager.beginTransaction()
                     .replace(R.id.content_frame, PasswordFragment(), PASSWORD_FRAGMENT_TAG)
@@ -48,8 +43,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                     .commit()
 
             // assign menu item id for later use in the nav bar
-            mNavMenuItemId = R.id.nav_password
-        } else mNavMenuItemId = savedInstanceState.getInt(NAV_MENU_ITEM_TAG)
+            R.id.nav_password
+        }
 
         // set default preferences
         PreferenceManager.setDefaultValues(this, R.xml.prefs, false)
@@ -58,7 +53,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onResume() {
         super.onResume()
         // set the selected item in the nav bar
-        mNavView!!.setCheckedItem(mNavMenuItemId)
+        nav_view.setCheckedItem(mNavMenuItemId)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -67,10 +62,9 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     }
 
     override fun onBackPressed() {
-        if (mDrawer!!.isDrawerOpen(GravityCompat.START))
-            mDrawer!!.closeDrawer(GravityCompat.START)
-        else
-            finish()
+        if (drawer_layout.isDrawerOpen(GravityCompat.START))
+            drawer_layout.closeDrawer(GravityCompat.START)
+        else finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -115,10 +109,11 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             }
             R.id.nav_manage -> startActivity(Intent(this, SettingsActivity::class.java))
             else -> return false
-        }// do not assign mNavMenuId here so that drawer reverts to right selection when
+        }
+        // do not assign mNavMenuId here so that drawer reverts to right selection when
         // coming back from the SettingsActivity
 
-        mDrawer!!.closeDrawer(GravityCompat.START)
+        drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 

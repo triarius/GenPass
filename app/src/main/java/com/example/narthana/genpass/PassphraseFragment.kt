@@ -11,10 +11,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import com.example.narthana.genpass.data.PreBuiltWordDBHelper
 import com.example.narthana.genpass.data.WordContract.WordEntry
+import kotlinx.android.synthetic.main.fragment_passphrase.*
 import java.security.SecureRandom
 
 /**
@@ -38,39 +37,37 @@ class PassphraseFragment: Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val rootView = inflater.inflate(R.layout.fragment_passphrase, container, false)
-        val btnGenerate = rootView.findViewById(R.id.button_generate_passphrase) as Button
-        val passText = rootView.findViewById(R.id.textview_passphrase) as TextView
+    override fun onCreateView(inflater: LayoutInflater, cntr: ViewGroup?, state: Bundle?): View
+        = inflater.inflate(R.layout.fragment_passphrase, cntr, false)
 
-        mPassphrase?.run { passText.text = this }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        mPassphrase?.run { textview_passphrase.text = this }
 
         // set click listeners
-        btnGenerate.setOnClickListener {
+        button_generate_passphrase.setOnClickListener {
             if (mWordIds is WordList) {
                 mPassphrase = createPhrase((mWordIds as WordList))
-                passText.text = mPassphrase
+                textview_passphrase.text = mPassphrase
                 mPassphraseCopyable = true
             } else Snackbar.make(
-                    rootView,
+                    view,
                     R.string.dict_load_snack,
                     Snackbar.LENGTH_SHORT
             ).show()
         }
 
-        passText.setOnClickListener {
+        textview_passphrase.setOnClickListener {
             if (mPassphraseCopyable) {
-                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE)
+                        as ClipboardManager
                 val clip = ClipData.newPlainText(
                         getString(R.string.clipboard_text),
-                        passText.text
+                        textview_passphrase.text
                 )
                 clipboard.primaryClip = clip
-                Snackbar.make(rootView, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(view, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
             }
         }
-
-        return rootView
     }
 
     override fun onResume() {
