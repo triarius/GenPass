@@ -24,8 +24,7 @@ class SettingsActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         // action bar back button
-        val ab = supportActionBar
-        ab?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         // Display the fragment as the main content.
         if (savedInstanceState == null)

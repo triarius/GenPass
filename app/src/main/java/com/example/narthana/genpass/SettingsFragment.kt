@@ -39,14 +39,13 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
 
     override fun onResume() {
         super.onResume()
+        with (preferenceScreen.sharedPreferences) {
+            // Set the summary values initially
+            mPrefKeyToId?.forEach { setPrefSummaryTo(this, it.toPair()) }
 
-        // Set the summary values initially
-        mPrefKeyToId?.forEach {
-            setPrefSummaryTo(preferenceScreen.sharedPreferences, it.toPair())
+            // register the listener
+            registerOnSharedPreferenceChangeListener(this@SettingsFragment)
         }
-
-        // register the listener
-        preferenceScreen.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
     }
 
     override fun onPause() {
@@ -55,8 +54,7 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
-        val value = mPrefKeyToId?.get(key)
-        if (value != null) setPrefSummaryTo(sharedPreferences, Pair(key, value))
+        mPrefKeyToId?.get(key)?.let { setPrefSummaryTo(sharedPreferences, Pair(key, it)) }
     }
 
     private fun setPrefSummaryTo(prefs: SharedPreferences, entry: Pair<String, Pair<Int, Type>>) {
@@ -65,11 +63,9 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
                     entry.first,
                     resources.getInteger(entry.second.first)
             ).toString()
-            Type.STRING -> {
-                val str = prefs.getString(entry.first, getString(entry.second.first))
-                if (str == " ") SPACE_STRING else str
+            Type.STRING -> prefs.getString(entry.first, getString(entry.second.first)).run {
+                if (this == " ") SPACE_STRING else this
             }
-            else -> null
         }
     }
 
