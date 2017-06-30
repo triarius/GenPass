@@ -4,10 +4,8 @@ import android.app.Fragment
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.util.Log
 import android.view.LayoutInflater
@@ -24,15 +22,6 @@ import java.security.SecureRandom
  */
 
 class PassphraseFragment: Fragment() {
-    private companion object {
-        val WORDS_TAG = "words"
-        val PASSPHRASE_TAG = "passphrase"
-        val COPYABLE_TAG = "copyable"
-        val MAX_WORD_LEN_TAG = "maxwordlen"
-        val MIN_WORD_LEN_TAG = "minwordlen"
-        val random = SecureRandom()
-    }
-
     private var mWordIds: WordListResult = WordListError
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
@@ -44,7 +33,7 @@ class PassphraseFragment: Fragment() {
             mPassphrase = getString(PASSPHRASE_TAG)
             val wordArray: IntArray? = getIntArray(WORDS_TAG)
             mWordIds = wordArray?.run {
-                WordList(wordArray, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG) )
+                WordList(wordArray, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
         }
     }
@@ -87,11 +76,11 @@ class PassphraseFragment: Fragment() {
     override fun onResume() {
         super.onResume()
 
-        val minWordLen = prefs().getInt(
+        val minWordLen = getInt(
                 getString(R.string.pref_passphrase_min_word_length),
                 resources.getInteger(R.integer.passpharase_default_min_word_length)
         )
-        val maxWordLen = prefs().getInt(
+        val maxWordLen = getInt(
                 getString(R.string.pref_passphrase_max_word_length),
                 resources.getInteger(R.integer.passpharase_default_max_word_length)
         )
@@ -119,15 +108,15 @@ class PassphraseFragment: Fragment() {
     }
 
     private fun createPhrase(wordIds: WordList): String? {
-        val n = prefs().getInt(
+        val n = getInt(
                 getString(R.string.pref_passphrase_num_words),
                 resources.getInteger(R.integer.pref_default_passphrase_num_words)
         )
-        val delim = prefs().getString(
+        val delim = getStringPref(
                 getString(R.string.pref_passphrase_delimiter),
                 getString(R.string.passphrase_default_delimiter)
         )
-        val cap = prefs().getBoolean(
+        val cap = getBoolean(
                 getString(R.string.pref_passphrase_force_cap),
                 resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
@@ -137,7 +126,7 @@ class PassphraseFragment: Fragment() {
 
         // look up those words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase
-        val c = db.query(
+        val cursor = db.query(
                 WordEntry.TABLE_NAME,
                 arrayOf(WordEntry.COLUMN_WORD),
                 List(n) { "${WordEntry._ID} = ?" }.joinToString(" OR "),
@@ -146,18 +135,18 @@ class PassphraseFragment: Fragment() {
         )
 
         // put the data in the cursor into an array so that it may be joined later
-        if (!c.moveToFirst()) {
+        if (!cursor.moveToFirst()) {
             Log.e(javaClass.simpleName, "Database Error")
             return null
         }
 
-        var passphraseList = (1..c.count).map {
-            val s = c.getString(0)!!
-            c.moveToNext()
+        var passphraseList = (1..cursor.count).map {
+            val s = cursor.getString(0)!!
+            cursor.moveToNext()
             s
         }
 
-        c.close()
+        cursor.close()
         db.close()
 
         // capitalise
@@ -175,7 +164,7 @@ class PassphraseFragment: Fragment() {
         override fun doInBackground(vararg params: Pair<Int, Int>): WordListResult {
             val db = PreBuiltWordDBHelper(activity).readableDatabase
 
-            val c = db.query(
+            val cursor = db.query(
                     WordEntry.TABLE_NAME,
                     arrayOf(WordEntry._ID),
                     "${WordEntry.COLUMN_LEN} >= ? AND ${WordEntry.COLUMN_LEN} <= ?",
@@ -183,20 +172,20 @@ class PassphraseFragment: Fragment() {
                     null, null, null
             )
 
-            if (!c.moveToFirst()) {
+            if (!cursor.moveToFirst()) {
                 Log.e(javaClass.simpleName, "Database Error")
-                c.close()
+                cursor.close()
                 db.close()
                 return WordListError
             }
 
-            val ids = (1..c.count).map {
-                val i = c.getInt(0)
-                c.moveToNext()
+            val ids = (1..cursor.count).map {
+                val i = cursor.getInt(0)
+                cursor.moveToNext()
                 i
             }
 
-            c.close()
+            cursor.close()
             db.close()
             val (min, max) = params[0]
             return WordList(ids.toIntArray(), min, max)
@@ -207,5 +196,12 @@ class PassphraseFragment: Fragment() {
         override fun onPostExecute(result: WordListResult) { mWordIds = result }
     }
 
-    private fun prefs(): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
+    companion object {
+        private val WORDS_TAG = "words"
+        private val PASSPHRASE_TAG = "passphrase"
+        private val COPYABLE_TAG = "copyable"
+        private val MAX_WORD_LEN_TAG = "maxwordlen"
+        private val MIN_WORD_LEN_TAG = "minwordlen"
+        private val random = SecureRandom()
+    }
 }

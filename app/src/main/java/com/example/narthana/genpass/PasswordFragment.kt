@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
 import android.view.View
@@ -19,8 +18,6 @@ import java.security.SecureRandom
  */
 
 class PasswordFragment: Fragment() {
-    private val mRandom = SecureRandom()
-
     private var mKeyToCharset: Map<String, String>? = null
     private var mDefaultCharsetKeys: Set<String>? = null
     private var mDefManCharsetKeys: Set<String>? = null
@@ -28,18 +25,15 @@ class PasswordFragment: Fragment() {
     private var mPasswordCopyable = false
     private var mPassText: String? = null
 
-    override fun onAttach(context: Context) {
+    override fun onAttach(context: Context) = with (resources) {
         super.onAttach(context)
-
-        val charsetKeys = resources.getStringArray(R.array.pref_password_charset_keys)
-        val charsets = resources.getStringArray(R.array.charsets)
+        val charsetKeys = getStringArray(R.array.pref_password_charset_keys)
+        val charsets = getStringArray(R.array.charsets)
 
         // create map charsetKeys -> charsets
         mKeyToCharset = charsetKeys.zip(charsets).associate { it }
-        mDefaultCharsetKeys = resources
-                .getStringArray(R.array.pref_password_charset_default_enabled).toSet()
-        mDefManCharsetKeys = resources
-                .getStringArray(R.array.pref_password_charset_default_mandatory).toSet()
+        mDefaultCharsetKeys = getStringArray(R.array.pref_password_charset_default_enabled).toSet()
+        mDefManCharsetKeys = getStringArray(R.array.pref_password_charset_default_mandatory).toSet()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,14 +42,14 @@ class PasswordFragment: Fragment() {
         mPasswordCopyable = savedInstanceState?.getBoolean(COPYABLE_TAG) ?: false
     }
 
-    override fun onCreateView(inflater: LayoutInflater,
-                              container: ViewGroup, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup,
+                              savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_password, container, false)
         val tvPass = rootView.findViewById(R.id.password_textview) as TextView
         val btnGenerate = rootView.findViewById(R.id.button_generate_password) as Button
 
         // Set texts
-        if (mPassText != null) tvPass.text = mPassText
+        mPassText?.run { tvPass.text = this }
 
         // set listener to copy password
         tvPass.setOnClickListener {
@@ -74,16 +68,16 @@ class PasswordFragment: Fragment() {
         btnGenerate.setOnClickListener {
             mPasswordCopyable = true
             mPassText = newPassword(numChars(), rootView)
-            if (mPassText != null) tvPass.text = mPassText
+            mPassText?.run { tvPass.text = this }
         }
 
         return rootView
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        if (mPassText != null) outState.putString(PASSWORD_TAG, mPassText)
-        outState.putBoolean(COPYABLE_TAG, mPasswordCopyable)
+    override fun onSaveInstanceState(outState: Bundle) = with (outState) {
+        super.onSaveInstanceState(this)
+        mPassText?.run { putString(PASSWORD_TAG, this) }
+        putBoolean(COPYABLE_TAG, mPasswordCopyable)
     }
 
     private fun newPassword(len: Int, rootView: View): String? {
@@ -92,22 +86,21 @@ class PasswordFragment: Fragment() {
             return null
         }
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-
         // create charset to draw from
         val key = getString(R.string.pref_password_charset_key)
-        val selectedCharsetKeys = prefs.getStringSet(
+        val selectedCharsetKeys = getStringSet(
                 key + getString(R.string.pref_password_charset_col_enabled),
                 mDefaultCharsetKeys
-        )!!
+        )
         // collect the mandatory preferences into an array, and count them
-        val mandatoryCharsetKeys = prefs.getStringSet(
+        val mandatoryCharsetKeys = getStringSet(
                 key + getString(R.string.pref_password_charset_col_mandatory),
                 mDefManCharsetKeys
-        )!!
+        )
 
         // the user has not checked any char subsets to add to the charset
-        if (selectedCharsetKeys.size == 0) {
+        if (selectedCharsetKeys == null || mandatoryCharsetKeys == null
+                || selectedCharsetKeys.isEmpty()) {
             Snackbar.make(rootView, R.string.empty_charset, Snackbar.LENGTH_SHORT).show()
             return null
         }
@@ -124,25 +117,22 @@ class PasswordFragment: Fragment() {
         val optionalCharsets = (mandatoryCharsetKeys.size .. len).map { selectedCharset }
         val charSets = mandatoryCharsets + optionalCharsets
 
-        val password = charSets.map { it!![mRandom.nextInt(it.length)] }.toCharArray()
+        val password = charSets.map { it!![random.nextInt(it.length)] }.toCharArray()
 
         // shuffle the password so that the mandatory characters are in random positions
-        shuffle(password, r)
+        shuffle(password, random)
 
         return String(password)
     }
 
-    private fun numChars(): Int {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        return prefs.getInt(
-                getString(R.string.pref_password_length_key),
-                resources.getInteger(R.integer.pref_default_password_length)
-        )
-    }
+    private fun numChars(): Int = getInt(
+            getString(R.string.pref_password_length_key),
+            resources.getInteger(R.integer.pref_default_password_length)
+    )
 
     companion object {
         private val PASSWORD_TAG = "password"
         private val COPYABLE_TAG = "copyable"
-        private val r = SecureRandom()
+        private val random = SecureRandom()
     }
 }

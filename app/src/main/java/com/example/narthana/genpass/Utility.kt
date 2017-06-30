@@ -1,7 +1,9 @@
 package com.example.narthana.genpass
 
+import android.app.Fragment
 import android.content.ContentValues
 import android.content.Context
+import android.preference.PreferenceManager
 import com.example.narthana.genpass.data.NewWordDBHelper
 import com.example.narthana.genpass.data.WordContract
 import java.io.InputStream
@@ -99,3 +101,13 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
     }
 }
 object WordListError: WordListResult()
+
+fun Fragment.getStringSet(key: String, defValues: Set<String>?): Set<String>? =
+        PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
+fun Fragment.getInt(key: String, defValues: Int): Int =
+        PreferenceManager.getDefaultSharedPreferences(this.activity).getInt(key, defValues)
+fun Fragment.getStringPref(key: String, defValues: String): String =
+        PreferenceManager.getDefaultSharedPreferences(this.activity).getString(key, defValues)
+fun Fragment.getBoolean(key: String, defValues: Boolean): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
+
