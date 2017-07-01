@@ -7,7 +7,6 @@ import android.preference.PreferenceManager
 import com.example.narthana.genpass.data.NewWordDBHelper
 import com.example.narthana.genpass.data.WordContract
 import java.io.InputStream
-import java.security.SecureRandom
 import java.util.*
 
 /**
@@ -58,7 +57,7 @@ fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean): Pair
     return Pair(first, second)
 }
 
-fun shuffle(array: CharArray, r: SecureRandom) {
+fun shuffle(array: CharArray, r: Random) {
     fun swapChar(i: Int, j: Int) {
         if (i != j) {
             val temp = array[i]
@@ -71,7 +70,7 @@ fun shuffle(array: CharArray, r: SecureRandom) {
 }
 
 // shuffle first n elements of the array
-fun shuffleFirst(array: IntArray, n: Int, r: SecureRandom) {
+fun shuffleFirst(array: IntArray, n: Int, r: Random) {
     fun swapInt(i: Int, j: Int) {
         if (i != j) {
             val temp = array[i]
@@ -81,6 +80,58 @@ fun shuffleFirst(array: IntArray, n: Int, r: SecureRandom) {
     }
 
     for (i in 0 until n) swapInt(i, r.nextInt(array.lastIndex) + i)
+}
+
+/**
+ * Selects [m] random elements from [array]. The selection uniform.
+ *
+ * @param array the array from which to obtain random elements
+ * @m the number of randoms, must be in the range 1..[array.size]
+ * @r an instance of [Random]
+ * @return an array containing the random elements
+ */
+fun randomN(array: IntArray, m: Int, r: Random): IntArray {
+    var ranges = linkedListOf(IntRange(0, array.lastIndex))
+    val nums = IntArray(m) { 0 }
+    for (i in 0 until m) {
+        val temp = randFromRanges(ranges, r)
+        ranges = temp.first
+        nums[i] = array[temp.second]
+    }
+    return nums
+}
+
+val IntRange.len: Int
+    get() = last - first + 1
+
+/**
+ * Takes a mutable list of ranges and picks a int uniformly at random from the ranges.
+ * Splits the range at the chosen int and returns a Pair of the new list and the int
+ *
+ * @param ranges a list of [IntRange] from which to select a random integer
+ * @param r an instance of [Random]
+ * @return A [Pair]
+ */
+fun randFromRanges(ranges: LinkedList<IntRange>, r: Random): Pair<LinkedList<IntRange>, Int> {
+    var hole = -1
+    var rangeList = ranges.filter { !it.isEmpty() }
+    val selection = rangeList.map { it.len }.sum()
+
+    fun rec(p: LinkedList<IntRange>, n: Int): LinkedList<IntRange> = when (p) {
+        is EmptyLinkedList -> p
+        is NonEmptyLinkedList<IntRange> ->
+            if (n < p.head.len) {
+                hole = p.head.start + n
+                linkedListOf(
+                        IntRange(p.head.start, hole - 1),
+                        IntRange(hole + 1, p.head.endInclusive)
+                ) + p.tail
+            }
+            else p.apply { tail = rec(tail, n - p.head.len) }
+    }
+
+    rangeList = rec(rangeList, selection)
+    return Pair(rangeList, hole)
 }
 
 sealed class WordListResult
