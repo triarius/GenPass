@@ -40,8 +40,10 @@ class PassphraseFragment: Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, cntr: ViewGroup?, state: Bundle?): View
-        = inflater.inflate(R.layout.fragment_passphrase, cntr, false)
+    override fun onCreateView(inflater: LayoutInflater,
+                              container: ViewGroup?,
+                              savedInstanceState: Bundle?): View
+        = inflater.inflate(R.layout.fragment_passphrase, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mPassphrase?.run { textview_passphrase.text = this }
@@ -78,11 +80,11 @@ class PassphraseFragment: Fragment() {
 
         val minWordLen = getIntPref(
                 getString(R.string.pref_passphrase_min_word_length),
-                resources.getInteger(R.integer.passpharase_default_min_word_length)
+                resources.getInteger(R.integer.pref_default_passphrase_min_word_length)
         )
         val maxWordLen = getIntPref(
                 getString(R.string.pref_passphrase_max_word_length),
-                resources.getInteger(R.integer.passpharase_default_max_word_length)
+                resources.getInteger(R.integer.pref_default_passpharase_max_word_length)
         )
 
         val wordList = mWordIds
@@ -114,17 +116,14 @@ class PassphraseFragment: Fragment() {
         )
         val delim = getStringPref(
                 getString(R.string.pref_passphrase_delimiter),
-                getString(R.string.passphrase_default_delimiter)
+                getString(R.string.pref_default_passphrase_delimiter)
         )
         val cap = getBooleanPref(
                 getString(R.string.pref_passphrase_force_cap),
                 resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
 
-        // choose random elements for the first n positions in the array
-//        shuffleFirst(wordIds.array, n, random)
-
-        // look up those words in the database
+        // look up n random words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase
         val cursor = db.query(
                 WordEntry.TABLE_NAME,

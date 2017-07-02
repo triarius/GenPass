@@ -28,9 +28,9 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
         val defaultIds = intArrayOf(
                 R.integer.pref_default_password_length,
                 R.integer.pref_default_passphrase_num_words,
-                R.string.passphrase_default_delimiter,
-                R.integer.passpharase_default_min_word_length,
-                R.integer.passpharase_default_max_word_length
+                R.string.pref_default_passphrase_delimiter,
+                R.integer.pref_default_passphrase_min_word_length,
+                R.integer.pref_default_passpharase_max_word_length
         )
         val types: Array<Type> = arrayOf(Type.INT, Type.INT, Type.STRING, Type.INT, Type.INT)
 

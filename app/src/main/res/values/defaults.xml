@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="pref_default_password_length">32</integer>
-       <array name="pref_password_charset_default_value">
-        <item>@array/pref_password_charset_default_enabled</item>
-        <item>@array/pref_password_charset_default_mandatory</item>
+    <array name="pref_default_password_charset_value">
+        <item>@array/pref_default_password_charset_enabled</item>
+        <item>@array/pref_default_password_charset_mandatory</item>
     </array>
-    <string-array name="pref_password_charset_default_enabled">
+    <string-array name="pref_default_password_charset_enabled">
         <item>pwlow</item>
         <item>pwup</item>
         <item>pwnum</item>
     </string-array>
-    <string-array name="pref_password_charset_default_mandatory"/>
+    <string-array name="pref_default_password_charset_mandatory"/>
 
     <integer name="pref_default_passphrase_num_words">4</integer>
     <bool name="pref_default_passphrase_force_cap">false</bool>
-    <string name="passphrase_default_delimiter">&#160;</string>
-    <integer name="passpharase_default_max_word_length">10</integer>
-    <integer name="passpharase_default_min_word_length">5</integer>
+    <string name="pref_default_passphrase_delimiter">&#160;</string>
+    <integer name="pref_default_passphrase_min_word_length">5</integer>
+    <integer name="pref_default_passpharase_max_word_length">10</integer>
 </resources>

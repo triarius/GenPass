@@ -15,7 +15,7 @@
             android:title="@string/pref_password_charsets"
             android:entries="@array/pref_password_charset_names"
             android:entryValues="@array/pref_password_charset_keys"
-            android:defaultValue="@array/pref_password_charset_default_value"
+            android:defaultValue="@array/pref_default_password_charset_value"
             my:columnEntries="@array/pref_password_column_entries"
             my:columnEntryValues="@array/pref_password_column_entry_values"
             my:columnDependencies="@array/pref_password_charset_col_deps"/>
@@ -23,13 +23,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/passphrase">
-
-        <com.example.android.genpass.preference.GraphemeEditTextPreference
-            android:key="@string/pref_passphrase_delimiter"
-            android:title="@string/passphrase_delimiter_label"
-            android:maxLength="@integer/pref_max_delim_length"
-            android:selectAllOnFocus="true"
-            android:cursorVisible="false"/>
 
         <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_num_words"
@@ -40,14 +33,21 @@
         <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_min_word_length"
             android:title="@string/passphrase_min_word_length"
-            android:defaultValue="@integer/passpharase_default_min_word_length"
+            android:defaultValue="@integer/pref_default_passphrase_min_word_length"
             android:max="@integer/pref_max_min_word_length"/>
 
         <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_max_word_length"
             android:title="@string/passphrase_max_word_length"
-            android:defaultValue="@integer/passpharase_default_max_word_length"
+            android:defaultValue="@integer/pref_default_passpharase_max_word_length"
             android:max="@integer/pref_max_max_word_length"/>
+
+        <com.example.android.genpass.preference.GraphemeEditTextPreference
+            android:key="@string/pref_passphrase_delimiter"
+            android:title="@string/passphrase_delimiter_label"
+            android:maxLength="@integer/pref_max_delim_length"
+            android:selectAllOnFocus="true"
+            android:cursorVisible="false"/>
 
         <SwitchPreference
             android:key="@string/pref_passphrase_force_cap"

@@ -31,8 +31,8 @@ class PasswordFragment: Fragment() {
 
         // create map charsetKeys -> charsets
         mKeyToCharset = charsetKeys.zip(charsets).associate { it }
-        mDefaultCharsetKeys = getStringArray(R.array.pref_password_charset_default_enabled).toSet()
-        mDefManCharsetKeys = getStringArray(R.array.pref_password_charset_default_mandatory).toSet()
+        mDefaultCharsetKeys = getStringArray(R.array.pref_default_password_charset_enabled).toSet()
+        mDefManCharsetKeys = getStringArray(R.array.pref_default_password_charset_mandatory).toSet()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,8 +41,8 @@ class PasswordFragment: Fragment() {
         mPasswordCopyable = savedInstanceState?.getBoolean(COPYABLE_TAG) ?: false
     }
 
-    override fun onCreateView(inflater: LayoutInflater, cntr: ViewGroup?, state: Bundle?): View
-        = inflater.inflate(R.layout.fragment_password, cntr, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
+        = inflater.inflate(R.layout.fragment_password, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // Set texts
@@ -116,7 +116,7 @@ class PasswordFragment: Fragment() {
         val password = charSets.map { it!![random.nextInt(it.length)] }.toCharArray()
 
         // shuffle the password so that the mandatory characters are in random positions
-        shuffle(password, random)
+        password.shuffle(random)
 
         return String(password)
     }

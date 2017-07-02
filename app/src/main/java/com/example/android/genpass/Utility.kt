@@ -58,24 +58,23 @@ fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
     return Pair(first, second)
 }
 
-fun shuffle(array: CharArray, r: Random) {
+fun CharArray.shuffle(r: Random) {
     fun swapChar(i: Int, j: Int) {
         if (i != j) {
-            val temp = array[i]
-            array[i] = array[j]
-            array[j] = temp
+            val temp = this[i]
+            this[i] = this[j]
+            this[j] = temp
         }
     }
 
-    for (i in array.lastIndex downTo 1) swapChar(i, r.nextInt(i + 1))
+    for (i in lastIndex downTo 1) swapChar(i, r.nextInt(i + 1))
 }
 
 /**
- * Selects [n] random elements from [array]. The selection uniform.
+ * Selects [n] random elements. The selection uniform.
  *
- * @param array the array from which to obtain random elements
- * @n the number of randoms, must be in the range 1..[array.size]
- * @r an instance of [Random]
+ * @param n the number of randoms, must be in the range 1..[array.size]
+ * @param an instance of [Random]
  * @return an array containing the random elements
  */
 fun IntArray.randomN(n: Int, r: Random): IntArray {
@@ -93,12 +92,13 @@ val IntRange.len: Int
     get() = last - first + 1
 
 /**
- * Takes a mutable list of ranges and picks a int uniformly at random from the ranges.
- * Splits the range at the chosen int and returns a Pair of the new list and the int
+ * Picks an int uniformly at random from the ranges. Splits the range at the chosen int and
+ * returns a Pair of the new list and the int
  *
- * @param ranges a list of [IntRange] from which to select a random integer
  * @param r an instance of [Random]
- * @return A [Pair]
+ * @return A [Pair] consisting of the modified list of ranges and in integer
+ *         If the random integer was not from the first range in the list, the return list will
+ *         be identical to the receiver
  */
 fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
     var hole = -1
