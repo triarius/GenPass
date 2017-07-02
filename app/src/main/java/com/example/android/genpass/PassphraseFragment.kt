@@ -76,11 +76,11 @@ class PassphraseFragment: Fragment() {
     override fun onResume() {
         super.onResume()
 
-        val minWordLen = getInt(
+        val minWordLen = getIntPref(
                 getString(R.string.pref_passphrase_min_word_length),
                 resources.getInteger(R.integer.passpharase_default_min_word_length)
         )
-        val maxWordLen = getInt(
+        val maxWordLen = getIntPref(
                 getString(R.string.pref_passphrase_max_word_length),
                 resources.getInteger(R.integer.passpharase_default_max_word_length)
         )
@@ -108,7 +108,7 @@ class PassphraseFragment: Fragment() {
     }
 
     private fun createPhrase(wordIds: WordList): String? {
-        val n = getInt(
+        val n = getIntPref(
                 getString(R.string.pref_passphrase_num_words),
                 resources.getInteger(R.integer.pref_default_passphrase_num_words)
         )
@@ -116,13 +116,13 @@ class PassphraseFragment: Fragment() {
                 getString(R.string.pref_passphrase_delimiter),
                 getString(R.string.passphrase_default_delimiter)
         )
-        val cap = getBoolean(
+        val cap = getBooleanPref(
                 getString(R.string.pref_passphrase_force_cap),
                 resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
 
         // choose random elements for the first n positions in the array
-        shuffleFirst(wordIds.array, n, random)
+//        shuffleFirst(wordIds.array, n, random)
 
         // look up those words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase

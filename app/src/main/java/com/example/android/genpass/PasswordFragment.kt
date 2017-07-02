@@ -84,12 +84,12 @@ class PasswordFragment: Fragment() {
 
         // create charset to draw from
         val key = getString(R.string.pref_password_charset_key)
-        val selectedCharsetKeys = getStringSet(
+        val selectedCharsetKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_enabled),
                 mDefaultCharsetKeys
         )
         // collect the mandatory preferences into an array, and count them
-        val mandatoryCharsetKeys = getStringSet(
+        val mandatoryCharsetKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_mandatory),
                 mDefManCharsetKeys
         )
@@ -121,7 +121,7 @@ class PasswordFragment: Fragment() {
         return String(password)
     }
 
-    private fun numChars(): Int = getInt(
+    private fun numChars(): Int = getIntPref(
             getString(R.string.pref_password_length_key),
             resources.getInteger(R.integer.pref_default_password_length)
     )

@@ -33,17 +33,17 @@ fun loadDictionary(context: Context, dictionary: InputStream) {
     }
 }
 
-fun compressWithRanges(input: IntArray): IntArray = input.foldIndexed(mutableListOf<Int>()) {
+fun IntArray.compressWithRanges(): IntArray = this.foldIndexed(mutableListOf<Int>()) {
     i, list, x -> list.apply {
-        if (i == 0) add(if (x + 1 == input[1]) x else -x)
-        else if (i == input.lastIndex) add(if (x - 1 == input[i - 1]) x else -x)
-        else if (x - 1 != input[i - 1] && x + 1 != input[i + 1]) add(-x)
-        else if (x - 1 != input[i - 1] || x + 1 != input[i + 1]) add(x)
+        if (i == 0) add(if (x + 1 == this[1]) x else -x)
+        else if (i == this.lastIndex) add(if (x - 1 == this[i - 1]) x else -x)
+        else if (x - 1 != this[i - 1] && x + 1 != this[i + 1]) add(-x)
+        else if (x - 1 != this[i - 1] || x + 1 != this[i + 1]) add(x)
     }
 }.toIntArray()
 
-fun expandFromRanges(input: IntArray): IntArray {
-    val (singles, ranges) = input.partition { it < 0 }
+fun IntArray.expandFromRanges(): IntArray {
+    val (singles, ranges) = this.partition { it < 0 }
     val (starts, ends) = ranges.partitionIndexed { i, _ -> i % 2 == 0 }
     val expandedRanges = starts.zip(ends).flatMap { IntRange(it.first, it.second).toList() }
     return (singles.map { -it } + expandedRanges).toIntArray()
@@ -68,19 +68,6 @@ fun shuffle(array: CharArray, r: Random) {
     }
 
     for (i in array.lastIndex downTo 1) swapChar(i, r.nextInt(i + 1))
-}
-
-// shuffle first n elements of the array
-fun shuffleFirst(array: IntArray, n: Int, r: Random) {
-    fun swapInt(i: Int, j: Int) {
-        if (i != j) {
-            val temp = array[i]
-            array[i] = array[j]
-            array[j] = temp
-        }
-    }
-
-    for (i in 0 until n) swapInt(i, r.nextInt(array.lastIndex) + i)
 }
 
 /**
@@ -152,12 +139,12 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
 }
 object WordListError: WordListResult()
 
-fun Fragment.getStringSet(key: String, defValues: Set<String>?): Set<String>? =
+fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String>? =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
-fun Fragment.getInt(key: String, defValues: Int): Int =
+fun Fragment.getIntPref(key: String, defValues: Int): Int =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getInt(key, defValues)
 fun Fragment.getStringPref(key: String, defValues: String): String =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getString(key, defValues)
-fun Fragment.getBoolean(key: String, defValues: Boolean): Boolean =
+fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
 

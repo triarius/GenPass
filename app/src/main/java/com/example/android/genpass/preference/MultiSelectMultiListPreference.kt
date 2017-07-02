@@ -79,7 +79,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         // the 0th column should stretch to fill the dialog
         table.setColumnStretchable(0, true)
         run {
-            val padding = dpToPx(context, DIALOG_PADDING)
+            val padding = DIALOG_PADDING.dpToPx(context)
             table.setPaddingRelative(padding, padding, padding, padding)
         }
 
@@ -94,7 +94,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         table.addView(header, fistRowParams)
 
         // create the column headings and put them in the header row
-        val headingPadding = dpToPx(context, HEADING_PADDING)
+        val headingPadding = HEADING_PADDING.dpToPx(context)
         val headingParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
@@ -178,7 +178,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     // Note: do not remove the cloning of v. It is necessary for
     // new data to be written to the preferences. Android expects the output of
-    // Preference.getStringSet to not be modified. Thus when it receives it back
+    // Preference.getStringSetPref to not be modified. Thus when it receives it back
     // in onDialogClosed, it just keeps the old data we got here
     // source: stackoverflow.com/questions/12528836/shared-preferences-only-saved-first-time
     // source: developer.android.com/reference/android/content/SharedPreferences.html

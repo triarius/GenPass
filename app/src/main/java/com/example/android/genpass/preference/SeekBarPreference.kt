@@ -33,7 +33,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         )
         val layout = LinearLayout(context)
         layout.orientation = LinearLayout.VERTICAL
-        val pad = dpToPx(context, LAYOUT_PADDING)
+        val pad = LAYOUT_PADDING.dpToPx(context)
         layout.setPadding(pad, pad, pad, pad)
 
         // remove seekbar from previous parent (if any)

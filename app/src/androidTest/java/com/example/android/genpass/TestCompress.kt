@@ -31,7 +31,7 @@ class TestCompress {
         val db = PreBuiltWordDBHelper(mContext!!).readableDatabase
         val c = db.rawQuery(
                 "SELECT _id FROM words WHERE length >= ? AND length <= ?",
-                arrayOf(Integer.toString(5), Integer.toString(10))
+                intArrayOf(5, 10).map(Int::toString).toTypedArray()
         )
         c.moveToFirst()
         val n = c.count
@@ -44,7 +44,9 @@ class TestCompress {
         }
         c.close()
 
-        val compressed = compressWithRanges(ids)
-        assertTrue("Compression failed", ids contentEquals expandFromRanges(compressed))
+        assertTrue(
+                "Compression failed",
+                ids contentEquals ids.compressWithRanges().expandFromRanges()
+        )
     }
 }
