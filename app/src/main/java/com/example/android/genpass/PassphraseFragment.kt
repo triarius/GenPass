@@ -88,13 +88,9 @@ class PassphraseFragment: Fragment() {
         val wordList = mWordIds
         when (wordList) {
             is WordListError -> FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
-            is WordList -> {
-                Log.d(javaClass.simpleName, "$minWordLen ${wordList.minWordLen} $maxWordLen ${wordList.maxWordLen}")
-
-                if (minWordLen != wordList.minWordLen || maxWordLen != wordList.maxWordLen) {
+            is WordList ->
+                if (minWordLen != wordList.minWordLen || maxWordLen != wordList.maxWordLen)
                     FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
-                }
-            }
         }
     }
 

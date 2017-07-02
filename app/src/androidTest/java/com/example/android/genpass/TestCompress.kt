@@ -9,7 +9,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 
 /**
  * Created by narthana on 31/10/16.
@@ -46,6 +45,6 @@ class TestCompress {
         c.close()
 
         val compressed = compressWithRanges(ids)
-        assertTrue("Compression failed", Arrays.equals(ids, expandFromRanges(compressed)))
+        assertTrue("Compression failed", ids contentEquals expandFromRanges(compressed))
     }
 }
