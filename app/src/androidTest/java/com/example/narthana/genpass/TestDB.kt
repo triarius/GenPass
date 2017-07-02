@@ -29,7 +29,7 @@ class TestDB {
     @Test
     fun loadDictionary() {
         val dictionary = mContext!!.resources.openRawResource(R.raw.english)
-        Utility.loadDictionary(mContext!!, dictionary)
+        loadDictionary(mContext!!, dictionary)
         val db = NewWordDBHelper(mContext!!).readableDatabase
         val c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null)
 

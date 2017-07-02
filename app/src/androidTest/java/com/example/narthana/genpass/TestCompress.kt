@@ -45,7 +45,7 @@ class TestCompress {
         }
         c.close()
 
-        val compressed = Utility.compressWithRanges(ids)
-        assertTrue("Compression failed", Arrays.equals(ids, Utility.expandFromRanges(compressed)))
+        val compressed = compressWithRanges(ids)
+        assertTrue("Compression failed", Arrays.equals(ids, expandFromRanges(compressed)))
     }
 }
