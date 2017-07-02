@@ -1,6 +1,5 @@
 package com.example.android.genpass
 
-import android.content.Context
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
 import com.example.android.genpass.data.PreBuiltWordDBHelper
@@ -16,19 +15,16 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class TestCompress {
-    private var mContext: Context? = null
-
-    @Rule
     var mActivityRule = ActivityTestRule(MainActivity::class.java)
+        @Rule get
 
     @Before
     fun setUp() {
-        mContext = mActivityRule.activity
     }
 
     @Test
     fun compressOnRealData() {
-        val db = PreBuiltWordDBHelper(mContext!!).readableDatabase
+        val db = PreBuiltWordDBHelper(mActivityRule.activity).readableDatabase
         val c = db.rawQuery(
                 "SELECT _id FROM words WHERE length >= ? AND length <= ?",
                 intArrayOf(5, 10).map(Int::toString).toTypedArray()

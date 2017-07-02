@@ -6,41 +6,41 @@ import android.content.Context
 import android.preference.PreferenceManager
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
-import java.io.InputStream
 import java.util.*
 
 /**
  * Created by narthana on 22/10/16.
  */
 
-fun loadDictionary(context: Context, dictionary: InputStream) {
+fun Sequence<String>.toDB(context: Context) {
     NewWordDBHelper(context).writableDatabase.use { db ->
         db.beginTransaction()
         db.delete(WordContract.WordEntry.TABLE_NAME, null, null)
         val content = ContentValues(2)
-        dictionary.bufferedReader().useLines { lines ->
-            lines.forEach { line ->
-                content.run {
-                    clear()
-                    put(WordContract.WordEntry.COLUMN_WORD, line)
-                    put(WordContract.WordEntry.COLUMN_WORD, line.length)
-                    db.insert(WordContract.WordEntry.TABLE_NAME, null, this)
-                }
-            }
+        this.forEach { word ->
+            db.insert(
+                    WordContract.WordEntry.TABLE_NAME,
+                    null,
+                    content.apply {
+                        clear()
+                        put(WordContract.WordEntry.COLUMN_WORD, word)
+                        put(WordContract.WordEntry.COLUMN_LEN, word.length)
+                    }
+            )
         }
         db.setTransactionSuccessful()
         db.endTransaction()
     }
 }
 
-fun IntArray.compressWithRanges(): IntArray = this.foldIndexed(mutableListOf<Int>()) {
-    i, list, x -> list.apply {
-        if (i == 0) add(if (x + 1 == this[1]) x else -x)
-        else if (i == this.lastIndex) add(if (x - 1 == this[i - 1]) x else -x)
-        else if (x - 1 != this[i - 1] && x + 1 != this[i + 1]) add(-x)
-        else if (x - 1 != this[i - 1] || x + 1 != this[i + 1]) add(x)
-    }
-}.toIntArray()
+fun IntArray.compressWithRanges(): IntArray = if (size < 3) this else
+    this.foldIndexed(mutableListOf<Int>()) { i, acc, x ->
+        if (i == 0) acc.add(if (x + 1 == this[1]) x else -x)
+        else if (i == this.lastIndex) acc.add(if (x - 1 == this[i - 1]) x else -x)
+        else if (x - 1 != this[i - 1] && x + 1 != this[i + 1]) acc.add(-x)
+        else if (x - 1 != this[i - 1] || x + 1 != this[i + 1]) acc.add(x)
+        acc
+    }.toIntArray()
 
 fun IntArray.expandFromRanges(): IntArray {
     val (singles, ranges) = this.partition { it < 0 }
@@ -58,6 +58,11 @@ fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
     return Pair(first, second)
 }
 
+/**
+ * Shuffles a array of Chars inplace
+ *
+ * @param r an instance of [java.util.Random]
+ */
 fun CharArray.shuffle(r: Random) {
     fun swapChar(i: Int, j: Int) {
         if (i != j) {
@@ -74,7 +79,7 @@ fun CharArray.shuffle(r: Random) {
  * Selects [n] random elements. The selection uniform.
  *
  * @param n the number of randoms, must be in the range 1..[array.size]
- * @param an instance of [Random]
+ * @param r an instance of [java.util.Random]
  * @return an array containing the random elements
  */
 fun IntArray.randomN(n: Int, r: Random): IntArray {
@@ -127,11 +132,11 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
         WordListResult() {
     override fun equals(other: Any?): Boolean = other === this
             && other is WordList
-            && Arrays.equals(other.array, array)
+            && other.array contentEquals array
             && other.minWordLen == minWordLen
             && other.maxWordLen == maxWordLen
     override fun hashCode(): Int {
-        var code = Arrays.hashCode(array)
+        var code = array.contentHashCode()
         code += 31 * code + minWordLen
         code += 31 * code + maxWordLen
         return code
