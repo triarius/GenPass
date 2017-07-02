@@ -17,7 +17,7 @@ sealed class LinkedList<T> {
     }
 }
 class EmptyLinkedList<T>: LinkedList<T>()
-data class NonEmptyLinkedList<S>(var head: S, var tail: LinkedList<S>): LinkedList<S>() {
+class NonEmptyLinkedList<S>(var head: S, var tail: LinkedList<S>): LinkedList<S>() {
     var last: Lazy<NonEmptyLinkedList<S>> = lazy {
         fun findLast(p: LinkedList<S>): NonEmptyLinkedList<S> = when (p) {
             is NonEmptyLinkedList<S> -> if (p.tail is EmptyLinkedList) p else findLast(p.tail)

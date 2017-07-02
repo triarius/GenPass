@@ -84,20 +84,20 @@ fun shuffleFirst(array: IntArray, n: Int, r: Random) {
 }
 
 /**
- * Selects [m] random elements from [array]. The selection uniform.
+ * Selects [n] random elements from [array]. The selection uniform.
  *
  * @param array the array from which to obtain random elements
- * @m the number of randoms, must be in the range 1..[array.size]
+ * @n the number of randoms, must be in the range 1..[array.size]
  * @r an instance of [Random]
  * @return an array containing the random elements
  */
-fun randomN(array: IntArray, m: Int, r: Random): IntArray {
-    var ranges = linkedListOf(IntRange(0, array.lastIndex))
-    val nums = IntArray(m) { 0 }
-    for (i in 0 until m) {
-        val temp = randFromRanges(ranges, r)
+fun IntArray.randomN(n: Int, r: Random): IntArray {
+    var ranges = linkedListOf(IntRange(0, this.lastIndex))
+    val nums = IntArray(n) { 0 }
+    for (i in 0 until n) {
+        val temp = ranges.random(r)
         ranges = temp.first
-        nums[i] = array[temp.second]
+        nums[i] = this[temp.second]
     }
     return nums
 }
@@ -113,9 +113,9 @@ val IntRange.len: Int
  * @param r an instance of [Random]
  * @return A [Pair]
  */
-fun randFromRanges(ranges: LinkedList<IntRange>, r: Random): Pair<LinkedList<IntRange>, Int> {
+fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
     var hole = -1
-    var rangeList = ranges.filter { !it.isEmpty() }
+    var rangeList = this.filter { !it.isEmpty() }
     val selection = r.nextInt(rangeList.map { it.len }.sum())
 
     fun rec(p: LinkedList<IntRange>, n: Int): LinkedList<IntRange> = when (p) {

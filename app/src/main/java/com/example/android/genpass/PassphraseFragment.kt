@@ -130,7 +130,7 @@ class PassphraseFragment: Fragment() {
                 WordEntry.TABLE_NAME,
                 arrayOf(WordEntry.COLUMN_WORD),
                 List(n) { "${WordEntry._ID} = ?" }.joinToString(" OR "),
-                randomN(wordIds.array, n, random).map(Int::toString).toTypedArray(),
+                wordIds.array.randomN(n, random).map(Int::toString).toTypedArray(),
                 null, null, null
         )
 
