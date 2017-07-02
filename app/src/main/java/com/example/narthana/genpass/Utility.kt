@@ -49,7 +49,8 @@ fun expandFromRanges(input: IntArray): IntArray {
     return (singles.map { -it } + expandedRanges).toIntArray()
 }
 
-fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean): Pair<List<T>, List<T>> {
+fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
+        Pair<List<T>, List<T>> {
     val first = mutableListOf<T>()
     val second = mutableListOf<T>()
     var i = 0
@@ -115,7 +116,7 @@ val IntRange.len: Int
 fun randFromRanges(ranges: LinkedList<IntRange>, r: Random): Pair<LinkedList<IntRange>, Int> {
     var hole = -1
     var rangeList = ranges.filter { !it.isEmpty() }
-    val selection = rangeList.map { it.len }.sum()
+    val selection = r.nextInt(rangeList.map { it.len }.sum())
 
     fun rec(p: LinkedList<IntRange>, n: Int): LinkedList<IntRange> = when (p) {
         is EmptyLinkedList -> p
