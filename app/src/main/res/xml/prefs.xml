@@ -1,49 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:narthana="http://schemas.android.com/apk/res/com.example.narthana.genpass">
+                  xmlns:my="http://schemas.android.com/apk/res/com.example.android.genpass">
 
     <PreferenceCategory android:title="@string/password">
 
-        <com.example.narthana.genpass.preference.SeekBarPreference
+        <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_password_length_key"
             android:title="@string/password_length"
             android:defaultValue="@integer/pref_default_password_length"
             android:max="@integer/pref_max_password_length"/>
 
-        <com.example.narthana.genpass.preference.MultiSelectMultiListPreference
+        <com.example.android.genpass.preference.MultiSelectMultiListPreference
             android:key="@string/pref_password_charset_key"
             android:title="@string/pref_password_charsets"
             android:entries="@array/pref_password_charset_names"
             android:entryValues="@array/pref_password_charset_keys"
             android:defaultValue="@array/pref_password_charset_default_value"
-            narthana:columnEntries="@array/pref_password_column_entries"
-            narthana:columnEntryValues="@array/pref_password_column_entry_values"
-            narthana:columnDependencies="@array/pref_password_charset_col_deps"/>
+            my:columnEntries="@array/pref_password_column_entries"
+            my:columnEntryValues="@array/pref_password_column_entry_values"
+            my:columnDependencies="@array/pref_password_charset_col_deps"/>
 
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/passphrase">
 
-        <com.example.narthana.genpass.preference.GraphemeEditTextPreference
+        <com.example.android.genpass.preference.GraphemeEditTextPreference
             android:key="@string/pref_passphrase_delimiter"
             android:title="@string/passphrase_delimiter_label"
             android:maxLength="@integer/pref_max_delim_length"
             android:selectAllOnFocus="true"
             android:cursorVisible="false"/>
 
-        <com.example.narthana.genpass.preference.SeekBarPreference
+        <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_num_words"
             android:title="@string/passphrase_num_words_label"
             android:defaultValue="@integer/pref_default_passphrase_num_words"
             android:max="@integer/pref_max_num_words"/>
 
-        <com.example.narthana.genpass.preference.SeekBarPreference
+        <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_min_word_length"
             android:title="@string/passphrase_min_word_length"
             android:defaultValue="@integer/passpharase_default_min_word_length"
             android:max="@integer/pref_max_min_word_length"/>
 
-        <com.example.narthana.genpass.preference.SeekBarPreference
+        <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_max_word_length"
             android:title="@string/passphrase_max_word_length"
             android:defaultValue="@integer/passpharase_default_max_word_length"
