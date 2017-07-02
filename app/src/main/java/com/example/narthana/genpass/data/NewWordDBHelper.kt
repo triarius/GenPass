@@ -8,12 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper
  * Created by narthana on 23/10/16.
  */
 
-class NewWordDBHelper(context: Context): SQLiteOpenHelper(
-                context,
-                NewWordDBHelper.DATABASE_NAME,
-                null,
-                NewWordDBHelper.DATABASE_VERSION
-) {
+class NewWordDBHelper(context: Context):
+        SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(sqLiteDatabase: SQLiteDatabase) {
         sqLiteDatabase.execSQL("""
             CREATE TABLE ${WordContract.WordEntry.TABLE_NAME}

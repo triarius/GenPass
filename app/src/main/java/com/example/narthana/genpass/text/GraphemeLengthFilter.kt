@@ -27,8 +27,6 @@ constructor(val max: Int, private val locale: Locale = Locale.getDefault()): Inp
             val itr = BreakIterator.getCharacterInstance(locale)
             itr.setText(source.subSequence(start, end).toString())
 
-//            var keepOffSet = 0
-//            for (i in 1 .. keep) keepOffSet = itr.next()
             // iterate though "keep" graphemes, noting the index at which we end up
             val keepOffset = (1 .. keep).fold(0) { _, _ -> itr.next() }
             source.subSequence(start, start + keepOffset)
