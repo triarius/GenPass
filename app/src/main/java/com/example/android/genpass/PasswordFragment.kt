@@ -17,31 +17,19 @@ import java.security.SecureRandom
  */
 
 class PasswordFragment: Fragment() {
-    private var mKeyToCharset: Map<String, String>? = null
-    private var mDefaultCharsetKeys: Set<String>? = null
-    private var mDefManCharsetKeys: Set<String>? = null
-
     private var mPasswordCopyable = false
     private var mPassText: String? = null
 
-    override fun onAttach(context: Context) = with (resources) {
-        super.onAttach(context)
-        val charsetKeys = getStringArray(R.array.pref_password_charset_keys)
-        val charsets = getStringArray(R.array.charsets)
-
-        // create map charsetKeys -> charsets
-        mKeyToCharset = charsetKeys.zip(charsets).associate { it }
-        mDefaultCharsetKeys = getStringArray(R.array.pref_default_password_charset_enabled).toSet()
-        mDefManCharsetKeys = getStringArray(R.array.pref_default_password_charset_mandatory).toSet()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mPassText = savedInstanceState?.getString(PASSWORD_TAG)
-        mPasswordCopyable = savedInstanceState?.getBoolean(COPYABLE_TAG) ?: false
+        savedInstanceState?.run {
+            mPassText = getString(PASSWORD_TAG)
+            mPasswordCopyable = getBoolean(COPYABLE_TAG) ?: false
+        }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.fragment_password, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,7 +53,11 @@ class PasswordFragment: Fragment() {
         // attach click listener to button
         button_generate_password.setOnClickListener {
             mPasswordCopyable = true
-            mPassText = newPassword(numChars(), view)
+            val numChars: Int = getIntPref(
+                    getString(R.string.pref_password_length_key),
+                    resources.getInteger(R.integer.pref_default_password_length)
+            )
+            mPassText = newPassword(numChars, view)
             mPassText?.run { textview_password.text = this }
         }
     }
@@ -86,12 +78,12 @@ class PasswordFragment: Fragment() {
         val key = getString(R.string.pref_password_charset_key)
         val selectedCharsetKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_enabled),
-                mDefaultCharsetKeys
+                resources.getStringArray(R.array.pref_default_password_charset_enabled).toSet()
         )
         // collect the mandatory preferences into an array, and count them
         val mandatoryCharsetKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_mandatory),
-                mDefManCharsetKeys
+                resources.getStringArray(R.array.pref_default_password_charset_mandatory).toSet()
         )
 
         // the user has not checked any char subsets to add to the charset
@@ -108,23 +100,19 @@ class PasswordFragment: Fragment() {
         }
 
         // select the chars to be in the password
-        val mandatoryCharsets = mandatoryCharsetKeys.map { mKeyToCharset!![it] }
-        val selectedCharset = selectedCharsetKeys.map { mKeyToCharset!![it] }.joinToString("")
+        val charsetMap = (activity as MainActivity).charsetMap
+        val mandatoryCharsets = mandatoryCharsetKeys.map { setOf(it) }
+        val selectedCharset = selectedCharsetKeys.map { charsetMap[it] ?: "" }.toSet()
         val optionalCharsets = (mandatoryCharsetKeys.size .. len).map { selectedCharset }
-        val charSets = mandatoryCharsets + optionalCharsets
+        val charsets = (mandatoryCharsets + optionalCharsets)
 
-        val password = charSets.map { it!![random.nextInt(it.length)] }.toCharArray()
+        val password = charsets.randomString(random).toCharArray()
 
         // shuffle the password so that the mandatory characters are in random positions
         password.shuffle(random)
 
         return String(password)
     }
-
-    private fun numChars(): Int = getIntPref(
-            getString(R.string.pref_password_length_key),
-            resources.getInteger(R.integer.pref_default_password_length)
-    )
 
     companion object {
         private const val PASSWORD_TAG = "password"

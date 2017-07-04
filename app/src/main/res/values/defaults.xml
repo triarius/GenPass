@@ -14,7 +14,10 @@
 
     <integer name="pref_default_passphrase_num_words">4</integer>
     <bool name="pref_default_passphrase_force_cap">false</bool>
-    <string name="pref_default_passphrase_delimiter">&#160;</string>
+    <string name="pref_default_passphrase_delimiter">@string/space</string>
     <integer name="pref_default_passphrase_min_word_length">5</integer>
-    <integer name="pref_default_passpharase_max_word_length">10</integer>
+    <integer name="pref_default_passpharse_max_word_length">10</integer>
+    <bool name="pref_default_passphrase_1337_speak">false</bool>
+    <integer name="pref_default_passpharse_mandatory_numerals">0</integer>
+    <integer name="pref_default_passpharse_mandatory_symbols">0</integer>
 </resources>

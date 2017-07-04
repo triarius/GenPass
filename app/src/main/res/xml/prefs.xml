@@ -39,7 +39,7 @@
         <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_max_word_length"
             android:title="@string/passphrase_max_word_length"
-            android:defaultValue="@integer/pref_default_passpharase_max_word_length"
+            android:defaultValue="@integer/pref_default_passpharse_max_word_length"
             android:max="@integer/pref_max_max_word_length"/>
 
         <com.example.android.genpass.preference.GraphemeEditTextPreference
@@ -52,6 +52,23 @@
         <SwitchPreference
             android:key="@string/pref_passphrase_force_cap"
             android:title="@string/passphrase_force_capitalised_label"
+            android:defaultValue="@bool/pref_default_passphrase_force_cap"/>
+
+        <com.example.android.genpass.preference.SeekBarPreference
+            android:key="@string/pref_passphrase_mandatory_numerals"
+            android:title="@string/passphrase_mandatory_numberals_label"
+            android:defaultValue="@integer/pref_default_passpharse_mandatory_numerals"
+            android:max="@integer/pref_max_mandatory_numerals"/>
+
+        <com.example.android.genpass.preference.SeekBarPreference
+            android:key="@string/pref_passphrase_mandatory_symbols"
+            android:title="@string/passphrase_mandatory_symbols_label"
+            android:defaultValue="@integer/pref_default_passpharse_mandatory_symbols"
+            android:max="@integer/pref_max_mandatory_numerals"/>
+
+        <SwitchPreference
+            android:key="@string/pref_passphrase_1337_speak"
+            android:title="@string/passphrase_1337_speak_label"
             android:defaultValue="@bool/pref_default_passphrase_force_cap"/>
 
     </PreferenceCategory>

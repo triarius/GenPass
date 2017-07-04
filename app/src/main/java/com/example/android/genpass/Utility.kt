@@ -59,11 +59,12 @@ fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
 }
 
 /**
- * Shuffles a array of Chars inplace
+ * Shuffles an array of Chars inplace
  *
  * @param r an instance of [java.util.Random]
+ * @return the array
  */
-fun CharArray.shuffle(r: Random) {
+fun CharArray.shuffle(r: Random): CharArray {
     fun swapChar(i: Int, j: Int) {
         if (i != j) {
             val temp = this[i]
@@ -73,6 +74,7 @@ fun CharArray.shuffle(r: Random) {
     }
 
     for (i in lastIndex downTo 1) swapChar(i, r.nextInt(i + 1))
+    return this
 }
 
 /**
@@ -91,6 +93,10 @@ fun IntArray.randomN(n: Int, r: Random): IntArray {
         nums[i] = this[temp.second]
     }
     return nums
+}
+
+fun Iterable<Set<CharSequence>>.randomString(r: Random) = this.map {
+    it.joinToString("").let { it[r.nextInt(it.length)] }
 }
 
 val IntRange.len: Int

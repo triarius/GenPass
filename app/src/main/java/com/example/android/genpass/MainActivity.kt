@@ -16,6 +16,8 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var mNavMenuItemId = -1
 
+    internal lateinit var charsetMap: Map<String, String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,7 +28,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         setSupportActionBar(toolbar)
 
         // create nav Drawer
-        val toggle = ActionBarDrawerToggle( this, drawer_layout, toolbar,
+        val toggle = ActionBarDrawerToggle(this, drawer_layout, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
@@ -34,7 +36,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         // set listener to open drawer
         nav_view.setNavigationItemSelectedListener(this)
 
-        // if a new run or if restoring from prev state
+        // get the it or if null, create a new fragment
         mNavMenuItemId = savedInstanceState?.getInt(NAV_MENU_ITEM_TAG) ?: run {
             // open password fragment
             fragmentManager.beginTransaction()
@@ -48,6 +50,14 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
         // set default preferences
         PreferenceManager.setDefaultValues(this, R.xml.prefs, false)
+
+        // create charset map
+
+        charsetMap = with (resources) {
+            val charsetKeys = resources.getStringArray(R.array.pref_password_charset_keys)
+            val charsets = resources.getStringArray(R.array.charsets)
+            charsetKeys.zip(charsets).toMap()
+        }
     }
 
     override fun onResume() {
@@ -110,8 +120,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             R.id.nav_manage -> startActivity(Intent(this, SettingsActivity::class.java))
             else -> return false
         }
-        // do not assign mNavMenuId here so that drawer reverts to right selection when
-        // coming back from the SettingsActivity
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true

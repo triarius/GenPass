@@ -51,7 +51,7 @@ class PassphraseFragment: Fragment() {
         // set click listeners
         button_generate_passphrase.setOnClickListener {
             if (mWordIds is WordList) {
-                mPassphrase = createPhrase((mWordIds as WordList))
+                mPassphrase = createPhrase(mWordIds as WordList)
                 textview_passphrase.text = mPassphrase
                 mPassphraseCopyable = true
             } else Snackbar.make(
@@ -84,7 +84,7 @@ class PassphraseFragment: Fragment() {
         )
         val maxWordLen = getIntPref(
                 getString(R.string.pref_passphrase_max_word_length),
-                resources.getInteger(R.integer.pref_default_passpharase_max_word_length)
+                resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
         )
 
         val wordList = mWordIds
@@ -122,6 +122,14 @@ class PassphraseFragment: Fragment() {
                 getString(R.string.pref_passphrase_force_cap),
                 resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
+        val numNum = getIntPref(
+                getString(R.string.pref_passphrase_mandatory_numerals),
+                resources.getInteger(R.integer.pref_default_passpharse_mandatory_numerals)
+        )
+        val numSymb = getIntPref(
+                getString(R.string.pref_passphrase_mandatory_symbols),
+                resources.getInteger(R.integer.pref_default_passpharse_mandatory_symbols)
+        )
 
         // look up n random words in the database
         val db = PreBuiltWordDBHelper(activity).readableDatabase
@@ -143,7 +151,7 @@ class PassphraseFragment: Fragment() {
             val s = cursor.getString(0)!!
             cursor.moveToNext()
             s
-        }
+        }.toMutableList()
 
         cursor.close()
         db.close()
@@ -153,9 +161,19 @@ class PassphraseFragment: Fragment() {
             val chars = it.toMutableList()
             chars[0] = chars[0].toUpperCase()
             chars.joinToString("")
-        }
+        }.toMutableList()
+
+        if (numNum + numSymb > 0) passphraseList.add(randomString(numNum, numSymb))
 
         return passphraseList.joinToString(delim)
+    }
+
+    private fun randomString(numNum: Int, numSymb: Int): String {
+        val charsetMap = (activity as MainActivity).charsetMap
+        val numerals = charsetMap[getString(R.string.pref_password_numerals_charset_key)] ?: ""
+        val symbols = charsetMap[getString(R.string.pref_password_symbols_charset_key)] ?: ""
+        val charsets = (1 .. numNum).map { setOf(numerals) } + (1..numSymb).map { setOf(symbols) }
+        return String(charsets.randomString(random).toCharArray().shuffle(random))
     }
 
     // Fetch the words in the background
