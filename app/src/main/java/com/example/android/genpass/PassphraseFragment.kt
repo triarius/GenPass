@@ -21,9 +21,22 @@ import java.security.SecureRandom
  */
 
 class PassphraseFragment: Fragment() {
-    private var mWordIds: WordListResult = WordListError
+    private var mWordIds: WordListResult = WordListLoading
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        val minWordLen = getIntPref(
+                getString(R.string.pref_passphrase_min_word_length),
+                resources.getInteger(R.integer.pref_default_passphrase_min_word_length)
+        )
+        val maxWordLen = getIntPref(
+                getString(R.string.pref_passphrase_max_word_length),
+                resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
+        )
+        FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,15 +63,19 @@ class PassphraseFragment: Fragment() {
 
         // set click listeners
         button_generate_passphrase.setOnClickListener {
-            if (mWordIds is WordList) {
-                mPassphrase = createPhrase(mWordIds as WordList)
-                textview_passphrase.text = mPassphrase
-                mPassphraseCopyable = true
-            } else Snackbar.make(
-                    view,
-                    R.string.dict_load_snack,
-                    Snackbar.LENGTH_SHORT
-            ).show()
+            when (mWordIds) {
+                is WordList -> {
+                    mPassphrase = createPhrase(mWordIds as WordList)
+                    textview_passphrase.text = mPassphrase
+                    mPassphraseCopyable = true
+                }
+                is WordListLoading -> {
+                    Snackbar.make(view, R.string.dict_load_snack, Snackbar.LENGTH_SHORT).show()
+                }
+                is WordListError -> {
+                    Snackbar.make(view, R.string.empty_charset, Snackbar.LENGTH_SHORT).show()
+                }
+            }
         }
 
         textview_passphrase.setOnClickListener {
@@ -77,7 +94,6 @@ class PassphraseFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-
         val minWordLen = getIntPref(
                 getString(R.string.pref_passphrase_min_word_length),
                 resources.getInteger(R.integer.pref_default_passphrase_min_word_length)
@@ -89,10 +105,10 @@ class PassphraseFragment: Fragment() {
 
         val wordList = mWordIds
         when (wordList) {
-            is WordListError -> FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
             is WordList ->
                 if (minWordLen != wordList.minWordLen || maxWordLen != wordList.maxWordLen)
                     FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
+            else -> FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
         }
     }
 
@@ -110,18 +126,6 @@ class PassphraseFragment: Fragment() {
     }
 
     private fun createPhrase(wordIds: WordList): String? {
-        val n = getIntPref(
-                getString(R.string.pref_passphrase_num_words),
-                resources.getInteger(R.integer.pref_default_passphrase_num_words)
-        )
-        val delim = getStringPref(
-                getString(R.string.pref_passphrase_delimiter),
-                getString(R.string.pref_default_passphrase_delimiter)
-        )
-        val cap = getBooleanPref(
-                getString(R.string.pref_passphrase_force_cap),
-                resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
-        )
         val numNum = getIntPref(
                 getString(R.string.pref_passphrase_mandatory_numerals),
                 resources.getInteger(R.integer.pref_default_passpharse_mandatory_numerals)
@@ -129,6 +133,18 @@ class PassphraseFragment: Fragment() {
         val numSymb = getIntPref(
                 getString(R.string.pref_passphrase_mandatory_symbols),
                 resources.getInteger(R.integer.pref_default_passpharse_mandatory_symbols)
+        )
+        val n = getIntPref(
+                getString(R.string.pref_passphrase_num_words),
+                resources.getInteger(R.integer.pref_default_passphrase_num_words)
+        ) - if (numNum + numSymb > 0) 1 else 0
+        val delim = getStringPref(
+                getString(R.string.pref_passphrase_delimiter),
+                getString(R.string.pref_default_passphrase_delimiter)
+        )
+        val cap = getBooleanPref(
+                getString(R.string.pref_passphrase_force_cap),
+                resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
         )
 
         // look up n random words in the database
@@ -177,7 +193,7 @@ class PassphraseFragment: Fragment() {
     }
 
     // Fetch the words in the background
-    private inner class FetchWordListTask: AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
+    private inner class FetchWordListTask(): AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
         override fun doInBackground(vararg params: Pair<Int, Int>): WordListResult {
             val db = PreBuiltWordDBHelper(activity).readableDatabase
 
@@ -208,7 +224,7 @@ class PassphraseFragment: Fragment() {
             return WordList(ids.toIntArray(), min, max)
         }
 
-        override fun onPreExecute() { mWordIds = WordListError }
+        override fun onPreExecute() { mWordIds = WordListLoading }
 
         override fun onPostExecute(result: WordListResult) { mWordIds = result }
     }

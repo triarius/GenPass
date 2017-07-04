@@ -149,6 +149,7 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
     }
 }
 object WordListError: WordListResult()
+object WordListLoading: WordListResult()
 
 fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String>? =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)

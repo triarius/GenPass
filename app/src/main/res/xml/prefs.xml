@@ -34,13 +34,15 @@
             android:key="@string/pref_passphrase_min_word_length"
             android:title="@string/passphrase_min_word_length"
             android:defaultValue="@integer/pref_default_passphrase_min_word_length"
-            android:max="@integer/pref_max_min_word_length"/>
+            android:max="@integer/pref_max_min_word_length"
+            my:maxPrefKey="@string/pref_passphrase_max_word_length"/>
 
         <com.example.android.genpass.preference.SeekBarPreference
             android:key="@string/pref_passphrase_max_word_length"
             android:title="@string/passphrase_max_word_length"
             android:defaultValue="@integer/pref_default_passpharse_max_word_length"
-            android:max="@integer/pref_max_max_word_length"/>
+            android:max="@integer/pref_max_max_word_length"
+            my:minPrefKey="@string/pref_passphrase_min_word_length"/>
 
         <com.example.android.genpass.preference.GraphemeEditTextPreference
             android:key="@string/pref_passphrase_delimiter"
