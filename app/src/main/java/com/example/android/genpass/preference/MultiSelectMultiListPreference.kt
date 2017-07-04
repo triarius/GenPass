@@ -30,8 +30,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private val numRows: Int
     private val numCols: Int
 
-    private var mValues: Map<String, MutableSet<String>>? = null
-    private var mSelectedValues: Map<String, MutableSet<String>>? = null
+    private lateinit var mValues: Map<String, MutableSet<String>>
+    private lateinit var mSelectedValues: Map<String, MutableSet<String>>
 
     init {
         val styledAttrs = context.theme
@@ -65,7 +65,9 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         colDeps.recycle()
 
         // create the check box 2d array
-        mCheckBoxes = Array<Array<CheckBox>>(numRows){Array<CheckBox>(numCols){CheckBox(context)}}
+        mCheckBoxes = Array<Array<CheckBox>>(numRows) {
+            Array<CheckBox>(numCols) { CheckBox(context) }
+        }
     }
 
     override fun onCreateDialogView(): View {
@@ -94,16 +96,16 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         table.addView(header, fistRowParams)
 
         // create the column headings and put them in the header row
-        val headingPadding = HEADING_PADDING.dpToPx(context)
+        val headingPad = HEADING_PADDING.dpToPx(context)
         val headingParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
         )
         headingParams.gravity = Gravity.CENTER_HORIZONTAL
-        for (j in 0 .. numCols - 1) {
+        for (j in 0 until numCols) {
             val headingTextView = TextView(context)
             headingTextView.text = mColumnEntries[j]
-            headingTextView.setPadding(headingPadding, headingPadding, headingPadding, headingPadding)
+            headingTextView.setPadding(headingPad, headingPad, headingPad, headingPad)
             headingParams.column = j
             header.addView(headingTextView, headingParams)
         }
@@ -152,19 +154,19 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
-        updateCheckStates(mSelectedValues!!)
+        updateCheckStates(mSelectedValues)
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) persistValues(mSelectedValues)
-        else mSelectedValues = cloneValues(mValues!!)
+        else mSelectedValues = cloneValues(mValues)
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-            persistValues(
-                    if (restorePersistedValue) getValuesFromResources(mValues)
-                    else defaultValue as? Map<String, MutableSet<String>>
-            )
+        persistValues(
+                if (restorePersistedValue) getValuesFromResources(null)
+                else defaultValue as? Map<String, MutableSet<String>>
+        )
     }
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
@@ -209,7 +211,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private fun updateCheckStates(values: Map<String, Set<String>>) {
         for (i in mCheckBoxes.indices) for (j in mCheckBoxes[i].indices)
             mCheckBoxes[i][j].isChecked = values[j.asCol()]?.contains(mEntryValues[i]) ?: false
-        for (k in 0..mColumnDeps.size() - 1) {
+        for (k in 0 until mColumnDeps.size()) {
             val independentColNo = mColumnDeps.keyAt(k)
             val dependents = mColumnDeps.get(independentColNo)
             for (d in dependents) for (i in mCheckBoxes.indices)
@@ -232,7 +234,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         // Create instance of custom BaseSavedState
         val myState = SavedState(superState)
         // Set the state's value with the class member that holds current setting value
-        myState.values = mSelectedValues!!
+        myState.values = mSelectedValues
         return myState
     }
 
@@ -252,12 +254,12 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
         // Set this Preference's widget to reflect the restored state
         mSelectedValues = myState.values
-        updateCheckStates(mSelectedValues!!)
+        updateCheckStates(mSelectedValues)
     }
 
     private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
-        internal var values: Map<String, MutableSet<String>>? = null
+        internal lateinit var values: Map<String, MutableSet<String>>
 
         internal constructor(superState: Parcelable): super(superState) {}
 
@@ -275,10 +277,10 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
             super.writeToParcel(dest, flags)
-            val keysArray = values!!.keys.toTypedArray()
+            val keysArray = values.keys.toTypedArray()
             dest.writeInt(keysArray.size)
             dest.writeStringArray(keysArray)
-            for (v in values!!.values) {
+            for (v in values.values) {
                 dest.writeInt(v.size)
                 dest.writeStringArray(v.toTypedArray())
             }
@@ -299,8 +301,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             val rowEntry = mEntryValues[mI]
             val colEntry = mJ.asCol()
-            if (isChecked) mSelectedValues!![colEntry]?.add(rowEntry)
-            else mSelectedValues!![colEntry]?.remove(rowEntry)
+            if (isChecked) mSelectedValues[colEntry]?.add(rowEntry)
+            else mSelectedValues[colEntry]?.remove(rowEntry)
         }
     }
 
