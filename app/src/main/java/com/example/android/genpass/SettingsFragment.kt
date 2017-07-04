@@ -10,7 +10,7 @@ import com.example.android.genpass.R.xml.prefs
  */
 
 class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private var mPrefKeyToId: Map<String, Pair<Int, Type>>? = null
+    private lateinit var mPrefKeyToId: Map<String, DefaultIDWithType>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,25 +27,24 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
                 R.string.pref_passphrase_mandatory_numerals,
                 R.string.pref_passphrase_mandatory_symbols
         )
-        val defaultIds = intArrayOf(
-                R.integer.pref_default_password_length,
-                R.integer.pref_default_passphrase_num_words,
-                R.string.pref_default_passphrase_delimiter,
-                R.integer.pref_default_passphrase_min_word_length,
-                R.integer.pref_default_passpharse_max_word_length,
-                R.integer.pref_default_passpharse_mandatory_numerals,
-                R.integer.pref_default_passpharse_mandatory_symbols
+        val defaultIds = listOf(
+                IntDefaultID(R.integer.pref_default_password_length),
+                IntDefaultID(R.integer.pref_default_passphrase_num_words),
+                StringDefaultID(R.string.pref_default_passphrase_delimiter),
+                IntDefaultID(R.integer.pref_default_passphrase_min_word_length),
+                IntDefaultID(R.integer.pref_default_passpharse_max_word_length),
+                IntDefaultID(R.integer.pref_default_passpharse_mandatory_numerals),
+                IntDefaultID(R.integer.pref_default_passpharse_mandatory_symbols)
         )
-        val types: Array<Type> = arrayOf(Type.INT, Type.INT, Type.STRING, Type.INT, Type.INT, Type.INT, Type.INT)
 
-        mPrefKeyToId = prefIds.map(this::getString).zip(defaultIds.zip(types)).toMap()
+        mPrefKeyToId = prefIds.map(this::getString).zip(defaultIds).toMap()
     }
 
     override fun onResume() {
         super.onResume()
         with (preferenceScreen.sharedPreferences) {
             // Set the summary values initially
-            mPrefKeyToId?.forEach { setPrefSummaryTo(this, it.toPair()) }
+            mPrefKeyToId.forEach { setPrefSummaryTo(this, it) }
 
             // register the listener
             registerOnSharedPreferenceChangeListener(this@SettingsFragment)
@@ -57,25 +56,27 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
         preferenceScreen.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
-        mPrefKeyToId?.get(key)?.let { setPrefSummaryTo(sharedPreferences, Pair(key, it)) }
+    override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
+        mPrefKeyToId.forEach { setPrefSummaryTo(prefs, it) }
     }
 
-    private fun setPrefSummaryTo(prefs: SharedPreferences, entry: Pair<String, Pair<Int, Type>>) {
-        findPreference(entry.first).summary = when (entry.second.second) {
-            Type.INT -> prefs.getInt(
-                    entry.first,
-                    resources.getInteger(entry.second.first)
-            ).toString()
-            Type.STRING -> prefs.getString(entry.first, getString(entry.second.first)).run {
-                if (this == " ") SPACE_STRING else this
+    private fun setPrefSummaryTo(prefs: SharedPreferences,
+                                 entry: Map.Entry<String, DefaultIDWithType>) {
+        findPreference(entry.key).summary = entry.run {
+            when (entry.value) {
+                is IntDefaultID -> prefs.getInt(key, resources.getInteger(value.id)).toString()
+                is StringDefaultID -> prefs.getString(key, getString(value.id)).run {
+                    if (this == " ") SPACE_STRING else this
+                }
             }
         }
     }
-
-    enum class Type { INT, STRING }
 
     companion object {
         private const val SPACE_STRING = "{SPACE}"
     }
 }
+
+sealed class DefaultIDWithType(val id: Int)
+class IntDefaultID(id: Int): DefaultIDWithType(id)
+class StringDefaultID(id: Int): DefaultIDWithType(id)
