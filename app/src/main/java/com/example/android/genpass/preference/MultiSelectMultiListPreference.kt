@@ -35,7 +35,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     init {
         val styledAttrs = context.theme
-                .obtainStyledAttributes( attrs, R.styleable.MultiSelectMultiListPreference, 0, 0)
+                .obtainStyledAttributes(attrs, R.styleable.MultiSelectMultiListPreference, 0, 0)
         mEntries = styledAttrs
                 .getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
                 .map(CharSequence::toString)
@@ -259,11 +259,11 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
-        internal lateinit var values: Map<String, MutableSet<String>>
+        lateinit var values: Map<String, MutableSet<String>>
 
-        internal constructor(superState: Parcelable): super(superState) {}
+        constructor(superState: Parcelable): super(superState) {}
 
-        internal constructor(source: Parcel): super(source) {
+        constructor(source: Parcel): super(source) {
             val size = source.readInt()
             val keys = arrayOfNulls<String>(size)
             source.readStringArray(keys)

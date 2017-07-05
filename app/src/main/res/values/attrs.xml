@@ -11,4 +11,9 @@
     <declare-styleable name="GraphemeEditTextPreference">
         <attr name="android:maxLength"/>
     </declare-styleable>
+    <declare-styleable name="SeekBarPreference">
+        <attr name="android:max"/>
+        <attr name="minPrefKey" format="string"/>
+        <attr name="maxPrefKey" format="string"/>
+    </declare-styleable>
 </resources>

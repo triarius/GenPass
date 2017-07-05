@@ -6,6 +6,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.preference.DialogPreference
 import android.preference.Preference
+import android.preference.PreferenceManager
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
@@ -13,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import com.example.android.genpass.R
 
 /**
  * Created by narthana on 28/12/16.
@@ -20,10 +22,24 @@ import android.widget.TextView
 
 class SeekBarPreference (context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
-    private val mSeekBar: SeekBar = SeekBar(context, attrs)
+    private val mSeekBar: SeekBar = SeekBar(context, null)
     private val mValueText: TextView = TextView(context, null)
 
     private var mValue: Int = DEFAULT_VALUE
+
+    private val minVal: Int
+    private val maxVal: Int
+
+    init {
+        val styledAttrs = context.theme
+                .obtainStyledAttributes(attrs, R.styleable.SeekBarPreference, 0, 0)
+        val minKey = styledAttrs.getString(R.styleable.SeekBarPreference_minPrefKey)
+        val maxKey = styledAttrs.getString(R.styleable.SeekBarPreference_maxPrefKey)
+        val max = styledAttrs.getInt(R.styleable.SeekBarPreference_android_max, DEFAULT_MAX)
+        minVal = PreferenceManager.getDefaultSharedPreferences(context).getInt(minKey, 0)
+        maxVal = PreferenceManager.getDefaultSharedPreferences(context).getInt(maxKey, max)
+        mSeekBar.max = maxVal - minVal
+    }
 
     override fun onCreateDialogView(): View {
         // create a linear layout container
@@ -61,8 +77,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-        if (restorePersistedValue)
-            mValue = getPersistedInt(DEFAULT_VALUE)
+        if (restorePersistedValue) mValue = getPersistedInt(DEFAULT_VALUE)
         else {
             mValue = defaultValue as Int
             persistInt(mValue)
@@ -98,16 +113,16 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
 
         // restore widget state
         mValue = castState.value
-        mSeekBar.progress = mValue
+        mSeekBar.progress = mValue - minVal
     }
 
     private class SavedState: Preference.BaseSavedState {
         // Member that holds the setting's value
-        internal var value: Int = 0
+        var value: Int = 0
 
-        internal constructor(superState: Parcelable) : super(superState) {}
+        constructor(superState: Parcelable) : super(superState) {}
 
-        internal constructor(source: Parcel) : super(source) { value = source.readInt() }
+        constructor(source: Parcel) : super(source) { value = source.readInt() }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
             super.writeToParcel(dest, flags)
@@ -126,8 +141,8 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
 
     // seekbar listener
     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-        mValueText.text = progress.toString()
-        mValue = progress
+        mValue = minVal + progress
+        mValueText.text = mValue.toString()
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -136,6 +151,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
 
     companion object {
         private const val DEFAULT_VALUE = 0
+        private const val DEFAULT_MAX = 100
         private const val LAYOUT_PADDING = 3.0f
         private const val TEXT_SIZE = 20.0f
     }
