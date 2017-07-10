@@ -4,6 +4,7 @@ import android.app.Fragment
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -20,7 +21,7 @@ import java.security.SecureRandom
  * Created by narthana on 22/10/16.
  */
 
-class PassphraseFragment: Fragment() {
+class PassphraseFragment: Fragment(), WordListListener {
     private var mWordIds: WordListResult = WordListLoading
     private var mPassphraseCopyable = false
     private var mPassphrase: String? = null
@@ -35,7 +36,8 @@ class PassphraseFragment: Fragment() {
                 getString(R.string.pref_passphrase_max_word_length),
                 resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
         )
-        FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
+        FetchWordListTask(PreBuiltWordDBHelper(activity).readableDatabase, this)
+                .execute(Pair(minWordLen, maxWordLen))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,12 +67,10 @@ class PassphraseFragment: Fragment() {
                     textview_passphrase.text = mPassphrase
                     mPassphraseCopyable = true
                 }
-                is WordListLoading -> {
+                is WordListLoading ->
                     Snackbar.make(view, R.string.dict_load_snack, Snackbar.LENGTH_SHORT).show()
-                }
-                is WordListError -> {
+                is WordListError ->
                     Snackbar.make(view, R.string.empty_charset, Snackbar.LENGTH_SHORT).show()
-                }
             }
         }
 
@@ -101,10 +101,13 @@ class PassphraseFragment: Fragment() {
 
         val wordList = mWordIds
         when (wordList) {
-            is WordList ->
+            is WordList -> {
                 if (minWordLen != wordList.minWordLen || maxWordLen != wordList.maxWordLen)
-                    FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
-            else -> FetchWordListTask().execute(Pair(minWordLen, maxWordLen))
+                    FetchWordListTask(PreBuiltWordDBHelper(activity).readableDatabase, this)
+                            .execute(Pair(minWordLen, maxWordLen))
+            }
+            else -> FetchWordListTask(PreBuiltWordDBHelper(activity).readableDatabase, this)
+                            .execute(Pair(minWordLen, maxWordLen))
         }
     }
 
@@ -119,6 +122,13 @@ class PassphraseFragment: Fragment() {
             }
             putBoolean(COPYABLE_TAG, mPassphraseCopyable)
         }
+    }
+
+    override fun onWordListLoading() {
+        mWordIds = WordListLoading
+    }
+    override fun onWordListReady(words: WordListResult) {
+        mWordIds = words
     }
 
     private fun createPhrase(wordIds: WordList): String? {
@@ -189,10 +199,9 @@ class PassphraseFragment: Fragment() {
     }
 
     // Fetch the words in the background
-    private inner class FetchWordListTask(): AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
+    private class FetchWordListTask(val db: SQLiteDatabase, val listener: WordListListener):
+            AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
         override fun doInBackground(vararg params: Pair<Int, Int>): WordListResult {
-            val db = PreBuiltWordDBHelper(activity).readableDatabase
-
             val cursor = db.query(
                     WordEntry.TABLE_NAME,
                     arrayOf(WordEntry._ID),
@@ -220,9 +229,8 @@ class PassphraseFragment: Fragment() {
             return WordList(ids.toIntArray(), min, max)
         }
 
-        override fun onPreExecute() { mWordIds = WordListLoading }
-
-        override fun onPostExecute(result: WordListResult) { mWordIds = result }
+        override fun onPreExecute() { listener.onWordListLoading() }
+        override fun onPostExecute(result: WordListResult) = listener.onWordListReady(result)
     }
 
     companion object {

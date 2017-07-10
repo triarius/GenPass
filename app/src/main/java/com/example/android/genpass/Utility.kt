@@ -134,7 +134,7 @@ fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
 }
 
 sealed class WordListResult
-data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: Int):
+internal data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: Int):
         WordListResult() {
     override fun equals(other: Any?): Boolean = other === this
             && other is WordList
@@ -148,8 +148,13 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
         return code
     }
 }
-object WordListError: WordListResult()
-object WordListLoading: WordListResult()
+internal object WordListError: WordListResult()
+internal object WordListLoading: WordListResult()
+
+internal interface WordListListener {
+    fun onWordListLoading()
+    fun onWordListReady(words: WordListResult)
+}
 
 fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String>? =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
@@ -159,4 +164,3 @@ fun Fragment.getStringPref(key: String, defValues: String): String =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getString(key, defValues)
 fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
-
