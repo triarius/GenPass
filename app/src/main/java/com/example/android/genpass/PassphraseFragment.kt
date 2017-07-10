@@ -44,11 +44,7 @@ class PassphraseFragment: Fragment() {
             mPassphraseCopyable = getBoolean(COPYABLE_TAG)
             mPassphrase = getString(PASSPHRASE_TAG)
             mWordIds = getIntArray(WORDS_TAG)?.run {
-                WordList(
-                        this,
-                        getInt(MIN_WORD_LEN_TAG),
-                        getInt(MAX_WORD_LEN_TAG)
-                )
+                WordList(this, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
         }
     }

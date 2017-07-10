@@ -20,32 +20,22 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // pick layout
-        setContentView(R.layout.activity_main)
-
-        // create action bar
-        setSupportActionBar(toolbar)
-
+        setContentView(R.layout.activity_main) // pick layout
+        setSupportActionBar(toolbar) // create action bar
         // create nav Drawer
         val toggle = ActionBarDrawerToggle(this, drawer_layout, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
-        // set listener to open drawer
-        nav_view.setNavigationItemSelectedListener(this)
-
-        // get the it or if null, create a new fragment
+        nav_view.setNavigationItemSelectedListener(this) // set listener to open drawer
+        // get the menu item id or if null, create a new fragment
         mNavMenuItemId = savedInstanceState?.getInt(NAV_MENU_ITEM_TAG) ?: run {
             // open password fragment
             fragmentManager.beginTransaction()
                     .replace(R.id.content_frame, PasswordFragment(), PASSWORD_FRAGMENT_TAG)
                     .addToBackStack(PASSWORD_FRAGMENT_TAG)
                     .commit()
-
-            // assign menu item id for later use in the nav bar
-            R.id.nav_password
+            R.id.nav_password // save menu item id for later use in the nav bar
         }
 
         // set default preferences
@@ -134,8 +124,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     }
 
     companion object {
-        private val PASSWORD_FRAGMENT_TAG = "password_fragment"
-        private val PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment"
-        private val NAV_MENU_ITEM_TAG = "nav_menu_item"
+        private const val PASSWORD_FRAGMENT_TAG = "password_fragment"
+        private const val PASSPHRASE_FRAGMENT_TAG = "passphrase_fragment"
+        private const val NAV_MENU_ITEM_TAG = "nav_menu_item"
     }
 }
