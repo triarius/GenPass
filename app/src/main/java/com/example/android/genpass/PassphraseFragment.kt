@@ -124,12 +124,8 @@ class PassphraseFragment: Fragment(), WordListListener {
         }
     }
 
-    override fun onWordListLoading() {
-        mWordIds = WordListLoading
-    }
-    override fun onWordListReady(words: WordListResult) {
-        mWordIds = words
-    }
+    override fun onWordListLoading() { mWordIds = WordListLoading }
+    override fun onWordListReady(words: WordListResult) { mWordIds = words }
 
     private fun createPhrase(wordIds: WordList): String? {
         val numNum = getIntPref(

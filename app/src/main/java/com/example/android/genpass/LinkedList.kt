@@ -3,6 +3,7 @@ package com.example.android.genpass
 /**
  * Created by narthana on 30/06/17.
  */
+
 sealed class LinkedList<T> {
     operator fun plus(other: LinkedList<T>): LinkedList<T> {
         when (this) {
