@@ -197,14 +197,10 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private fun persistValues(values: Map<String, MutableSet<String>>?) = values?.let {
         mValues = values
         mSelectedValues = cloneValues(values)
-        if (shouldPersist()) {
-            /* for some reason kotlin cannot save the shared preferences, but passing to a
-             * java helper class works. replace with the code that follows if fixed
-             */
-            MSMLSavePreference.save(editor, key, values)
-//            editor.putBoolean(key, true)
-//            values.forEach { (k, v) -> editor.putStringSet(key + k, v.toHashSet()) }
-//            editor.apply()
+        if (shouldPersist()) editor.apply {
+            putBoolean(key, true)
+            values.forEach { (k, v) -> putStringSet(key + k, v.toHashSet()) }
+            editor.apply()
         }
     }
 
