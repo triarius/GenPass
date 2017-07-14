@@ -8,11 +8,19 @@ sealed class LinkedList<out T>
 object EmptyLinkedList: LinkedList<Nothing>()
 data class NonEmptyLinkedList<T>(var head: T, var tail: LinkedList<T>): LinkedList<T>()
 
-fun <T> linkedListOf(vararg elems: T, tail: LinkedList<T> = EmptyLinkedList): LinkedList<T> {
-    fun rec(list: List<T>): LinkedList<T> =
-        if (list.isNotEmpty()) NonEmptyLinkedList<T>(list[0], rec(list.subList(1, list.size)))
-        else EmptyLinkedList
-    return rec(elems.toList())
+fun <T> linkedListOf(
+        vararg elems: T,
+        tail: LinkedList<T> = EmptyLinkedList
+): LinkedList<T> = elems.toList().run {
+    if (this is RandomAccess) {
+        fun rec(n: Int): LinkedList<T>
+                = if (n < this.size) NonEmptyLinkedList<T>(this[n], rec(n + 1)) else tail
+        rec(0)
+    } else {
+        fun rec(dec: List<T>): LinkedList<T>
+                = if (dec.isNotEmpty()) NonEmptyLinkedList<T>(dec[0], rec(dec.drop(1))) else tail
+        rec(elems.toList())
+    }
 }
 
 // TODO: replace the following with a folding implementation
