@@ -3,16 +3,19 @@ package com.example.android.genpass
 import android.app.Fragment
 import android.content.ContentValues
 import android.content.Context
+import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
 import java.util.*
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * Created by narthana on 22/10/16.
  */
 
-fun Sequence<String>.toDB(context: Context) {
+internal fun Sequence<String>.toDB(context: Context) {
     NewWordDBHelper(context).writableDatabase.use { db ->
         db.beginTransaction()
         db.delete(WordContract.WordEntry.TABLE_NAME, null, null)
@@ -33,7 +36,7 @@ fun Sequence<String>.toDB(context: Context) {
     }
 }
 
-fun IntArray.compressWithRanges(): IntArray = if (size < 3) this else
+internal fun IntArray.compressWithRanges(): IntArray = if (size < 3) this else
     this.foldIndexed(mutableListOf<Int>()) { i, acc, x ->
         if (i == 0) acc.add(if (x + 1 == this[1]) x else -x)
         else if (i == this.lastIndex) acc.add(if (x - 1 == this[i - 1]) x else -x)
@@ -42,14 +45,14 @@ fun IntArray.compressWithRanges(): IntArray = if (size < 3) this else
         acc
     }.toIntArray()
 
-fun IntArray.expandFromRanges(): IntArray {
+internal fun IntArray.expandFromRanges(): IntArray {
     val (singles, ranges) = this.partition { it < 0 }
     val (starts, ends) = ranges.partitionIndexed { i, _ -> i % 2 == 0 }
     val expandedRanges = starts.zip(ends).flatMap { IntRange(it.first, it.second).toList() }
     return (singles.map { -it } + expandedRanges).toIntArray()
 }
 
-fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
+internal fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
         Pair<List<T>, List<T>> {
     val first = mutableListOf<T>()
     val second = mutableListOf<T>()
@@ -64,7 +67,7 @@ fun<T> Iterable<T>.partitionIndexed(predicate: (index: Int, T) -> Boolean):
  * @param r an instance of [java.util.Random]
  * @return the array
  */
-fun CharArray.shuffle(r: Random): CharArray {
+internal fun CharArray.shuffle(r: Random): CharArray {
     fun swapChar(i: Int, j: Int) {
         if (i != j) {
             val temp = this[i]
@@ -78,13 +81,13 @@ fun CharArray.shuffle(r: Random): CharArray {
 }
 
 /**
- * Selects [n] random elements. The selection uniform.
+ * Selects [n] random elements. The selection is uniform.
  *
  * @param n the number of randoms, must be in the range 1..[array.size]
  * @param r an instance of [java.util.Random]
  * @return an array containing the random elements
  */
-fun IntArray.randomN(n: Int, r: Random): IntArray {
+internal fun IntArray.randomN(n: Int, r: Random): IntArray {
     var ranges = linkedListOf(IntRange(0, this.lastIndex))
     val nums = IntArray(n) { 0 }
     for (i in 0 until n) {
@@ -95,11 +98,12 @@ fun IntArray.randomN(n: Int, r: Random): IntArray {
     return nums
 }
 
-fun Iterable<Set<CharSequence>>.randomString(r: Random) = this.map {
+internal fun Iterable<Set<CharSequence>>.randomString(r: Random) = this.map {
     it.joinToString("").let { it[r.nextInt(it.length)] }
 }
 
-val IntRange.len: Int
+/** The length of the interval defined by the range */
+internal val IntRange.len: Int
     get() = last - first + 1
 
 /**
@@ -111,7 +115,7 @@ val IntRange.len: Int
  *         If the random integer was not from the first range in the list, the return list will
  *         be identical to the receiver
  */
-fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
+internal fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
     var hole = -1
     var rangeList = this.filter { !it.isEmpty() }
     val selection = r.nextInt(rangeList.map { it.len }.sum())
@@ -134,34 +138,37 @@ fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
     return Pair(rangeList, hole)
 }
 
-sealed class WordListResult
-internal data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: Int):
-        WordListResult() {
-    override fun equals(other: Any?): Boolean = other === this
-            && other is WordList
-            && other.array contentEquals array
-            && other.minWordLen == minWordLen
-            && other.maxWordLen == maxWordLen
-    override fun hashCode(): Int {
-        var code = array.contentHashCode()
-        code += 31 * code + minWordLen
-        code += 31 * code + maxWordLen
-        return code
-    }
-}
-internal object WordListError: WordListResult()
-internal object WordListLoading: WordListResult()
-
-internal interface WordListListener {
-    fun onWordListLoading()
-    fun onWordListReady(words: WordListResult)
-}
-
-fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String> =
+internal fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String> =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
-fun Fragment.getIntPref(key: String, defValues: Int): Int =
+internal fun Fragment.getIntPref(key: String, defValues: Int): Int =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getInt(key, defValues)
-fun Fragment.getStringPref(key: String, defValues: String): String =
+internal fun Fragment.getStringPref(key: String, defValues: String): String =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getString(key, defValues)
-fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
+internal fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
+
+// https://hackernoon.com/kotlin-delegates-in-android-development-part-1-50346cf4aed7
+private inline fun <T> SharedPreferences.delegate(
+        key: String?,
+        defaultValue: T,
+        crossinline getter: SharedPreferences.(String, T) -> T,
+        crossinline setter: SharedPreferences.Editor.(String, T) -> SharedPreferences.Editor
+): ReadWriteProperty<Any, T> = object: ReadWriteProperty<Any, T> {
+    override fun getValue(thisRef: Any, property: KProperty<*>): T
+        = getter(key ?: property.name, defaultValue)
+
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T)
+        = edit().setter(key ?: property.name, value).apply()
+}
+
+internal fun SharedPreferences.boolean(key: String? = null, defaultValue: Boolean) =
+        delegate(key, defaultValue, SharedPreferences::getBoolean, SharedPreferences.Editor::putBoolean)
+
+internal fun SharedPreferences.int(key: String? = null, defaultValue: Int) =
+        delegate(key, defaultValue, SharedPreferences::getInt, SharedPreferences.Editor::putInt)
+
+internal fun SharedPreferences.string(key: String? = null, defaultValue: String) =
+        delegate(key, defaultValue, SharedPreferences::getString, SharedPreferences.Editor::putString)
+
+internal fun SharedPreferences.stringSet(key: String? = null, defaultValue: Set<String>) =
+        delegate(key, defaultValue, SharedPreferences::getStringSet, SharedPreferences.Editor::putStringSet)

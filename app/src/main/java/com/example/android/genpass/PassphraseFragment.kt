@@ -222,7 +222,7 @@ class PassphraseFragment: Fragment(), WordListListener {
             return WordList(ids.toIntArray(), min, max)
         }
 
-        override fun onPreExecute() { listener.onWordListLoading() }
+        override fun onPreExecute() = listener.onWordListLoading()
         override fun onPostExecute(result: WordListResult) = listener.onWordListReady(result)
     }
 
