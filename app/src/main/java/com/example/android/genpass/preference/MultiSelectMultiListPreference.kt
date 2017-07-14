@@ -72,43 +72,39 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onCreateDialogView(): View {
         // create a table with a grid of checkboxes
-        val table = TableLayout(context)
-        table.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        )
-
-        // the 0th column should stretch to fill the dialog
-        table.setColumnStretchable(0, true)
-        run {
+        val table = TableLayout(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            setColumnStretchable(0, true) // the 0th column should stretch to fill the dialog
             val padding = DIALOG_PADDING.dpToPx(context)
-            table.setPaddingRelative(padding, padding, padding, padding)
+            setPaddingRelative(padding, padding, padding, padding)
         }
 
         // create header row
         val header = TableRow(context)
 
         // params for the first row
-        val fistRowParams = TableLayout.LayoutParams(
+        table.addView(header, TableLayout.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
-        )
-        table.addView(header, fistRowParams)
+        ))
 
         // create the column headings and put them in the header row
-        val headingPad = HEADING_PADDING.dpToPx(context)
         val headingParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
+        ).apply { gravity = Gravity.CENTER_HORIZONTAL }
+
+        val headingPad = HEADING_PADDING.dpToPx(context)
+        for (j in 0 until numCols) header.addView(
+                TextView(context).apply {
+                    text = mColumnEntries[j]
+                    setPadding(headingPad, headingPad, headingPad, headingPad)
+                },
+                headingParams.apply { column = j }
         )
-        headingParams.gravity = Gravity.CENTER_HORIZONTAL
-        for (j in 0 until numCols) {
-            val headingTextView = TextView(context)
-            headingTextView.text = mColumnEntries[j]
-            headingTextView.setPadding(headingPad, headingPad, headingPad, headingPad)
-            headingParams.column = j
-            header.addView(headingTextView, headingParams)
-        }
 
         // create the rest of rows
         val rowParams = TableLayout.LayoutParams(
@@ -118,33 +114,40 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         val entryParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT
-        )
-        entryParams.gravity = Gravity.CENTER_VERTICAL
-        entryParams.column = 0
+        ).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            column = 0
+        }
         for (i in mCheckBoxes.indices) {
             val row = TableRow(context)
+
             // create the row label and add it to the row
-            val entryTextView = TextView(context)
-            entryTextView.text = mEntries[i]
-            row.addView(entryTextView, entryParams)
+            row.addView(TextView(context).apply { text = mEntries[i] }, entryParams)
+
             // create the checkboxes
             for (j in mCheckBoxes[i].indices)
             {
                 val checkBox = mCheckBoxes[i][j]
+
                 // Set the check change listener
                 val dependents = mColumnDeps[j]
                 checkBox.setOnCheckedChangeListener(
-                        dependents?.run {IndependentCheckChangeListener(i, j, dependents)}
+                        dependents?.run { IndependentCheckChangeListener(i, j, this) }
                                 ?: DependentCheckChangeListener(i, j)
                 )
-                val checkBoxParams = TableRow.LayoutParams(
-                        TableRow.LayoutParams.WRAP_CONTENT,
-                        TableRow.LayoutParams.WRAP_CONTENT
-                )
-                checkBoxParams.gravity = Gravity.CENTER_HORIZONTAL
-                checkBoxParams.column = j
+
                 (checkBox.parent as ViewGroup?)?.removeView(checkBox)
-                row.addView(checkBox, checkBoxParams)
+
+                row.addView(
+                        checkBox,
+                        TableRow.LayoutParams(
+                                TableRow.LayoutParams.WRAP_CONTENT,
+                                TableRow.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            gravity = Gravity.CENTER_HORIZONTAL
+                            column = j
+                        }
+                )
             }
             table.addView(row, rowParams)
         }
@@ -172,7 +175,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
         val array = context.resources.obtainTypedArray(a.getResourceId(index, -1))
         val values = (0 until numCols).associate { j ->
-            j.asCol() to array.getTextArray(j).map(CharSequence::toString).toHashSet()
+            j.asCol() to array.getTextArray(j).map(CharSequence::toString).toMutableSet()
         }
         array.recycle()
         return values
@@ -190,17 +193,18 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             Map<String, MutableSet<String>> = (0 until numCols).associate {
         val k = it.asCol()
         val v = sharedPreferences
-                .getStringSet(key + k, defaultValue?.get(k))?.toHashSet() ?: HashSet()
+                .getStringSet(key + k, defaultValue?.get(k))?.toMutableSet() ?: mutableSetOf()
         Pair(k, v)
     }
 
     private fun persistValues(values: Map<String, MutableSet<String>>?) = values?.let {
         mValues = values
         mSelectedValues = cloneValues(values)
-        if (shouldPersist()) editor.apply {
-            putBoolean(key, true)
-            values.forEach { (k, v) -> putStringSet(key + k, v.toHashSet()) }
-            editor.apply()
+        if (shouldPersist()) {
+            editor.apply {
+                putBoolean(key, true)
+                values.forEach { (k, v) -> putStringSet(key + k, v.toSet()) }
+            }.apply()
         }
     }
 
@@ -222,16 +226,9 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
-
-//        // Check whether this Preference is persistent (continually saved)
-//        // No need to save instance state since it's persistent,use superclass state
-//        if (isPersistent) return superState;
-
         // Create instance of custom BaseSavedState
-        val myState = SavedState(superState)
         // Set the state's value with the class member that holds current setting value
-        myState.values = mSelectedValues
-        return myState
+        return SavedState(superState).apply { values = mSelectedValues }
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
@@ -267,7 +264,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
                 val n = source.readInt()
                 val value = arrayOfNulls<String>(n)
                 source.readStringArray(value)
-                it!! to value.map{it!!}.toHashSet()
+                it!! to value.map{it!!}.toMutableSet()
             }
         }
 
@@ -292,8 +289,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         }
     }
 
-    private open inner class DependentCheckChangeListener internal constructor(
-            val mI: Int, val mJ: Int): CompoundButton.OnCheckedChangeListener {
+    private open inner class DependentCheckChangeListener(val mI: Int, val mJ: Int):
+            CompoundButton.OnCheckedChangeListener {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             val rowEntry = mEntryValues[mI]
             val colEntry = mJ.asCol()
@@ -302,8 +299,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         }
     }
 
-    private inner class IndependentCheckChangeListener internal constructor(
-            i: Int, j: Int, val mDependents: Set<Int>): DependentCheckChangeListener(i, j) {
+    private inner class IndependentCheckChangeListener(i: Int, j: Int, val mDependents: Set<Int>):
+            DependentCheckChangeListener(i, j) {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             super.onCheckedChanged(buttonView, isChecked)
             for (d in mDependents) {
@@ -318,5 +315,3 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         private const val HEADING_PADDING = 3.0f
     }
 }
-
-
