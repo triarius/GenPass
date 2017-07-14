@@ -24,7 +24,6 @@ import java.security.SecureRandom
 class PassphraseFragment: Fragment(), WordListListener {
     private var mWordIds: WordListResult = WordListLoading
     private var mPassphraseCopyable = false
-    private var mPassphrase: String? = null
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -44,7 +43,6 @@ class PassphraseFragment: Fragment(), WordListListener {
         super.onCreate(savedInstanceState)
         savedInstanceState?.run {
             mPassphraseCopyable = getBoolean(COPYABLE_TAG)
-            mPassphrase = getString(PASSPHRASE_TAG)
             mWordIds = getIntArray(WORDS_TAG)?.run {
                 WordList(this, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
@@ -57,14 +55,13 @@ class PassphraseFragment: Fragment(), WordListListener {
         = inflater.inflate(R.layout.fragment_passphrase, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mPassphrase?.run { textview_passphrase.text = this }
+        savedInstanceState?.run { textview_passphrase.text = getCharSequence(PASSPHRASE_TAG) }
 
         // set click listeners
         button_generate_passphrase.setOnClickListener {
             when (mWordIds) {
                 is WordList -> {
-                    mPassphrase = createPhrase(mWordIds as WordList)
-                    textview_passphrase.text = mPassphrase
+                    textview_passphrase.text = createPhrase(mWordIds as WordList)
                     mPassphraseCopyable = true
                 }
                 is WordListLoading ->
@@ -113,7 +110,7 @@ class PassphraseFragment: Fragment(), WordListListener {
 
     override fun onSaveInstanceState(savedInstanceState: Bundle) {
         with (savedInstanceState) {
-            mPassphrase?.run { putString(PASSPHRASE_TAG, this) }
+            putCharSequence(PASSPHRASE_TAG, textview_passphrase.text)
             val wordList = mWordIds
             if (wordList is WordList) {
                 putIntArray(WORDS_TAG, wordList.array)
@@ -188,8 +185,8 @@ class PassphraseFragment: Fragment(), WordListListener {
 
     private fun randomString(numNum: Int, numSymb: Int): String {
         val charsetMap = (activity as MainActivity).charsetMap
-        val numerals = charsetMap[getString(R.string.pref_password_numerals_charset_key)] ?: ""
-        val symbols = charsetMap[getString(R.string.pref_password_symbols_charset_key)] ?: ""
+        val numerals = charsetMap[getString(R.string.pref_password_numerals_charset_key)] ?: EMPTY_STRING
+        val symbols = charsetMap[getString(R.string.pref_password_symbols_charset_key)] ?: EMPTY_STRING
         val charsets = (1 .. numNum).map { setOf(numerals) } + (1..numSymb).map { setOf(symbols) }
         return String(charsets.randomString(random).toCharArray().shuffle(random))
     }
@@ -230,6 +227,7 @@ class PassphraseFragment: Fragment(), WordListListener {
     }
 
     companion object {
+        private const val EMPTY_STRING = ""
         private const val WORDS_TAG = "words"
         private const val PASSPHRASE_TAG = "passphrase"
         private const val COPYABLE_TAG = "copyable"
