@@ -123,8 +123,9 @@ fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, Int> {
                 hole = p.head.start + n
                 linkedListOf(
                         IntRange(p.head.start, hole - 1),
-                        IntRange(hole + 1, p.head.endInclusive)
-                ) + p.tail
+                        IntRange(hole + 1, p.head.endInclusive),
+                        tail = p.tail
+                )
             }
             else p.apply { tail = rec(tail, n - p.head.len) }
     }
@@ -156,7 +157,7 @@ internal interface WordListListener {
     fun onWordListReady(words: WordListResult)
 }
 
-fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String>? =
+fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String> =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
 fun Fragment.getIntPref(key: String, defValues: Int): Int =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getInt(key, defValues)
