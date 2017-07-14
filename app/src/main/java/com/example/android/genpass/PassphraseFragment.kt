@@ -110,7 +110,7 @@ class PassphraseFragment: Fragment(), WordListListener {
 
     override fun onSaveInstanceState(savedInstanceState: Bundle) {
         with (savedInstanceState) {
-            putCharSequence(PASSPHRASE_TAG, textview_passphrase.text)
+            putCharSequence(PASSPHRASE_TAG, textview_passphrase?.text)
             val wordList = mWordIds
             if (wordList is WordList) {
                 putIntArray(WORDS_TAG, wordList.array)

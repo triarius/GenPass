@@ -59,7 +59,7 @@ class PasswordFragment: Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) = with (outState) {
         super.onSaveInstanceState(this)
-        putCharSequence(PASSWORD_TAG, textview_password.text)
+        putCharSequence(PASSWORD_TAG, textview_password?.text)
         putBoolean(COPYABLE_TAG, mPasswordCopyable)
     }
 
