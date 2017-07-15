@@ -23,18 +23,15 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         // Display the fragment as the main content.
-        if (savedInstanceState == null)
-            fragmentManager.beginTransaction()
-                    .replace(R.id.settings_frame, SettingsFragment())
-                    .commit()
+        if (savedInstanceState == null) fragmentManager
+                .beginTransaction()
+                .replace(R.id.settings_frame, SettingsFragment())
+                .commit()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // returns to previous pane, should be as if back button was pressed
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
+    // returns to previous pane, should be as if back button was pressed
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        android.R.id.home -> consume { finish() }
+        else -> super.onOptionsItemSelected(item)
     }
 }
