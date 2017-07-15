@@ -254,7 +254,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         // Member that holds the setting's value
         lateinit var values: Map<String, MutableSet<String>>
 
-        constructor(superState: Parcelable): super(superState) {}
+        constructor(superState: Parcelable): super(superState)
 
         constructor(source: Parcel): super(source) {
             val size = source.readInt()

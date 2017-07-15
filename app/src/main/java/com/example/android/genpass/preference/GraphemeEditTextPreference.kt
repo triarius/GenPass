@@ -6,7 +6,6 @@ import android.os.Build
 import android.preference.EditTextPreference
 import android.text.InputFilter
 import android.util.AttributeSet
-
 import com.example.android.genpass.R
 import com.example.android.genpass.text.GraphemeLengthFilter
 
@@ -17,29 +16,27 @@ import com.example.android.genpass.text.GraphemeLengthFilter
 class GraphemeEditTextPreference(context: Context, attrs: AttributeSet):
         EditTextPreference(context, attrs) {
     init {
-        val editText = super.getEditText()
-
-        val a = context.theme.obtainStyledAttributes(
+        val maxLength = context.theme.obtainStyledAttributes(
                 attrs,
                 R.styleable.GraphemeEditTextPreference,
                 0,
                 0
-        )
-        val maxLength = a.getInt(
-                R.styleable.GraphemeEditTextPreference_android_maxLength,
-                Integer.MAX_VALUE
-        )
+        ).run {
+            val out = getInt(R.styleable.GraphemeEditTextPreference_android_maxLength, Integer.MAX_VALUE)
+            recycle()
+            out
+        }
 
-        editText.filters = editText.filters.map {
-            if (it is InputFilter.LengthFilter) {
-                val max = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) getMax(it)
-                          else maxLength
-                GraphemeLengthFilter(max)
-            }
-            else it
-        }.toTypedArray()
-
-        a.recycle()
+        super.getEditText().apply {
+            filters = filters.map {
+                if (it is InputFilter.LengthFilter)
+                    GraphemeLengthFilter(
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) getMax(it)
+                            else maxLength
+                    )
+                else it
+            }.toTypedArray()
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
