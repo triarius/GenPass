@@ -14,10 +14,12 @@
         <TextView
             android:id="@+id/textview_passphrase"
             android:text="@string/default_passphrase_text"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:fontFamily="serif-monospace"
             android:gravity="center"
-            android:fontFamily="serif-monospace"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"/>
+
 
         <Button
             android:id="@+id/button_generate_passphrase"
