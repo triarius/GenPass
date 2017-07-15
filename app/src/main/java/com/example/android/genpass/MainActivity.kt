@@ -45,9 +45,9 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
         // create charset map
         charsetMap = with (resources) {
-            val charsetKeys = resources.getStringArray(R.array.pref_password_charset_keys)
-            val charsets = resources.getStringArray(R.array.charsets)
-            charsetKeys.zip(charsets).toMap()
+            getStringArray(R.array.pref_password_charset_keys)
+                    .zip(getStringArray(R.array.charsets))
+                    .toMap()
         }
     }
 
@@ -81,24 +81,22 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         else -> super.onOptionsItemSelected(item)
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // if current item was selected do nothing
-        if (item.itemId == mNavMenuItemId) return true
-
-        // Handle navigation view item clicks here.
-        return with (drawer_layout) {
-            when (item.itemId) {
-                R.id.nav_password -> consume {
-                    replaceWith(findFragment<PasswordFragment>())
-                    mNavMenuItemId = item.itemId
-                }
-                R.id.nav_passphrase -> consume {
-                    replaceWith(findFragment<PassphraseFragment>())
-                    mNavMenuItemId = item.itemId
-                }
-                R.id.nav_manage -> consume { startActivity<SettingsActivity>() }
-                else -> false
+    /**
+     * If the same item was seletect, do nothing, otherwise, replace with the appropriate task
+     */
+    override fun onNavigationItemSelected(item: MenuItem): Boolean
+            = item.itemId == mNavMenuItemId || with (drawer_layout) {
+        when (item.itemId) {
+            R.id.nav_password -> consume {
+                replaceWith(findFragment<PasswordFragment>())
+                mNavMenuItemId = item.itemId
             }
+            R.id.nav_passphrase -> consume {
+                replaceWith(findFragment<PassphraseFragment>())
+                mNavMenuItemId = item.itemId
+            }
+            R.id.nav_manage -> consume { startActivity<SettingsActivity>() }
+            else -> false
         }
     }
 
