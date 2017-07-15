@@ -13,10 +13,8 @@
     <string name="password_enabled">Enabled</string>
     <string name="password_mandatory">Mandatory</string>
 
-    <string name="default_password_text">Tap Generate for a new password.</string>
-    <string name="password_error">There was an error generating the password.</string>
-    <string name="default_passphrase_text">Tap Generate for a new passphrase.</string>
-    <string name="passphrase_error">There was an error generating the passphrase.</string>
+    <string name="default_password_text">Tap Generate for a new password</string>
+    <string name="default_passphrase_text">Tap Generate for a new passphrase</string>
     <string name="generate">Generate</string>
 
     <string name="dict_load_snack">Please wait while the dictionary is loading</string>
@@ -35,7 +33,7 @@
     <string name="passphrase_max_word_length">Maximum length for each word</string>
     <string name="passphrase_min_word_length">Minimum length for each word</string>
     <string name="passphrase_1337_speak_label">Enable 1337 Speak</string>
-    <string name="passphrase_mandatory_numerals_label">Mandatory number of numerals</string>
+    <string name="passphrase_mandatory_numberals_label">Mandatory number of numerals</string>
     <string name="passphrase_mandatory_symbols_label">Mandatory number of symbols</string>
 
     <string name="lowercase">qwertyuiopasdfghjklzxcvbnm</string>

@@ -5,7 +5,7 @@
     <string name="pref_password_charset_col_enabled" translatable="false">en</string>
     <string name="pref_password_charset_col_mandatory" translatable="false">man</string>
 
-    <string-array name="pref_password_column_entry_values" translatable="false">
+    <string-array name="pref_password_column_entry_values">
         <item>@string/pref_password_charset_col_enabled</item>
         <item>@string/pref_password_charset_col_mandatory</item>
     </string-array>
