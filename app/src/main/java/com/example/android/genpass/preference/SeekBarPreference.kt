@@ -22,10 +22,15 @@ import com.example.android.genpass.R
 
 class SeekBarPreference (context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
-    private val mSeekBar: SeekBar = SeekBar(context, null)
-    private val mValueText: TextView = TextView(context, null)
+    private val mSeekBar: SeekBar = SeekBar(context, null).apply {
+        setOnSeekBarChangeListener(this@SeekBarPreference)
+    }
+    private val mValueText: TextView = TextView(context, null).apply {
+        gravity = Gravity.CENTER_HORIZONTAL
+        textSize = TEXT_SIZE
+    }
 
-    private var mValue: Int = DEFAULT_VALUE
+    private var mValue: Int = DEFAULT_VALUE // don't get int here, update in onBind, allows cancel
 
     private val minVal: Int
     private val maxVal: Int
@@ -41,39 +46,30 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         mSeekBar.max = maxVal - minVal
     }
 
-    override fun onCreateDialogView(): View {
-        // create a linear layout container
-        val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        val layout = LinearLayout(context)
-        layout.orientation = LinearLayout.VERTICAL
+    override fun onCreateDialogView(): View = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
         val pad = LAYOUT_PADDING.dpToPx(context)
-        layout.setPadding(pad, pad, pad, pad)
+        setPadding(pad, pad, pad, pad)
+
+        mValue = getPersistedInt(DEFAULT_VALUE)
 
         // remove seekbar from previous parent (if any)
         (mSeekBar.parent as ViewGroup?)?.removeView(mSeekBar)
         (mValueText.parent as ViewGroup?)?.removeView(mValueText)
 
-        // get the value
-        mValue = getPersistedInt(DEFAULT_VALUE)
-        // set the change listener
-        mSeekBar.setOnSeekBarChangeListener(this)
-
-        mValueText.gravity = Gravity.CENTER_HORIZONTAL
-        mValueText.textSize = TEXT_SIZE
-
-        layout.addView(mValueText, lp)
-        layout.addView(mSeekBar, lp)
-
-        return layout
+        val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        addView(mValueText, lp)
+        addView(mSeekBar, lp)
     }
 
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
-        mSeekBar.progress = mValue
-        mValueText.text = mSeekBar.progress.toString()
+        mValue = getPersistedInt(DEFAULT_VALUE)
+        mSeekBar.progress = mValue - minVal
+        mValueText.text = mValue.toString()
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
@@ -91,14 +87,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
     // handle saved states
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
-
-        // commented out to support rotation
-        //        // If persistent, can return superclass's state
-        //        if (isPersistent()) return superState;
-
-        val state = SavedState(superState)
-        state.value = mValue
-        return state
+        return SavedState(superState).apply { value = mValue }
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
@@ -120,8 +109,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         // Member that holds the setting's value
         var value: Int = 0
 
-        constructor(superState: Parcelable) : super(superState) {}
-
+        constructor(superState: Parcelable) : super(superState)
         constructor(source: Parcel) : super(source) { value = source.readInt() }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
