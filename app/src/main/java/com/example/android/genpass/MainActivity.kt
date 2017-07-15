@@ -14,7 +14,11 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var mNavMenuItemId = -1
 
-    internal lateinit var charsetMap: Map<String, String>
+    private lateinit var charsetMap: Map<String, String>
+
+    fun getCharSet(stringId: Int) = setOf(charsetMap[getString(stringId)] ?: EMPTY_STRING)
+
+    fun getCharSetString(string: String) = charsetMap[string] ?: EMPTY_STRING
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,5 +106,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     companion object {
         private const val NAV_MENU_ITEM_TAG = "nav_menu_item"
+        private const val EMPTY_STRING = ""
     }
 }

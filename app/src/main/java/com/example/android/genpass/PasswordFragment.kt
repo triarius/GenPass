@@ -17,15 +17,16 @@ import java.security.SecureRandom
  */
 
 class PasswordFragment: Fragment() {
-    private var mPasswordCopyable = false
-    private var mPassText: String? = null
+    private lateinit var password: Pass
+    private lateinit var passwordError: PasswordError
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.run {
-            mPassText = getString(PASSWORD_TAG)
-            mPasswordCopyable = getBoolean(COPYABLE_TAG) ?: false
-        }
+        passwordError = PasswordError(resources)
+        password = savedInstanceState?.run {
+            if (getBoolean(COPYABLE_TAG)) ValidPass(getString(PASSWORD_TAG))
+            else InvalidPass(getString(PASSWORD_TAG))
+        } ?: DefaultPassword(resources)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -33,12 +34,11 @@ class PasswordFragment: Fragment() {
         = inflater.inflate(R.layout.fragment_password, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Set texts
-        mPassText?.run { textview_password.text = this }
+        textview_password.text = password.text
 
         // set listener to copy password
         textview_password.setOnClickListener {
-            if (mPasswordCopyable) {
+            if (password.copyable) {
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE)
                         as ClipboardManager
                 val clip = ClipData.newPlainText(
@@ -52,69 +52,65 @@ class PasswordFragment: Fragment() {
 
         // attach click listener to button
         button_generate_password.setOnClickListener {
-            mPasswordCopyable = true
             val numChars: Int = getIntPref(
                     getString(R.string.pref_password_length_key),
                     resources.getInteger(R.integer.pref_default_password_length)
             )
-            mPassText = newPassword(numChars, view)
-            mPassText?.run { textview_password.text = this }
+            password = newPassword(numChars, view)
+            textview_password.text = password.text
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) = with (outState) {
         super.onSaveInstanceState(this)
-        mPassText?.run { putString(PASSWORD_TAG, this) }
-        putBoolean(COPYABLE_TAG, mPasswordCopyable)
+        putString(PASSWORD_TAG, password.text)
+        putBoolean(COPYABLE_TAG, password.copyable)
     }
 
-    private fun newPassword(len: Int, rootView: View): String? {
-        if (len < 1) {
-            Snackbar.make(rootView, R.string.zero_length, Snackbar.LENGTH_SHORT).show()
-            return null
-        }
+    private fun newPassword(len: Int, rootView: View): Pass {
+        if (len < 1) return pwErrHdlr(rootView, R.string.zero_length)
 
         // create charset to draw from
         val key = getString(R.string.pref_password_charset_key)
-        val selectedCharsetKeys = getStringSetPref(
+        val selectedKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_enabled),
                 resources.getStringArray(R.array.pref_default_password_charset_enabled).toSet()
         )
         // collect the mandatory preferences into an array, and count them
-        val mandatoryCharsetKeys = getStringSetPref(
+        val mandatoryKeys = getStringSetPref(
                 key + getString(R.string.pref_password_charset_col_mandatory),
                 resources.getStringArray(R.array.pref_default_password_charset_mandatory).toSet()
         )
 
         // the user has not checked any char subsets to add to the charset
-        if (selectedCharsetKeys == null || mandatoryCharsetKeys == null
-                || selectedCharsetKeys.isEmpty()) {
-            Snackbar.make(rootView, R.string.empty_charset, Snackbar.LENGTH_SHORT).show()
-            return null
-        }
+        if (selectedKeys.isEmpty()) return pwErrHdlr(rootView, R.string.empty_charset)
 
         // TODO: prevent the UI from allowing this to occur
-        if (mandatoryCharsetKeys.size > len) {
-            Snackbar.make(rootView, R.string.too_many_mandates, Snackbar.LENGTH_SHORT).show()
-            return null
-        }
+        if (mandatoryKeys.size > len) return pwErrHdlr(rootView, R.string.too_many_mandates)
 
         // select the chars to be in the password
-        val charsetMap = (activity as MainActivity).charsetMap
-        val mandatoryCharsets = mandatoryCharsetKeys.map { setOf(it) }
-        val selectedCharset = selectedCharsetKeys.map { charsetMap[it] ?: "" }.toSet()
-        val optionalCharsets = (mandatoryCharsetKeys.size .. len).map { selectedCharset }
-        val charsets = (mandatoryCharsets + optionalCharsets)
+        val mandatoryCharsets = mandatoryKeys.map((activity as MainActivity)::getCharSetString)
+        val optionalCharset = selectedKeys
+                .map((activity as MainActivity)::getCharSetString)
+                .joinToString(EMPTY_STRING)
+        val optionalCharsets = (mandatoryKeys.size .. len).map { optionalCharset }
+        return (mandatoryCharsets + optionalCharsets)
+                .randomString(random)
+                .toCharArray()
+                .shuffle(random) // shuffle again so that the mandatory are in random positions
+                .joinToString(EMPTY_STRING)
+                .toPassword()
+    }
 
-        val password = charsets.randomString(random).toCharArray()
+    private fun String.toPassword() = ValidPass(this)
 
-        // shuffle the password so that the mandatory characters are in random positions
-        password.shuffle(random)
-
-        return String(password)
+    private fun pwErrHdlr(view: View, snackbarStringId: Int): Pass {
+        Snackbar.make(view, getString(snackbarStringId), Snackbar.LENGTH_SHORT).show()
+        return passwordError
     }
 
     companion object {
+        private const val EMPTY_STRING = ""
         private const val PASSWORD_TAG = "password"
         private const val COPYABLE_TAG = "copyable"
         private val random = SecureRandom()

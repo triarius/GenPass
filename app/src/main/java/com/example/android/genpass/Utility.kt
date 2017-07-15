@@ -6,8 +6,10 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.preference.PreferenceManager
 import android.support.v4.widget.DrawerLayout
+import android.util.Log
 import android.view.Gravity
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
@@ -102,9 +104,7 @@ internal fun IntArray.randomN(n: Int, r: Random): IntArray {
     return nums
 }
 
-internal fun Iterable<Set<CharSequence>>.randomString(r: Random) = this.map {
-    it.joinToString("").let { it[r.nextInt(it.length)] }
-}
+internal fun Iterable<CharSequence>.randomString(r: Random) = map { it[r.nextInt(it.length)] }
 
 /** The length of the interval defined by the range */
 internal val IntRange.len: Int
@@ -217,3 +217,24 @@ internal fun Activity.replaceWith(
 internal inline fun <reified T: Fragment> Activity.findFragment(
         tag: String = T::class.java.canonicalName
 ) = fragmentManager.findFragmentByTag(tag) ?: T::class.java.newInstance()
+
+internal inline fun <reified T> T.log(string: String) = Log.d(T::class.java.simpleName, string)
+
+internal inline fun <reified T> Fragment.getSysService(name: String)
+        = activity.getSystemService(name) as T
+
+internal sealed class Pass {
+    abstract val text: String
+    abstract val copyable: Boolean
+}
+internal sealed class CopyablePass : Pass() { override val copyable = true }
+internal sealed class UncopyablePass : Pass() { override val copyable = false }
+internal sealed class LookupPass(resId: Int, resources: Resources): UncopyablePass() {
+    override val text = resources.getString(resId)
+}
+internal class DefaultPassword(res: Resources): LookupPass(R.string.default_password_text, res)
+internal class PasswordError(res: Resources): LookupPass(R.string.password_error, res)
+internal class DefaultPassphrase(res: Resources): LookupPass(R.string.default_passphrase_text, res)
+internal class PassphraseError(res: Resources): LookupPass(R.string.passphrase_error, res)
+internal class ValidPass(override val text: String): CopyablePass()
+internal class InvalidPass(override val text: String): UncopyablePass()
