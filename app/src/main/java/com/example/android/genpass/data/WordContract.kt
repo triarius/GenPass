@@ -8,9 +8,9 @@ import android.provider.BaseColumns
 
 object WordContract {
     object WordEntry: BaseColumns {
-        val _ID = BaseColumns._ID
-        val TABLE_NAME = "words"
-        val COLUMN_WORD = "word"
-        val COLUMN_LEN = "length"
+        const val _ID = BaseColumns._ID
+        const val TABLE_NAME = "words"
+        const val COLUMN_WORD = "word"
+        const val COLUMN_LEN = "length"
     }
 }

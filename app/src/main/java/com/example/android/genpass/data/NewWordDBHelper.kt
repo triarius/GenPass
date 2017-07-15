@@ -25,7 +25,7 @@ class NewWordDBHelper(context: Context):
     }
 
     companion object {
-        private val DATABASE_NAME = "words.db"
-        private val DATABASE_VERSION = 1
+        private const val DATABASE_NAME = "words.db"
+        private const val DATABASE_VERSION = 1
     }
 }

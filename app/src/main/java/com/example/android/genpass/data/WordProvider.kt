@@ -9,7 +9,7 @@ import android.net.Uri
  * Created by narthana on 23/10/16.
  */
 
-class WordProvider : ContentProvider() {
+class WordProvider: ContentProvider() {
     override fun getType(uri: Uri): String? {
         return null
     }
