@@ -1,10 +1,14 @@
 package com.example.android.genpass
 
+import android.app.Activity
 import android.app.Fragment
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import android.support.v4.widget.DrawerLayout
+import android.view.Gravity
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
 import java.util.*
@@ -172,3 +176,44 @@ internal fun SharedPreferences.string(key: String? = null, defaultValue: String)
 
 internal fun SharedPreferences.stringSet(key: String? = null, defaultValue: Set<String>) =
         delegate(key, defaultValue, SharedPreferences::getStringSet, SharedPreferences.Editor::putStringSet)
+
+/**
+ * Perform the actions in [f] and return true
+ */
+internal inline fun consume(f: () -> Unit): Boolean {
+    f()
+    return true
+}
+
+/**
+ * Perform the actions in [f] and close the drawer, returning true
+ */
+internal inline fun DrawerLayout.consume(f: () -> Unit): Boolean {
+    f()
+    closeDrawer(Gravity.START)
+    return true
+}
+
+/**
+ * Start an activity with a blank intent
+ */
+internal inline fun <reified T: Activity> Activity.startActivity()
+        = startActivity(Intent(this, T::class.java))
+/**
+ * Replace the current fragment with the specified fragment
+ */
+internal fun Activity.replaceWith(
+        fragment: Fragment,
+        tag: String = fragment.javaClass.canonicalName
+) = fragmentManager
+        .beginTransaction()
+        .replace(R.id.content_frame, fragment, tag)
+        .addToBackStack(tag)
+        .commit()
+
+/**
+ * If a fragment has been saved previously, retrieve it, else instantiate a new one
+ */
+internal inline fun <reified T: Fragment> Activity.findFragment(
+        tag: String = T::class.java.canonicalName
+) = fragmentManager.findFragmentByTag(tag) ?: T::class.java.newInstance()
