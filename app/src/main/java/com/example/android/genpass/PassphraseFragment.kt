@@ -28,7 +28,7 @@ class PassphraseFragment: Fragment(), WordListListener {
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        passphraseError = PassphraseError(resources)
+        passphraseError = PassphraseError()
 
         val minWordLen = getIntPref(
                 getString(R.string.pref_passphrase_min_word_length),
@@ -51,7 +51,7 @@ class PassphraseFragment: Fragment(), WordListListener {
                 WordList(this, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
         } ?: run {
-            passphrase = DefaultPassphrase(resources)
+            passphrase = DefaultPassphrase()
         }
     }
 
@@ -78,7 +78,7 @@ class PassphraseFragment: Fragment(), WordListListener {
         }
 
         textview_passphrase.setOnClickListener {
-            if (passphrase.copyable) {
+            if (passphrase is CopyablePass) {
                 getSysService<ClipboardManager>(Context.CLIPBOARD_SERVICE).primaryClip =
                         ClipData.newPlainText(getString(R.string.clipboard_text), passphrase.text)
                 Snackbar.make(view, R.string.copy_msg, Snackbar.LENGTH_SHORT).show()
@@ -118,7 +118,7 @@ class PassphraseFragment: Fragment(), WordListListener {
                 putInt(MAX_WORD_LEN_TAG, maxWordLen)
             }
             putString(PASSPHRASE_TAG, passphrase.text)
-            putBoolean(COPYABLE_TAG, passphrase.copyable)
+            putBoolean(COPYABLE_TAG, passphrase is CopyablePass)
         }
     }
 
@@ -230,6 +230,12 @@ class PassphraseFragment: Fragment(), WordListListener {
         override fun onPreExecute() = listener.onWordListLoading()
         override fun onPostExecute(result: WordListResult) = listener.onWordListReady(result)
     }
+
+    internal inner open class LookupPass(resId: Int): UncopyablePass() {
+        override val text = getString(resId)
+    }
+    internal inner class DefaultPassphrase: LookupPass(R.string.default_passphrase_text)
+    internal inner class PassphraseError: LookupPass(R.string.passphrase_error)
 
     companion object {
         private const val EMPTY_STRING = ""

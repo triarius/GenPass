@@ -22,11 +22,11 @@ class PasswordFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        passwordError = PasswordError(resources)
+        passwordError = PasswordError()
         password = savedInstanceState?.run {
             if (getBoolean(COPYABLE_TAG)) ValidPass(getString(PASSWORD_TAG))
             else InvalidPass(getString(PASSWORD_TAG))
-        } ?: DefaultPassword(resources)
+        } ?: DefaultPassword()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -38,7 +38,7 @@ class PasswordFragment: Fragment() {
 
         // set listener to copy password
         textview_password.setOnClickListener {
-            if (password.copyable) {
+            if (password is CopyablePass) {
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE)
                         as ClipboardManager
                 val clip = ClipData.newPlainText(
@@ -64,7 +64,7 @@ class PasswordFragment: Fragment() {
     override fun onSaveInstanceState(outState: Bundle) = with (outState) {
         super.onSaveInstanceState(this)
         putString(PASSWORD_TAG, password.text)
-        putBoolean(COPYABLE_TAG, password.copyable)
+        putBoolean(COPYABLE_TAG, password is CopyablePass)
     }
 
     private fun newPassword(len: Int, rootView: View): Pass {
@@ -108,6 +108,12 @@ class PasswordFragment: Fragment() {
         Snackbar.make(view, getString(snackbarStringId), Snackbar.LENGTH_SHORT).show()
         return passwordError
     }
+
+    internal inner open class LookupPass(resId: Int): UncopyablePass() {
+        override val text = getString(resId)
+    }
+    internal inner class DefaultPassword: LookupPass(R.string.default_password_text)
+    internal inner class PasswordError: LookupPass(R.string.password_error)
 
     companion object {
         private const val EMPTY_STRING = ""
