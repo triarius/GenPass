@@ -34,8 +34,11 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private lateinit var mSelectedValues: Map<String, MutableSet<String>>
 
     init {
-        val styledAttrs = context.theme
-                .obtainStyledAttributes(attrs, R.styleable.MultiSelectMultiListPreference, 0, 0)
+        val styledAttrs = context.theme.obtainStyledAttributes(
+                attrs,
+                R.styleable.MultiSelectMultiListPreference,
+                0, 0
+        )
         mEntries = styledAttrs
                 .getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
                 .map(CharSequence::toString)
@@ -166,19 +169,17 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-        persistValues(
-                if (restorePersistedValue) getValuesFromResources(null)
-                else defaultValue as? Map<String, MutableSet<String>>
-        )
+        val def = defaultValue as? MutableMap<String, MutableSet<String>> ?: mutableMapOf()
+        persistValues(if (restorePersistedValue) getValuesFromResources(def) else def)
     }
 
-    override fun onGetDefaultValue(a: TypedArray, index: Int): Any {
-        val array = context.resources.obtainTypedArray(a.getResourceId(index, -1))
+    override fun onGetDefaultValue(a: TypedArray, index: Int)
+            = context.resources.obtainTypedArray(a.getResourceId(index, -1)).run {
         val values = (0 until numCols).associate { j ->
-            j.asCol() to array.getTextArray(j).map(CharSequence::toString).toMutableSet()
+            j.asCol() to getTextArray(j).map(CharSequence::toString).toMutableSet()
         }
-        array.recycle()
-        return values
+        recycle()
+        values
     }
 
     // Note: do not remove the cloning of v. It is necessary for
@@ -189,21 +190,19 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     // source: developer.android.com/reference/android/content/SharedPreferences.html
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
-    private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>?):
+    private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>):
             Map<String, MutableSet<String>> = (0 until numCols).associate {
         val k = it.asCol()
-        val v = sharedPreferences
-                .getStringSet(key + k, defaultValue?.get(k))?.toMutableSet() ?: mutableSetOf()
-        Pair(k, v)
+        k to (sharedPreferences.getStringSet(key + k, defaultValue.get(k)) ?: mutableSetOf())
     }
 
-    private fun persistValues(values: Map<String, MutableSet<String>>?) = values?.let {
+    private fun persistValues(values: Map<String, MutableSet<String>>) {
         mValues = values
         mSelectedValues = cloneValues(values)
         if (shouldPersist()) {
             editor.apply {
                 putBoolean(key, true)
-                values.forEach { (k, v) -> putStringSet(key + k, v.toSet()) }
+                values.forEach { (k, v) -> putStringSet(key + k, v) }
             }.apply()
         }
     }
@@ -264,7 +263,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
                 val n = source.readInt()
                 val value = arrayOfNulls<String>(n)
                 source.readStringArray(value)
-                it!! to value.map{it!!}.toMutableSet()
+                it!! to (value as Array<String>).toMutableSet()
             }
         }
 
