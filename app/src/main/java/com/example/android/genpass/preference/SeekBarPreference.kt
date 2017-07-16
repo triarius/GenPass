@@ -97,12 +97,13 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
             return
         }
 
+        // Cast state to custom BaseSavedState
         val castState = state as SavedState
-        super.onRestoreInstanceState(castState.superState)
 
         // restore widget state
         mValue = castState.value
         mSeekBar.progress = mValue - minVal
+        super.onRestoreInstanceState(castState.superState)
     }
 
     private class SavedState: Preference.BaseSavedState {
@@ -113,17 +114,12 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         constructor(source: Parcel) : super(source) { value = source.readInt() }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
-            super.writeToParcel(dest, flags)
             dest.writeInt(value)
+            super.writeToParcel(dest, flags)
         }
 
         companion object {
-            // Standard creator object using an instance of this class
-            @JvmField
-            val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
-                override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
-                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-            }
+            @JvmField val CREATOR = creator(::SavedState)
         }
     }
 

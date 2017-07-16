@@ -1,6 +1,8 @@
 package com.example.android.genpass.preference
 
 import android.content.Context
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.TypedValue
 
 /**
@@ -12,3 +14,9 @@ internal fun Float.dpToPx(context: Context) = TypedValue.applyDimension(
     this,
     context.resources.displayMetrics
 ).toInt()
+
+internal inline fun <reified T> creator(crossinline f: (Parcel) -> T)
+        = object: Parcelable.Creator<T> {
+    override fun createFromParcel(source: Parcel): T = f(source)
+    override fun newArray(n: Int): Array<T?> = arrayOfNulls<T>(n)
+}

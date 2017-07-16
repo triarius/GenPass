@@ -232,59 +232,44 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         // Check whether we saved the state in onSaveInstanceState
-        state?.let {
-            if (state.javaClass != SavedState::class.java) {
-                // Didn't save the state, so call superclass
-                super.onRestoreInstanceState(state)
-                return
-            }
+        if (state == null || state.javaClass != SavedState::class.java) {
+            // Didn't save the state, so call superclass
+            super.onRestoreInstanceState(state)
+            return
         }
 
-        // Cast state to custom BaseSavedState and pass to superclass
+        // Cast state to custom BaseSavedState
         val myState = state as SavedState
-        super.onRestoreInstanceState(myState.getSuperState())
 
         // Set this Preference's widget to reflect the restored state
         mSelectedValues = myState.values
         updateCheckStates(mSelectedValues)
+        super.onRestoreInstanceState(myState.superState)
     }
 
     private class SavedState: Preference.BaseSavedState {
-        // Member that holds the setting's value
         lateinit var values: Map<String, MutableSet<String>>
 
         constructor(superState: Parcelable): super(superState)
 
         constructor(source: Parcel): super(source) {
-            val size = source.readInt()
-            val keys = arrayOfNulls<String>(size)
-            source.readStringArray(keys)
+            val keys = mutableListOf<String>()
+            source.readStringList(keys)
             values = keys.associate {
-                val n = source.readInt()
-                val value = arrayOfNulls<String>(n)
-                source.readStringArray(value)
-                it!! to (value as Array<String>).toMutableSet()
+                val value = mutableListOf<String>()
+                source.readStringList(value)
+                it to value.toMutableSet()
             }
         }
 
         override fun writeToParcel(dest: Parcel, flags: Int) {
+            dest.writeStringList(values.keys.toList())
+            for (v in values.values) dest.writeStringList(v.toList())
             super.writeToParcel(dest, flags)
-            val keysArray = values.keys.toTypedArray()
-            dest.writeInt(keysArray.size)
-            dest.writeStringArray(keysArray)
-            for (v in values.values) {
-                dest.writeInt(v.size)
-                dest.writeStringArray(v.toTypedArray())
-            }
         }
 
         companion object {
-            // Standard creator object using an instance of this class
-            @JvmField
-            val CREATOR: Parcelable.Creator<SavedState> = object: Parcelable.Creator<SavedState> {
-                override fun createFromParcel(inParcel: Parcel) = SavedState(inParcel)
-                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-            }
+            @JvmField val CREATOR = creator(::SavedState)
         }
     }
 
