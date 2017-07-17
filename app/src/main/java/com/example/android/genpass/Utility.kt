@@ -223,7 +223,7 @@ internal inline fun <reified T> Fragment.getSysService(name: String)
         = activity.getSystemService(name) as T
 
 internal sealed class Pass { abstract val text: String }
-internal abstract class CopyablePass : Pass()
-internal abstract class UncopyablePass : Pass()
+internal abstract class CopyablePass: Pass()
+internal abstract class UncopyablePass: Pass()
 internal class ValidPass(override val text: String): CopyablePass()
 internal class InvalidPass(override val text: String): UncopyablePass()

@@ -31,7 +31,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private val numCols: Int
 
     private lateinit var mValues: Map<String, Set<String>>
-    private lateinit var mSelectedValues: Map<String, MutableSet<String>>
+    private lateinit var selectedValues: Map<String, MutableSet<String>>
 
     init {
         val (entries, entryValues, columnEntries, colDepsId) = context.theme.obtainStyledAttributes(
@@ -158,25 +158,27 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
-        updateCheckStates(mSelectedValues)
+        updateCheckStates(selectedValues)
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
-        if (positiveResult) persistValues(mSelectedValues)
-        else mSelectedValues = makeSelectable(mValues)
+        if (positiveResult) persistValues(selectedValues)
+        else selectedValues = makeSelectable(mValues)
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
         val def = defaultValue as? Map<String, Set<String>> ?: mapOf()
-        persistValues(if (restorePersistedValue) getValuesFromResources(def) else def)
+        persistValues(if (restorePersistedValue) extractValues(def) else def)
     }
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, Set<String>>
             = context.resources.obtainTypedArray(a.getResourceId(index, -1)).use {
-        colEntryValues = getTextArray(0).map(CharSequence::toString)
-        (1 until length()).associate {
-            j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toSet()
-        }
+        colEntryValues = getTextArray(0).map(CharSequence::toString) // first entry is column keys
+
+        (1 until length()).associateBy (
+                { colEntryValues[it - 1] },
+                { getTextArray(it).map(CharSequence::toString).toSet() }
+        )
     }
 
     // Note: do not remove the cloning of v. It is necessary for
@@ -187,15 +189,14 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     // source: developer.android.com/reference/android/content/SharedPreferences.html
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
-    private fun getValuesFromResources(defaultValue: Map<String, Set<String>>):
-            Map<String, Set<String>> = (0 until numCols).associate {
-        val k = it.asCol()
-        k to (sharedPreferences.getStringSet(key + k, defaultValue.get(k)) ?: setOf())
+    private fun extractValues(defaultValue: Map<String, Set<String>>): Map<String, Set<String>>
+            = (0 until numCols).map { colEntryValues[it] }.associateBy(::id) {
+        sharedPreferences.getStringSet(key + it, defaultValue[it]) ?: emptySet()
     }
 
     private fun persistValues(values: Map<String, Set<String>>) {
         mValues = values
-        mSelectedValues = makeSelectable(values)
+        selectedValues = makeSelectable(values)
         if (shouldPersist()) {
             editor.apply {
                 putBoolean(key, true)
@@ -204,27 +205,27 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         }
     }
 
-    private fun updateCheckStates(values: Map<String, Set<String>>) {
-        for (i in checkBoxes.indices) for (j in checkBoxes[i].indices)
-            checkBoxes[i][j].isChecked = values[j.asCol()]?.contains(entryValues[i]) ?: false
+    private fun updateCheckStates(values: Map<String, Set<String>>) = with (checkBoxes) {
+        for (i in indices) for (j in this[i].indices)
+            this[i][j].isChecked = values[colEntryValues[j]]?.contains(entryValues[i]) ?: false
+
         for (k in 0 until columnDeps.size()) {
             val independentColNo = columnDeps.keyAt(k)
             val dependents = columnDeps.get(independentColNo)
-            for (d in dependents) for (i in checkBoxes.indices)
-                checkBoxes[i][d].isEnabled = checkBoxes[i][independentColNo].isChecked
+            for (d in dependents) for (i in indices)
+                this[i][d].isEnabled = this[i][independentColNo].isChecked
         }
     }
 
-    private fun Int.asCol() = colEntryValues[this]
 
     private fun <K, T> makeSelectable(values: Map<K, Set<T>>): Map<K, MutableSet<T>>
-            = values.entries.associate { Pair(it.key, it.value as MutableSet<T>) }
+            = values.entries.associateBy({ it.key }, { it.value as MutableSet<T> })
 
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
         // Create instance of custom BaseSavedState
         // Set the state's value with the class member that holds current setting value
-        return SavedState(superState).apply { values = mSelectedValues }
+        return SavedState(superState).apply { values = selectedValues }
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
@@ -239,8 +240,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         val myState = state as SavedState
 
         // Set this Preference's widget to reflect the restored state
-        mSelectedValues = myState.values
-        updateCheckStates(mSelectedValues)
+        selectedValues = myState.values
+        updateCheckStates(selectedValues)
         super.onRestoreInstanceState(myState.superState)
     }
 
@@ -252,10 +253,10 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         constructor(source: Parcel): super(source) {
             val keys = mutableListOf<String>()
             source.readStringList(keys)
-            values = keys.associate {
+            values = keys.associateBy(::id) {
                 val value = mutableListOf<String>()
                 source.readStringList(value)
-                it to value.toMutableSet()
+                value.toMutableSet()
             }
         }
 
@@ -270,23 +271,28 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         }
     }
 
-    private open inner class DependentCheckChangeListener(val mI: Int, val mJ: Int):
+    private open inner class DependentCheckChangeListener(val i: Int, val j: Int):
             CompoundButton.OnCheckedChangeListener {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-            val rowEntry = entryValues[mI]
-            val colEntry = mJ.asCol()
-            if (isChecked) mSelectedValues[colEntry]?.add(rowEntry)
-            else mSelectedValues[colEntry]?.remove(rowEntry)
+            selectedValues.run { if (isChecked) addEntry(i, j) else removeEntry(i, j) }
         }
+
+        protected fun Map<String, MutableSet<String>>.addEntry(row: Int, col: Int)
+                = get(entryValues[col])?.add(colEntryValues[row])
+
+        protected fun Map<String, MutableSet<String>>.removeEntry(row: Int, col: Int)
+                = get(entryValues[col])?.remove(colEntryValues[row])
     }
 
-    private inner class IndependentCheckChangeListener(i: Int, j: Int, val mDependents: Set<Int>):
+    private inner class IndependentCheckChangeListener(i: Int, j: Int, val dependents: Set<Int>):
             DependentCheckChangeListener(i, j) {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             super.onCheckedChanged(buttonView, isChecked)
-            for (d in mDependents) {
-                checkBoxes[mI][d].isEnabled = isChecked
-                checkBoxes[mI][d].isChecked = false
+            for (d in dependents) {
+                checkBoxes[i][d].run {
+                    this.isEnabled = isChecked
+                    this.isChecked = false
+                }
             }
         }
     }
