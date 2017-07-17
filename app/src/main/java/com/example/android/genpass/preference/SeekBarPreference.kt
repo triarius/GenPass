@@ -42,14 +42,14 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         get() = keyToPref(maxKey, max)
 
     init {
-        context.theme.obtainStyledAttributes(attrs, R.styleable.SeekBarPreference, 0, 0).apply {
+        context.theme.obtainStyledAttributes(attrs, R.styleable.SeekBarPreference, 0, 0).use {
             if (hasValue(R.styleable.SeekBarPreference_minPrefKey))
                 minKey = getString(R.styleable.SeekBarPreference_minPrefKey)
             if (hasValue(R.styleable.SeekBarPreference_maxPrefKey))
                 maxKey = getString(R.styleable.SeekBarPreference_maxPrefKey)
             if (hasValue(R.styleable.SeekBarPreference_android_max))
                 max = getInt(R.styleable.SeekBarPreference_android_max, DEFAULT_MAX)
-        }.recycle()
+        }
     }
 
     private fun keyToPref(key: String?, defaultValue: Int) = key?.run {

@@ -19,12 +19,9 @@ class GraphemeEditTextPreference(context: Context, attrs: AttributeSet):
         val maxLength = context.theme.obtainStyledAttributes(
                 attrs,
                 R.styleable.GraphemeEditTextPreference,
-                0,
-                0
-        ).run {
-            val out = getInt(R.styleable.GraphemeEditTextPreference_android_maxLength, Integer.MAX_VALUE)
-            recycle()
-            out
+                0, 0
+        ).use {
+            getInt(R.styleable.GraphemeEditTextPreference_android_maxLength, Integer.MAX_VALUE)
         }
 
         super.getEditText().apply {
