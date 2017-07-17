@@ -20,15 +20,15 @@ import com.example.android.genpass.R
 
 class SeekBarPreference (context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
-    private val mSeekBar: SeekBar = SeekBar(context, null).apply {
+    private val seekBar: SeekBar = SeekBar(context, null).apply {
         setOnSeekBarChangeListener(this@SeekBarPreference)
     }
-    private val mValueText: TextView = TextView(context, null).apply {
+    private val valueText: TextView = TextView(context, null).apply {
         gravity = Gravity.CENTER_HORIZONTAL
         textSize = TEXT_SIZE
     }
 
-    private var mValue: Int = DEFAULT_VALUE // don't get int here, update in onBind, allows cancel
+    private var value: Int = DEFAULT_VALUE // don't get int here, update in onBind, allows cancel
     private var max = DEFAULT_MAX
 
     // if the min/maxPrefKey attributes are set, derive the min/maxVal from the prefs dynamically
@@ -57,12 +57,12 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
     } ?: defaultValue
 
     override fun onCreateDialogView(): View {
-        mSeekBar.max = maxVal - minVal
-        mValue = getPersistedInt(DEFAULT_VALUE)
+        seekBar.max = maxVal - minVal
+        value = getPersistedInt(DEFAULT_VALUE)
 
         // remove seekbar from previous parent (if any)
-        mSeekBar.removeFromParent()
-        mValueText.removeFromParent()
+        seekBar.removeFromParent()
+        valueText.removeFromParent()
 
         return LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -73,34 +73,34 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            addView(mValueText, lp)
-            addView(mSeekBar, lp)
+            addView(valueText, lp)
+            addView(seekBar, lp)
         }
     }
 
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
-        mValue = getPersistedInt(DEFAULT_VALUE)
-        mSeekBar.progress = mValue - minVal
-        mValueText.text = mValue.toString()
+        value = getPersistedInt(DEFAULT_VALUE)
+        seekBar.progress = value - minVal
+        valueText.text = value.toString()
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-        if (restorePersistedValue) mValue = getPersistedInt(DEFAULT_VALUE)
+        if (restorePersistedValue) value = getPersistedInt(DEFAULT_VALUE)
         else {
-            mValue = defaultValue as Int
-            persistInt(mValue)
+            value = defaultValue as Int
+            persistInt(value)
         }
     }
 
     override fun onGetDefaultValue(a: TypedArray, index: Int) = a.getInt(index, DEFAULT_VALUE)
 
-    override fun onDialogClosed(positiveResult: Boolean) { if (positiveResult) persistInt(mValue) }
+    override fun onDialogClosed(positiveResult: Boolean) { if (positiveResult) persistInt(value) }
 
     // handle saved states
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
-        return SavedState(superState).apply { value = mValue }
+        return SavedState(superState).apply { value = this@SeekBarPreference.value }
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
@@ -114,8 +114,8 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         val castState = state as SavedState
 
         // restore widget state
-        mValue = castState.value
-        mSeekBar.progress = mValue - minVal
+        value = castState.value
+        seekBar.progress = value - minVal
         super.onRestoreInstanceState(castState.superState)
     }
 
@@ -138,8 +138,8 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
 
     // seekbar listener
     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-        mValue = minVal + progress
-        mValueText.text = mValue.toString()
+        value = minVal + progress
+        valueText.text = value.toString()
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {}

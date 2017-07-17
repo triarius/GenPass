@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-    private var mNavMenuItemId = -1
+    private var navMenuItemId = -1
 
     private lateinit var charsetMap: Map<String, String>
 
@@ -39,7 +39,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         nav_view.setNavigationItemSelectedListener(this) // set listener to open drawer
 
         // get the menu item id or if null, create a new fragment
-        mNavMenuItemId = savedInstanceState?.getInt(NAV_MENU_ITEM_TAG) ?: run {
+        navMenuItemId = savedInstanceState?.getInt(NAV_MENU_ITEM_TAG) ?: run {
             replaceWith(PasswordFragment()) // open password fragment
             R.id.nav_password // save menu item id for later use in the nav bar
         }
@@ -57,12 +57,12 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     override fun onResume() {
         super.onResume()
-        nav_view.setCheckedItem(mNavMenuItemId) // set the selected item in the nav bar
+        nav_view.setCheckedItem(navMenuItemId) // set the selected item in the nav bar
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(NAV_MENU_ITEM_TAG, mNavMenuItemId)
+        outState.putInt(NAV_MENU_ITEM_TAG, navMenuItemId)
     }
 
     override fun onBackPressed() {
@@ -89,15 +89,15 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
      * If the same item was seletect, do nothing, otherwise, replace with the appropriate task
      */
     override fun onNavigationItemSelected(item: MenuItem): Boolean
-            = item.itemId == mNavMenuItemId || with (drawer_layout) {
+            = item.itemId == navMenuItemId || with (drawer_layout) {
         when (item.itemId) {
             R.id.nav_password -> consume {
                 replaceWith(findFragment<PasswordFragment>())
-                mNavMenuItemId = item.itemId
+                navMenuItemId = item.itemId
             }
             R.id.nav_passphrase -> consume {
                 replaceWith(findFragment<PassphraseFragment>())
-                mNavMenuItemId = item.itemId
+                navMenuItemId = item.itemId
             }
             R.id.nav_manage -> consume { startActivity<SettingsActivity>() }
             else -> false

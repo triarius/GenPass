@@ -20,12 +20,12 @@ import com.example.android.genpass.R
 
 class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs) {
-    private val mEntries: List<String>
-    private val mEntryValues: List<String>
-    private val mColumnEntries: List<String>
-    private lateinit var mColEntryValues: List<String>
-    private val mColumnDeps: SparseArray<Set<Int>>
-    private val mCheckBoxes: Array<Array<CheckBox>>
+    private val entries: List<String>
+    private val entryValues: List<String>
+    private val columnEntries: List<String>
+    private lateinit var colEntryValues: List<String>
+    private val columnDeps: SparseArray<Set<Int>>
+    private val checkBoxes: Array<Array<CheckBox>>
 
     private val numRows: Int
     private val numCols: Int
@@ -49,25 +49,25 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
                     getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
             )
         }
-        mEntries = entries
-        mEntryValues = entryValues
-        mColumnEntries = columnEntries
+        this.entries = entries
+        this.entryValues = entryValues
+        this.columnEntries = columnEntries
 
-        numRows = mEntries.size
-        numCols = mColumnEntries.size
+        numRows = this.entries.size
+        numCols = this.columnEntries.size
 
         // gather the data on dependencies between columns
-        mColumnDeps = context.resources.obtainTypedArray(colDepsId).use {
+        columnDeps = context.resources.obtainTypedArray(colDepsId).use {
             SparseArray<Set<Int>>(length()).apply {
                 (0 until length())
                         .map { context.resources.getStringArray(this@use.getResourceId(it, -1)) }
-                        .map { it.map { mColEntryValues.indexOf(it) } }
+                        .map { it.map { colEntryValues.indexOf(it) } }
                         .forEach { put(it[0], it.drop(1).toSet()) }
             }
         }
 
         // create the check box 2d array
-        mCheckBoxes = Array<Array<CheckBox>>(numRows) {
+        checkBoxes = Array<Array<CheckBox>>(numRows) {
             Array<CheckBox>(numCols) { CheckBox(context) }
         }
     }
@@ -102,7 +102,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         val headingPad = HEADING_PADDING.dpToPx(context)
         for (j in 0 until numCols) header.addView(
                 TextView(context).apply {
-                    text = mColumnEntries[j]
+                    text = columnEntries[j]
                     setPadding(headingPad, headingPad, headingPad, headingPad)
                 },
                 headingParams.apply { column = j }
@@ -121,19 +121,19 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             column = 0
         }
 
-        for (i in mCheckBoxes.indices) {
+        for (i in checkBoxes.indices) {
             val row = TableRow(context)
 
             // create the row label and add it to the row
-            row.addView(TextView(context).apply { text = mEntries[i] }, entryParams)
+            row.addView(TextView(context).apply { text = entries[i] }, entryParams)
 
             // create the checkboxes
-            for (j in mCheckBoxes[i].indices) {
-                val checkBox = mCheckBoxes[i][j]
+            for (j in checkBoxes[i].indices) {
+                val checkBox = checkBoxes[i][j]
 
                 // Set the check change listener
                 checkBox.setOnCheckedChangeListener(
-                        mColumnDeps[j]?.run { IndependentCheckChangeListener(i, j, this) }
+                        columnDeps[j]?.run { IndependentCheckChangeListener(i, j, this) }
                                 ?: DependentCheckChangeListener(i, j)
                 )
 
@@ -173,7 +173,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, Set<String>>
             = context.resources.obtainTypedArray(a.getResourceId(index, -1)).use {
-        mColEntryValues = getTextArray(0).map(CharSequence::toString)
+        colEntryValues = getTextArray(0).map(CharSequence::toString)
         (1 until length()).associate {
             j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toSet()
         }
@@ -205,17 +205,17 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     }
 
     private fun updateCheckStates(values: Map<String, Set<String>>) {
-        for (i in mCheckBoxes.indices) for (j in mCheckBoxes[i].indices)
-            mCheckBoxes[i][j].isChecked = values[j.asCol()]?.contains(mEntryValues[i]) ?: false
-        for (k in 0 until mColumnDeps.size()) {
-            val independentColNo = mColumnDeps.keyAt(k)
-            val dependents = mColumnDeps.get(independentColNo)
-            for (d in dependents) for (i in mCheckBoxes.indices)
-                mCheckBoxes[i][d].isEnabled = mCheckBoxes[i][independentColNo].isChecked
+        for (i in checkBoxes.indices) for (j in checkBoxes[i].indices)
+            checkBoxes[i][j].isChecked = values[j.asCol()]?.contains(entryValues[i]) ?: false
+        for (k in 0 until columnDeps.size()) {
+            val independentColNo = columnDeps.keyAt(k)
+            val dependents = columnDeps.get(independentColNo)
+            for (d in dependents) for (i in checkBoxes.indices)
+                checkBoxes[i][d].isEnabled = checkBoxes[i][independentColNo].isChecked
         }
     }
 
-    private fun Int.asCol() = mColEntryValues[this]
+    private fun Int.asCol() = colEntryValues[this]
 
     private fun <K, T> makeSelectable(values: Map<K, Set<T>>): Map<K, MutableSet<T>>
             = values.entries.associate { Pair(it.key, it.value as MutableSet<T>) }
@@ -273,7 +273,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private open inner class DependentCheckChangeListener(val mI: Int, val mJ: Int):
             CompoundButton.OnCheckedChangeListener {
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-            val rowEntry = mEntryValues[mI]
+            val rowEntry = entryValues[mI]
             val colEntry = mJ.asCol()
             if (isChecked) mSelectedValues[colEntry]?.add(rowEntry)
             else mSelectedValues[colEntry]?.remove(rowEntry)
@@ -285,8 +285,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
             super.onCheckedChanged(buttonView, isChecked)
             for (d in mDependents) {
-                mCheckBoxes[mI][d].isEnabled = isChecked
-                mCheckBoxes[mI][d].isChecked = false
+                checkBoxes[mI][d].isEnabled = isChecked
+                checkBoxes[mI][d].isChecked = false
             }
         }
     }

@@ -10,7 +10,7 @@ import com.example.android.genpass.R.xml.prefs
  */
 
 class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private lateinit var mPrefKeyToId: Map<String, DefaultIDWithType>
+    private lateinit var prefKeyToId: Map<String, DefaultIDWithType>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,14 +37,14 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
                 IntDefaultID(R.integer.pref_default_passpharse_mandatory_symbols)
         )
 
-        mPrefKeyToId = prefIds.map(this::getString).zip(defaultIds).toMap()
+        prefKeyToId = prefIds.map(this::getString).zip(defaultIds).toMap()
     }
 
     override fun onResume() {
         super.onResume()
         with (preferenceScreen.sharedPreferences) {
             // Set the summary values initially
-            mPrefKeyToId.forEach { setPrefSummaryTo(this, it) }
+            prefKeyToId.forEach { setPrefSummaryTo(this, it) }
 
             // register the listener
             registerOnSharedPreferenceChangeListener(this@SettingsFragment)
@@ -57,7 +57,7 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
     }
 
     override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
-        mPrefKeyToId.forEach { setPrefSummaryTo(prefs, it) }
+        prefKeyToId.forEach { setPrefSummaryTo(prefs, it) }
     }
 
     private fun setPrefSummaryTo(prefs: SharedPreferences,

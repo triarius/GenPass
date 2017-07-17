@@ -22,7 +22,7 @@ import java.security.SecureRandom
  */
 
 class PassphraseFragment: Fragment(), WordListListener {
-    private var mWordIds: WordListResult = WordListLoading
+    private var wordIds: WordListResult = WordListLoading
     private lateinit var passphrase: Pass
     private lateinit var passphraseError: PassphraseError
 
@@ -47,7 +47,7 @@ class PassphraseFragment: Fragment(), WordListListener {
         savedInstanceState?.apply {
             passphrase = if (getBoolean(COPYABLE_TAG)) ValidPass(getString(PASSPHRASE_TAG))
                          else InvalidPass(getString(PASSPHRASE_TAG))
-            mWordIds = getIntArray(WORDS_TAG)?.run {
+            wordIds = getIntArray(WORDS_TAG)?.run {
                 WordList(this, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
         } ?: run {
@@ -65,9 +65,9 @@ class PassphraseFragment: Fragment(), WordListListener {
 
         // set click listeners
         button_generate_passphrase.setOnClickListener {
-            when (mWordIds) {
+            when (wordIds) {
                 is WordList -> {
-                    passphrase = createPhrase(mWordIds as WordList)
+                    passphrase = createPhrase(wordIds as WordList)
                     textview_passphrase.text = passphrase.text
                 }
                 is WordListLoading ->
@@ -101,7 +101,7 @@ class PassphraseFragment: Fragment(), WordListListener {
                 PreBuiltWordDBHelper(activity).readableDatabase,
                 this@PassphraseFragment
         )
-        mWordIds.apply { when (this) {
+        wordIds.apply { when (this) {
             is WordList -> {
                 if (minWordLen != this.minWordLen || maxWordLen != this.maxWordLen)
                     fetchWords.execute(Pair(minWordLen, maxWordLen))
@@ -112,7 +112,7 @@ class PassphraseFragment: Fragment(), WordListListener {
 
     override fun onSaveInstanceState(savedInstanceState: Bundle) {
         with (savedInstanceState) {
-            if (mWordIds is WordList) with (mWordIds as WordList) {
+            if (wordIds is WordList) with (wordIds as WordList) {
                 putIntArray(WORDS_TAG, array)
                 putInt(MIN_WORD_LEN_TAG, minWordLen)
                 putInt(MAX_WORD_LEN_TAG, maxWordLen)
@@ -122,8 +122,8 @@ class PassphraseFragment: Fragment(), WordListListener {
         }
     }
 
-    override fun onWordListLoading() { mWordIds = WordListLoading }
-    override fun onWordListReady(words: WordListResult) { mWordIds = words }
+    override fun onWordListLoading() { wordIds = WordListLoading }
+    override fun onWordListReady(words: WordListResult) { wordIds = words }
 
     private fun createPhrase(wordIds: WordList): Pass {
         val numNum = getIntPref(
