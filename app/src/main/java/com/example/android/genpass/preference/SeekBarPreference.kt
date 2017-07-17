@@ -6,7 +6,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.preference.DialogPreference
 import android.preference.Preference
-import android.preference.PreferenceManager
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
@@ -14,8 +13,6 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.example.android.genpass.R
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Created by narthana on 28/12/16.
@@ -155,16 +152,4 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         private const val LAYOUT_PADDING = 3.0f
         private const val TEXT_SIZE = 20.0f
     }
-}
-
-internal class IntPrefDelegate(private val key: String, private val defaultValue: Int):
-        ReadOnlyProperty<SeekBarPreference, Int> {
-    override fun getValue(thisRef: SeekBarPreference, property: KProperty<*>): Int
-            = PreferenceManager
-            .getDefaultSharedPreferences(thisRef.context)
-            .getInt(key, defaultValue)
-}
-
-internal class IntDelegate(private val n: Int): ReadOnlyProperty<SeekBarPreference, Int> {
-    override fun getValue(thisRef: SeekBarPreference, property: KProperty<*>): Int = n
 }
