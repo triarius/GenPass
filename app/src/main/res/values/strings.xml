@@ -52,7 +52,7 @@
         <item>@string/space</item>
     </string-array>
 
-    <string name="pref_password_charsets">Choose Character Sets</string>
+    <string name="pref_password_charsets">Choose Character Classes</string>
     <string-array name="pref_password_charset_names">
         <item>Lowercase</item>
         <item>Uppercase</item>

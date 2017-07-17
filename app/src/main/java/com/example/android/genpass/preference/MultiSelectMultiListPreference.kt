@@ -20,10 +20,12 @@ import com.example.android.genpass.R
 
 class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs) {
+//    private constructor(): this(Activity(), Xml.asAttributeSet(XmlPullParserFactory.newInstance().newPullParser())) { throw UnsupportedOperationException() }
+
     private val mEntries: List<String>
     private val mEntryValues: List<String>
     private val mColumnEntries: List<String>
-    private val mColEntryValues: List<String>
+    private lateinit var mColEntryValues: List<String>
     private val mColumnDeps: SparseArray<Set<Int>>
     private val mCheckBoxes: Array<Array<CheckBox>>
 
@@ -48,9 +50,9 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         mColumnEntries = styledAttrs
                 .getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries)
                 .map(CharSequence::toString)
-        mColEntryValues = styledAttrs
-                .getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues)
-                .map(CharSequence::toString)
+//        mColEntryValues = styledAttrs
+//                .getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues)
+//                .map(CharSequence::toString)
         val columnDepsId = styledAttrs
                 .getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
         styledAttrs.recycle()
@@ -121,6 +123,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             gravity = Gravity.CENTER_VERTICAL
             column = 0
         }
+
         for (i in mCheckBoxes.indices) {
             val row = TableRow(context)
 
@@ -128,14 +131,12 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             row.addView(TextView(context).apply { text = mEntries[i] }, entryParams)
 
             // create the checkboxes
-            for (j in mCheckBoxes[i].indices)
-            {
+            for (j in mCheckBoxes[i].indices) {
                 val checkBox = mCheckBoxes[i][j]
 
                 // Set the check change listener
-                val dependents = mColumnDeps[j]
                 checkBox.setOnCheckedChangeListener(
-                        dependents?.run { IndependentCheckChangeListener(i, j, this) }
+                        mColumnDeps[j]?.run { IndependentCheckChangeListener(i, j, this) }
                                 ?: DependentCheckChangeListener(i, j)
                 )
 
@@ -173,10 +174,11 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         persistValues(if (restorePersistedValue) getValuesFromResources(def) else def)
     }
 
-    override fun onGetDefaultValue(a: TypedArray, index: Int)
+    override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, MutableSet<String>>
             = context.resources.obtainTypedArray(a.getResourceId(index, -1)).run {
-        val values = (0 until numCols).associate { j ->
-            j.asCol() to getTextArray(j).map(CharSequence::toString).toMutableSet()
+        mColEntryValues = getTextArray(0).map(CharSequence::toString)
+        val values = (1 until length()).associate {
+            j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toMutableSet()
         }
         recycle()
         values

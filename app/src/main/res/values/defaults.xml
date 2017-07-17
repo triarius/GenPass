@@ -2,6 +2,7 @@
 <resources>
     <integer name="pref_default_password_length">32</integer>
     <array name="pref_default_password_charset_value">
+        <item>@array/pref_password_column_entry_values</item>
         <item>@array/pref_default_password_charset_enabled</item>
         <item>@array/pref_default_password_charset_mandatory</item>
     </array>
@@ -14,7 +15,7 @@
 
     <integer name="pref_default_passphrase_num_words">4</integer>
     <bool name="pref_default_passphrase_force_cap">false</bool>
-    <string name="pref_default_passphrase_delimiter">@string/space</string>
+    <string name="pref_default_passphrase_delimiter" translatable="false">@string/space</string>
     <integer name="pref_default_passphrase_min_word_length">5</integer>
     <integer name="pref_default_passpharse_max_word_length">10</integer>
     <bool name="pref_default_passphrase_1337_speak">false</bool>

@@ -12,11 +12,11 @@
 
     <string name="pref_password_length_key" translatable="false">pwlen</string>
     <string name="pref_password_charset_key" translatable="false">pwcharsets</string>
-    <string name="pref_password_lowercase_charset_key">pwlow</string>
-    <string name="pref_password_uppercase_charset_key">pwup</string>
-    <string name="pref_password_numerals_charset_key">pwnum</string>
-    <string name="pref_password_symbols_charset_key">pwsymb</string>
-    <string name="pref_password_space_charset_key">pwspc</string>
+    <string name="pref_password_lowercase_charset_key" translatable="false">pwlow</string>
+    <string name="pref_password_uppercase_charset_key" translatable="false">pwup</string>
+    <string name="pref_password_numerals_charset_key" translatable="false">pwnum</string>
+    <string name="pref_password_symbols_charset_key" translatable="false">pwsymb</string>
+    <string name="pref_password_space_charset_key" translatable="false">pwspc</string>
     <string-array name="pref_password_charset_keys" translatable="false">
         <item>@string/pref_password_lowercase_charset_key</item>
         <item>@string/pref_password_uppercase_charset_key</item>
