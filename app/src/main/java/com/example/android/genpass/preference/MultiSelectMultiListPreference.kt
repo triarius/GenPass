@@ -20,8 +20,6 @@ import com.example.android.genpass.R
 
 class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs) {
-//    private constructor(): this(Activity(), Xml.asAttributeSet(XmlPullParserFactory.newInstance().newPullParser())) { throw UnsupportedOperationException() }
-
     private val mEntries: List<String>
     private val mEntryValues: List<String>
     private val mColumnEntries: List<String>
@@ -32,42 +30,41 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private val numRows: Int
     private val numCols: Int
 
-    private lateinit var mValues: Map<String, MutableSet<String>>
+    private lateinit var mValues: Map<String, Set<String>>
     private lateinit var mSelectedValues: Map<String, MutableSet<String>>
 
     init {
-        val styledAttrs = context.theme.obtainStyledAttributes(
+        val (entries, entryValues, columnEntries, colDepsId) = context.theme.obtainStyledAttributes(
                 attrs,
                 R.styleable.MultiSelectMultiListPreference,
                 0, 0
-        )
-        mEntries = styledAttrs
-                .getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
-                .map(CharSequence::toString)
-        mEntryValues = styledAttrs
-                .getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues)
-                .map(CharSequence::toString)
-        mColumnEntries = styledAttrs
-                .getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries)
-                .map(CharSequence::toString)
-//        mColEntryValues = styledAttrs
-//                .getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntryValues)
-//                .map(CharSequence::toString)
-        val columnDepsId = styledAttrs
-                .getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
-        styledAttrs.recycle()
+        ).use {
+            StyleAttrVals(
+                    getTextArray(R.styleable.MultiSelectMultiListPreference_android_entries)
+                            .map(CharSequence::toString),
+                    getTextArray(R.styleable.MultiSelectMultiListPreference_android_entryValues)
+                            .map(CharSequence::toString),
+                    getTextArray(R.styleable.MultiSelectMultiListPreference_columnEntries)
+                            .map(CharSequence::toString),
+                    getResourceId(R.styleable.MultiSelectMultiListPreference_columnDependencies, -1)
+            )
+        }
+        mEntries = entries
+        mEntryValues = entryValues
+        mColumnEntries = columnEntries
 
         numRows = mEntries.size
         numCols = mColumnEntries.size
 
         // gather the data on dependencies between columns
-        val colDeps = context.resources.obtainTypedArray(columnDepsId)
-        mColumnDeps = SparseArray<Set<Int>>(colDeps.length())
-        (0 until colDeps.length())
-                .map { context.resources.getStringArray(colDeps.getResourceId(it, -1)) }
-                .map { it.map { mColEntryValues.indexOf(it) } }
-                .forEach { mColumnDeps.put(it[0], it.drop(1).toSet()) }
-        colDeps.recycle()
+        mColumnDeps = context.resources.obtainTypedArray(colDepsId).use {
+            SparseArray<Set<Int>>(length()).apply {
+                (0 until length())
+                        .map { context.resources.getStringArray(this@use.getResourceId(it, -1)) }
+                        .map { it.map { mColEntryValues.indexOf(it) } }
+                        .forEach { put(it[0], it.drop(1).toSet()) }
+            }
+        }
 
         // create the check box 2d array
         mCheckBoxes = Array<Array<CheckBox>>(numRows) {
@@ -166,22 +163,20 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) persistValues(mSelectedValues)
-        else mSelectedValues = cloneValues(mValues)
+        else mSelectedValues = makeSelectable(mValues)
     }
 
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
-        val def = defaultValue as? MutableMap<String, MutableSet<String>> ?: mutableMapOf()
+        val def = defaultValue as? Map<String, Set<String>> ?: mapOf()
         persistValues(if (restorePersistedValue) getValuesFromResources(def) else def)
     }
 
-    override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, MutableSet<String>>
-            = context.resources.obtainTypedArray(a.getResourceId(index, -1)).run {
+    override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, Set<String>>
+            = context.resources.obtainTypedArray(a.getResourceId(index, -1)).use {
         mColEntryValues = getTextArray(0).map(CharSequence::toString)
-        val values = (1 until length()).associate {
-            j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toMutableSet()
+        (1 until length()).associate {
+            j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toSet()
         }
-        recycle()
-        values
     }
 
     // Note: do not remove the cloning of v. It is necessary for
@@ -192,15 +187,15 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     // source: developer.android.com/reference/android/content/SharedPreferences.html
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
-    private fun getValuesFromResources(defaultValue: Map<String, MutableSet<String>>):
-            Map<String, MutableSet<String>> = (0 until numCols).associate {
+    private fun getValuesFromResources(defaultValue: Map<String, Set<String>>):
+            Map<String, Set<String>> = (0 until numCols).associate {
         val k = it.asCol()
-        k to (sharedPreferences.getStringSet(key + k, defaultValue.get(k)) ?: mutableSetOf())
+        k to (sharedPreferences.getStringSet(key + k, defaultValue.get(k)) ?: setOf())
     }
 
-    private fun persistValues(values: Map<String, MutableSet<String>>) {
+    private fun persistValues(values: Map<String, Set<String>>) {
         mValues = values
-        mSelectedValues = cloneValues(values)
+        mSelectedValues = makeSelectable(values)
         if (shouldPersist()) {
             editor.apply {
                 putBoolean(key, true)
@@ -222,8 +217,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     private fun Int.asCol() = mColEntryValues[this]
 
-    private fun <K, T> cloneValues(values: Map<K, MutableSet<T>>): Map<K, MutableSet<T>>
-            = values.entries.associate { Pair(it.key, it.value) }
+    private fun <K, T> makeSelectable(values: Map<K, Set<T>>): Map<K, MutableSet<T>>
+            = values.entries.associate { Pair(it.key, it.value as MutableSet<T>) }
 
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
@@ -295,6 +290,9 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
             }
         }
     }
+
+    private data class StyleAttrVals(val entries: List<String>, val entryValues: List<String>,
+                                     val columnEntries: List<String>, val columnDepsId: Int)
 
     companion object {
         private const val DIALOG_PADDING = 14.0f

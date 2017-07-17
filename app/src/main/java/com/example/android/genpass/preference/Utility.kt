@@ -1,6 +1,7 @@
 package com.example.android.genpass.preference
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.TypedValue
@@ -24,3 +25,9 @@ internal inline fun <reified T> creator(crossinline f: (Parcel) -> T)
 }
 
 internal fun <T: View> T.removeFromParent() = (this.parent as? ViewGroup)?.removeView(this)
+
+inline fun <T> TypedArray.use(f: TypedArray.() -> T): T {
+    val y = f()
+    recycle()
+    return y
+}
