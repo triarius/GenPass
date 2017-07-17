@@ -139,7 +139,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
                                 ?: DependentCheckChangeListener(i, j)
                 )
 
-                (checkBox.parent as ViewGroup?)?.removeView(checkBox)
+                checkBox.removeFromParent()
 
                 row.addView(
                         checkBox,

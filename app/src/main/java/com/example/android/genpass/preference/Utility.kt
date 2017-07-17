@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.TypedValue
+import android.view.View
+import android.view.ViewGroup
 
 /**
  * Created by narthana on 26/01/17.
@@ -20,3 +22,5 @@ internal inline fun <reified T> creator(crossinline f: (Parcel) -> T)
     override fun createFromParcel(source: Parcel): T = f(source)
     override fun newArray(n: Int): Array<T?> = arrayOfNulls<T>(n)
 }
+
+internal fun <T: View> T.removeFromParent() = (this.parent as? ViewGroup)?.removeView(this)

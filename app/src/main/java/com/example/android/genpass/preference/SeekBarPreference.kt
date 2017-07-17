@@ -10,11 +10,12 @@ import android.preference.PreferenceManager
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.example.android.genpass.R
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 /**
  * Created by narthana on 28/12/16.
@@ -31,38 +32,53 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
     }
 
     private var mValue: Int = DEFAULT_VALUE // don't get int here, update in onBind, allows cancel
+    private var max = DEFAULT_MAX
+
+    // if the min/maxPrefKey attributes are set, derive the min/maxVal from the prefs dynamically
+    // otherwise use 0 and the android:max attribute value
+    private var minKey: String? = null
+    private var maxKey: String? = null
 
     private val minVal: Int
+        get() = keyToPref(minKey, 0)
     private val maxVal: Int
+        get() = keyToPref(maxKey, max)
 
     init {
-        val styledAttrs = context.theme
-                .obtainStyledAttributes(attrs, R.styleable.SeekBarPreference, 0, 0)
-        val minKey = styledAttrs.getString(R.styleable.SeekBarPreference_minPrefKey)
-        val maxKey = styledAttrs.getString(R.styleable.SeekBarPreference_maxPrefKey)
-        val max = styledAttrs.getInt(R.styleable.SeekBarPreference_android_max, DEFAULT_MAX)
-        minVal = PreferenceManager.getDefaultSharedPreferences(context).getInt(minKey, 0)
-        maxVal = PreferenceManager.getDefaultSharedPreferences(context).getInt(maxKey, max)
-        mSeekBar.max = maxVal - minVal
+        context.theme.obtainStyledAttributes(attrs, R.styleable.SeekBarPreference, 0, 0).apply {
+            if (hasValue(R.styleable.SeekBarPreference_minPrefKey))
+                minKey = getString(R.styleable.SeekBarPreference_minPrefKey)
+            if (hasValue(R.styleable.SeekBarPreference_maxPrefKey))
+                maxKey = getString(R.styleable.SeekBarPreference_maxPrefKey)
+            if (hasValue(R.styleable.SeekBarPreference_android_max))
+                max = getInt(R.styleable.SeekBarPreference_android_max, DEFAULT_MAX)
+        }.recycle()
     }
 
-    override fun onCreateDialogView(): View = LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL
-        val pad = LAYOUT_PADDING.dpToPx(context)
-        setPadding(pad, pad, pad, pad)
+    private fun keyToPref(key: String?, defaultValue: Int) = key?.run {
+        sharedPreferences.getInt(this, defaultValue)
+    } ?: defaultValue
 
+    override fun onCreateDialogView(): View {
+        mSeekBar.max = maxVal - minVal
         mValue = getPersistedInt(DEFAULT_VALUE)
 
         // remove seekbar from previous parent (if any)
-        (mSeekBar.parent as ViewGroup?)?.removeView(mSeekBar)
-        (mValueText.parent as ViewGroup?)?.removeView(mValueText)
+        mSeekBar.removeFromParent()
+        mValueText.removeFromParent()
 
-        val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        addView(mValueText, lp)
-        addView(mSeekBar, lp)
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = LAYOUT_PADDING.dpToPx(context)
+            setPadding(pad, pad, pad, pad)
+
+            val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(mValueText, lp)
+            addView(mSeekBar, lp)
+        }
     }
 
     override fun onBindDialogView(view: View) {
@@ -139,4 +155,16 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
         private const val LAYOUT_PADDING = 3.0f
         private const val TEXT_SIZE = 20.0f
     }
+}
+
+internal class IntPrefDelegate(private val key: String, private val defaultValue: Int):
+        ReadOnlyProperty<SeekBarPreference, Int> {
+    override fun getValue(thisRef: SeekBarPreference, property: KProperty<*>): Int
+            = PreferenceManager
+            .getDefaultSharedPreferences(thisRef.context)
+            .getInt(key, defaultValue)
+}
+
+internal class IntDelegate(private val n: Int): ReadOnlyProperty<SeekBarPreference, Int> {
+    override fun getValue(thisRef: SeekBarPreference, property: KProperty<*>): Int = n
 }
