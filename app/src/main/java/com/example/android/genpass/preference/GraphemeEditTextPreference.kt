@@ -1,8 +1,6 @@
 package com.example.android.genpass.preference
 
-import android.annotation.TargetApi
 import android.content.Context
-import android.os.Build
 import android.preference.EditTextPreference
 import android.text.InputFilter
 import android.util.AttributeSet
@@ -26,18 +24,8 @@ class GraphemeEditTextPreference(context: Context, attrs: AttributeSet):
 
         super.getEditText().apply {
             filters = filters.map {
-                if (it is InputFilter.LengthFilter)
-                    GraphemeLengthFilter(
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) getMax(it)
-                            else maxLength
-                    )
-                else it
+                if (it is InputFilter.LengthFilter) GraphemeLengthFilter(it.max) else it
             }.toTypedArray()
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun getMax(filter: InputFilter.LengthFilter): Int {
-        return filter.max
     }
 }
