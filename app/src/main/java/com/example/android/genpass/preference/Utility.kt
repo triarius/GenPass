@@ -12,8 +12,6 @@ import android.view.ViewGroup
  * Created by narthana on 26/01/17.
  */
 
-fun <T> id(t: T): T = t
-
 internal fun Float.dpToPx(context: Context) = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_DIP,
     this,
