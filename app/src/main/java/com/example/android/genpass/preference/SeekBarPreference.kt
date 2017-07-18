@@ -131,9 +131,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
             super.writeToParcel(dest, flags)
         }
 
-        companion object {
-            @JvmField val CREATOR = creator(::SavedState)
-        }
+        companion object @JvmField val CREATOR = creator(::SavedState)
     }
 
     // seekbar listener
