@@ -5,7 +5,6 @@ import android.app.Fragment
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.support.v4.widget.DrawerLayout
 import android.util.Log
@@ -13,8 +12,6 @@ import android.view.Gravity
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
 import java.util.*
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 /**
  * Created by narthana on 22/10/16.
@@ -150,31 +147,6 @@ internal fun Fragment.getStringPref(key: String, defValues: String): String =
 internal fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
         PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
 
-// https://hackernoon.com/kotlin-delegates-in-android-development-part-1-50346cf4aed7
-private inline fun <T> SharedPreferences.delegate(
-        key: String?,
-        defaultValue: T,
-        crossinline getter: SharedPreferences.(String, T) -> T,
-        crossinline setter: SharedPreferences.Editor.(String, T) -> SharedPreferences.Editor
-): ReadWriteProperty<Any, T> = object: ReadWriteProperty<Any, T> {
-    override fun getValue(thisRef: Any, property: KProperty<*>): T
-        = getter(key ?: property.name, defaultValue)
-
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T)
-        = edit().setter(key ?: property.name, value).apply()
-}
-
-internal fun SharedPreferences.boolean(key: String? = null, defaultValue: Boolean) =
-        delegate(key, defaultValue, SharedPreferences::getBoolean, SharedPreferences.Editor::putBoolean)
-
-internal fun SharedPreferences.int(key: String? = null, defaultValue: Int) =
-        delegate(key, defaultValue, SharedPreferences::getInt, SharedPreferences.Editor::putInt)
-
-internal fun SharedPreferences.string(key: String? = null, defaultValue: String) =
-        delegate(key, defaultValue, SharedPreferences::getString, SharedPreferences.Editor::putString)
-
-internal fun SharedPreferences.stringSet(key: String? = null, defaultValue: Set<String>) =
-        delegate(key, defaultValue, SharedPreferences::getStringSet, SharedPreferences.Editor::putStringSet)
 
 /**
  * Perform the actions in [f] and return true

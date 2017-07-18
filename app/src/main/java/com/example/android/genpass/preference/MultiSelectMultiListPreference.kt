@@ -174,8 +174,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, Set<String>>
             = context.resources.obtainTypedArray(a.getResourceId(index, -1)).use {
         colEntryValues = getTextArray(0).map(CharSequence::toString)
-        (1 until length()).associate {
-            j -> (j - 1).asCol() to getTextArray(j).map(CharSequence::toString).toSet()
+        (1 until length()).associateBy({ (it - 1).asCol() }) {
+            getTextArray(it).map(CharSequence::toString).toSet()
         }
     }
 
@@ -188,9 +188,8 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
     private fun getValuesFromResources(defaultValue: Map<String, Set<String>>):
-            Map<String, Set<String>> = (0 until numCols).associate {
-        val k = it.asCol()
-        k to (sharedPreferences.getStringSet(key + k, defaultValue.get(k)) ?: setOf())
+            Map<String, Set<String>> = (0 until numCols).map { it.asCol() }.associateBy(::id) {
+        sharedPreferences.getStringSet(key + it, defaultValue[it]) ?: setOf()
     }
 
     private fun persistValues(values: Map<String, Set<String>>) {
@@ -218,14 +217,14 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     private fun Int.asCol() = colEntryValues[this]
 
     private fun <K, T> makeSelectable(values: Map<K, Set<T>>): Map<K, MutableSet<T>>
-            = values.entries.associate { Pair(it.key, it.value as MutableSet<T>) }
-
-    override fun onSaveInstanceState(): Parcelable {
-        val superState = super.onSaveInstanceState()
-        // Create instance of custom BaseSavedState
-        // Set the state's value with the class member that holds current setting value
-        return SavedState(superState).apply { values = mSelectedValues }
+            = values.entries.associateBy ({ it.key }) {
+        if (it.value.isEmpty()) mutableSetOf() else it.value as MutableSet<T>
     }
+
+    // Create instance of custom BaseSavedState
+    // Set the state's value with the class member that holds current setting value
+    override fun onSaveInstanceState(): Parcelable
+            = SavedState(super.onSaveInstanceState()).apply { values = mSelectedValues }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         // Check whether we saved the state in onSaveInstanceState
