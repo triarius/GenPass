@@ -62,3 +62,7 @@ internal fun SharedPreferences.string(key: String? = null, defaultValue: String)
 
 internal fun SharedPreferences.stringSet(key: String? = null, defaultValue: Set<String>) =
         delegate(key, defaultValue, SharedPreferences::getStringSet, SharedPreferences.Editor::putStringSet)
+
+fun <T> Array<T>.mutaMap(mutate: T.() -> T) {
+    for (i in this.indices) this[i] = this[i].mutate()
+}
