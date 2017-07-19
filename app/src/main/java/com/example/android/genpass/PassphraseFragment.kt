@@ -21,12 +21,19 @@ import java.security.SecureRandom
  * Created by narthana on 22/10/16.
  */
 
-class PassphraseFragment: Fragment(), WordListListener {
+class PassphraseFragment: Fragment() {
     private var wordIds: WordListResult = WordListLoading
     private lateinit var passphrase: Pass
     private lateinit var passphraseError: PassphraseError
 
-    override fun onAttach(context: Context?) {
+    private val fetchWords: FetchWordListTask
+        get() = FetchWordListTask(
+                PreBuiltWordDBHelper(context).readableDatabase,
+                { wordIds = WordListLoading },
+                { wordIds = it }
+        )
+
+    override fun onAttach(context: Context) {
         super.onAttach(context)
         passphraseError = PassphraseError()
 
@@ -38,8 +45,7 @@ class PassphraseFragment: Fragment(), WordListListener {
                 getString(R.string.pref_passphrase_max_word_length),
                 resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
         )
-        FetchWordListTask(PreBuiltWordDBHelper(activity).readableDatabase, this)
-                .execute(Pair(minWordLen, maxWordLen))
+        fetchWords.execute(Pair(minWordLen, maxWordLen))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,10 +103,6 @@ class PassphraseFragment: Fragment(), WordListListener {
                 resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
         )
 
-        val fetchWords = FetchWordListTask(
-                PreBuiltWordDBHelper(activity).readableDatabase,
-                this@PassphraseFragment
-        )
         wordIds.apply { when (this) {
             is WordList -> {
                 if (minWordLen != this.minWordLen || maxWordLen != this.maxWordLen)
@@ -121,9 +123,6 @@ class PassphraseFragment: Fragment(), WordListListener {
             putBoolean(COPYABLE_TAG, passphrase is CopyablePass)
         }
     }
-
-    override fun onWordListLoading() { wordIds = WordListLoading }
-    override fun onWordListReady(words: WordListResult) { wordIds = words }
 
     private fun createPhrase(wordIds: WordList): Pass {
         val numNum = getIntPref(
@@ -197,8 +196,11 @@ class PassphraseFragment: Fragment(), WordListListener {
     }
 
     // Fetch the words in the background
-    private class FetchWordListTask(val db: SQLiteDatabase, val listener: WordListListener):
-            AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
+    private class FetchWordListTask(
+            val db: SQLiteDatabase,
+            val preExecute: () -> Unit,
+            val postExecute: (WordListResult) -> Unit
+    ): AsyncTask<Pair<Int, Int>, Void, WordListResult>() {
         override fun doInBackground(vararg params: Pair<Int, Int>): WordListResult {
             val cursor = db.query(
                     WordEntry.TABLE_NAME,
@@ -227,8 +229,8 @@ class PassphraseFragment: Fragment(), WordListListener {
             return WordList(ids.toIntArray(), min, max)
         }
 
-        override fun onPreExecute() = listener.onWordListLoading()
-        override fun onPostExecute(result: WordListResult) = listener.onWordListReady(result)
+        override fun onPreExecute() = preExecute()
+        override fun onPostExecute(result: WordListResult) = postExecute(result)
     }
 
     internal inner open class LookupPass(resId: Int): UncopyablePass() {

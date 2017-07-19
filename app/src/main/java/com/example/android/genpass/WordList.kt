@@ -21,8 +21,3 @@ data class WordList(val array: IntArray, val minWordLen: Int, val maxWordLen: In
 }
 object WordListError: WordListResult()
 object WordListLoading: WordListResult()
-
-interface WordListListener {
-    fun onWordListLoading()
-    fun onWordListReady(words: WordListResult)
-}
