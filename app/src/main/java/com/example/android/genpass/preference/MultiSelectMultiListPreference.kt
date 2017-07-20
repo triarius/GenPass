@@ -174,7 +174,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     override fun onGetDefaultValue(a: TypedArray, index: Int): Map<String, Set<String>>
             = context.resources.obtainTypedArray(a.getResourceId(index, -1)).use {
         colEntryValues = getTextArray(0).map(CharSequence::toString)
-        (1 until length()).associateBy({ (it - 1).asCol() }) {
+        (1 until length()).associateBy({ colEntryValues[it - 1] }) {
             getTextArray(it).map(CharSequence::toString).toSet()
         }
     }
@@ -188,7 +188,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
     //     "Objects that are returned from the various get methods must be treated as
     //      immutable by the application."
     private fun getValuesFromResources(defaultValue: Map<String, Set<String>>):
-            Map<String, Set<String>> = (0 until numCols).map { it.asCol() }.associateBy(::id) {
+            Map<String, Set<String>> = (0 until numCols).map { colEntryValues[it] }.associateBy(::id) {
         sharedPreferences.getStringSet(key + it, defaultValue[it]) ?: setOf()
     }
 
@@ -205,7 +205,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
 
     private fun updateCheckStates(values: Map<String, Set<String>>) {
         for (i in checkBoxes.indices) for (j in checkBoxes[i].indices)
-            checkBoxes[i][j].isChecked = values[j.asCol()]?.contains(entryValues[i]) ?: false
+            checkBoxes[i][j].isChecked = values[colEntryValues[j]]?.contains(entryValues[i]) ?: false
         for (k in 0 until columnDeps.size()) {
             val independentColNo = columnDeps.keyAt(k)
             val dependents = columnDeps.get(independentColNo)
@@ -213,8 +213,6 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
                 checkBoxes[i][d].isEnabled = checkBoxes[i][independentColNo].isChecked
         }
     }
-
-    private fun Int.asCol() = colEntryValues[this]
 
     private fun <K, T> makeSelectable(values: Map<K, Set<T>>): Map<K, MutableSet<T>>
             = values.entries.associateBy ({ it.key }) {
@@ -272,9 +270,10 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean)
         { if (isChecked) check(row, col) else uncheck(row, col) }
 
-        private fun check(row: Int, col: Int) = selectedValues[col.asCol()]?.add(entryValues[row])
+        private fun check(row: Int, col: Int)
+                = selectedValues[colEntryValues[col]]?.add(entryValues[row])
         private fun uncheck(row: Int, col: Int)
-                = selectedValues[col.asCol()]?.remove(entryValues[row])
+                = selectedValues[colEntryValues[col]]?.remove(entryValues[row])
     }
 
     private inner class IndependentCheckChangeListener(row: Int, col: Int, val deps: Set<Int>):
