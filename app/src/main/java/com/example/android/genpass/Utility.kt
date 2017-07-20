@@ -5,6 +5,8 @@ import android.app.Fragment
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.res.Resources
 import android.preference.PreferenceManager
 import android.support.v4.widget.DrawerLayout
 import android.util.Log
@@ -138,15 +140,27 @@ internal fun LinkedList<IntRange>.random(r: Random): Pair<LinkedList<IntRange>, 
     return Pair(rangeList, hole)
 }
 
-internal fun Fragment.getStringSetPref(key: String, defValues: Set<String>?): Set<String> =
-        PreferenceManager.getDefaultSharedPreferences(this.activity).getStringSet(key, defValues)
-internal fun Fragment.getIntPref(key: String, defValues: Int): Int =
-        PreferenceManager.getDefaultSharedPreferences(this.activity).getInt(key, defValues)
-internal fun Fragment.getStringPref(key: String, defValues: String): String =
-        PreferenceManager.getDefaultSharedPreferences(this.activity).getString(key, defValues)
-internal fun Fragment.getBooleanPref(key: String, defValues: Boolean): Boolean =
-        PreferenceManager.getDefaultSharedPreferences(this.activity).getBoolean(key, defValues)
+internal inline fun <reified T> Fragment.getPrefFromId(keyId: Int, defValueId: Int): T
+        = when (T::class.java) {
+    Set::class.java -> getPref<Set<String>>(
+            getString(keyId), defValueId, SharedPreferences::getStringSet, stringArrayToSet) as T
+    Int::class.javaPrimitiveType, Int::class.javaObjectType -> getPref<Int>(
+            getString(keyId), defValueId, SharedPreferences::getInt, Resources::getInteger) as T
+    String::class.java -> getPref<String>(
+            getString(keyId), defValueId, SharedPreferences::getString, Resources::getString) as T
+    Boolean::class.javaPrimitiveType, Boolean::class.javaObjectType -> getPref<Boolean>(
+            getString(keyId), defValueId, SharedPreferences::getBoolean, Resources::getBoolean) as T
+    else -> throw UnsupportedOperationException()
+}
 
+internal inline fun <T> Fragment.getPref(
+        key: String,
+        defId: Int,
+        getVal: SharedPreferences.(String, T) -> T,
+        getDefVal: Resources.(Int) -> T
+) = PreferenceManager.getDefaultSharedPreferences(activity).getVal(key, resources.getDefVal(defId))
+
+internal val stringArrayToSet: Resources.(Int) -> Set<String> = { getStringArray(it).toSet() }
 
 /**
  * Perform the actions in [f] and return true
@@ -189,7 +203,7 @@ internal inline fun <reified T: Fragment> Activity.findFragment(
         tag: String = T::class.java.canonicalName
 ) = fragmentManager.findFragmentByTag(tag) ?: T::class.java.newInstance()
 
-internal inline fun <reified T> T.log(string: String) = Log.d(T::class.java.simpleName, string)
+internal inline fun <reified T> T.log(string: String?) = Log.d(T::class.java.simpleName, string)
 
 internal inline fun <reified T> Fragment.getSysService(name: String)
         = activity.getSystemService(name) as T

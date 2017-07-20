@@ -25,10 +25,15 @@ class PassphraseFragment: Fragment() {
     private var wordIds: WordListResult = WordListLoading
     private lateinit var passphrase: Pass
     private lateinit var passphraseError: PassphraseError
-
+    private val minWordLen: Int
+        get() = getPrefFromId<Int>(R.string.pref_passphrase_min_word_length,
+                R.integer.pref_default_passphrase_min_word_length)
+    private val maxWordLen: Int
+        get() = getPrefFromId<Int>(R.string.pref_passphrase_max_word_length,
+                R.integer.pref_default_passpharse_max_word_length)
     private val fetchWords: FetchWordListTask
         get() = FetchWordListTask(
-                PreBuiltWordDBHelper(context).readableDatabase,
+                PreBuiltWordDBHelper(activity).readableDatabase,
                 { wordIds = WordListLoading },
                 { wordIds = it }
         )
@@ -37,14 +42,6 @@ class PassphraseFragment: Fragment() {
         super.onAttach(context)
         passphraseError = PassphraseError()
 
-        val minWordLen = getIntPref(
-                getString(R.string.pref_passphrase_min_word_length),
-                resources.getInteger(R.integer.pref_default_passphrase_min_word_length)
-        )
-        val maxWordLen = getIntPref(
-                getString(R.string.pref_passphrase_max_word_length),
-                resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
-        )
         fetchWords.execute(Pair(minWordLen, maxWordLen))
     }
 
@@ -94,15 +91,6 @@ class PassphraseFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-        val minWordLen = getIntPref(
-                getString(R.string.pref_passphrase_min_word_length),
-                resources.getInteger(R.integer.pref_default_passphrase_min_word_length)
-        )
-        val maxWordLen = getIntPref(
-                getString(R.string.pref_passphrase_max_word_length),
-                resources.getInteger(R.integer.pref_default_passpharse_max_word_length)
-        )
-
         wordIds.apply { when (this) {
             is WordList -> {
                 if (minWordLen != this.minWordLen || maxWordLen != this.maxWordLen)
@@ -125,25 +113,25 @@ class PassphraseFragment: Fragment() {
     }
 
     private fun createPhrase(wordIds: WordList): Pass {
-        val numNum = getIntPref(
-                getString(R.string.pref_passphrase_mandatory_numerals),
-                resources.getInteger(R.integer.pref_default_passpharse_mandatory_numerals)
+        val numNum = getPrefFromId<Int>(
+                R.string.pref_passphrase_mandatory_numerals,
+                R.integer.pref_default_passpharse_mandatory_numerals
         )
-        val numSymb = getIntPref(
-                getString(R.string.pref_passphrase_mandatory_symbols),
-                resources.getInteger(R.integer.pref_default_passpharse_mandatory_symbols)
+        val numSymb = getPrefFromId<Int>(
+                R.string.pref_passphrase_mandatory_symbols,
+                R.integer.pref_default_passpharse_mandatory_symbols
         )
-        val n = getIntPref(
-                getString(R.string.pref_passphrase_num_words),
-                resources.getInteger(R.integer.pref_default_passphrase_num_words)
+        val n = getPrefFromId<Int>(
+                R.string.pref_passphrase_num_words,
+                R.integer.pref_default_passphrase_num_words
         )
-        val delim = getStringPref(
-                getString(R.string.pref_passphrase_delimiter),
-                getString(R.string.pref_default_passphrase_delimiter)
+        val delim = getPrefFromId<String>(
+                R.string.pref_passphrase_delimiter,
+                R.string.pref_default_passphrase_delimiter
         )
-        val cap = getBooleanPref(
-                getString(R.string.pref_passphrase_force_cap),
-                resources.getBoolean(R.bool.pref_default_passphrase_force_cap)
+        val cap = getPrefFromId<Boolean>(
+                R.string.pref_passphrase_force_cap,
+                R.bool.pref_default_passphrase_force_cap
         )
 
         // look up n random words in the database

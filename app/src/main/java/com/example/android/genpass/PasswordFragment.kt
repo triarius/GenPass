@@ -4,6 +4,7 @@ import android.app.Fragment
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
@@ -52,9 +53,9 @@ class PasswordFragment: Fragment() {
 
         // attach click listener to button
         button_generate_password.setOnClickListener {
-            val numChars: Int = getIntPref(
-                    getString(R.string.pref_password_length_key),
-                    resources.getInteger(R.integer.pref_default_password_length)
+            val numChars = getPrefFromId<Int>(
+                    R.string.pref_password_charset_col_mandatory,
+                    R.integer.pref_default_password_length
             )
             password = newPassword(numChars, view)
             textview_password.text = password.text
@@ -72,16 +73,19 @@ class PasswordFragment: Fragment() {
 
         // create charset to draw from
         val key = getString(R.string.pref_password_charset_key)
-        val selectedKeys = getStringSetPref(
+        val selectedKeys = getPref<Set<String>>(
                 key + getString(R.string.pref_password_charset_col_enabled),
-                resources.getStringArray(R.array.pref_default_password_charset_enabled).toSet()
+                R.array.pref_default_password_charset_enabled,
+                SharedPreferences::getStringSet,
+                stringArrayToSet
         )
         // collect the mandatory preferences into an array, and count them
-        val mandatoryKeys = getStringSetPref(
+        val mandatoryKeys = getPref<Set<String>>(
                 key + getString(R.string.pref_password_charset_col_mandatory),
-                resources.getStringArray(R.array.pref_default_password_charset_mandatory).toSet()
+                R.array.pref_default_password_charset_mandatory,
+                SharedPreferences::getStringSet,
+                stringArrayToSet
         )
-
         // the user has not checked any char subsets to add to the charset
         if (selectedKeys.isEmpty()) return pwErrHdlr(rootView, R.string.empty_charset)
 
