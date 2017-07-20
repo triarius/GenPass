@@ -151,7 +151,7 @@ class PassphraseFragment: Fragment() {
         }
 
         var passphraseList = (1..cursor.count).map {
-            val s = cursor.getString(0)!!
+            val s = cursor.getString(0)
             cursor.moveToNext()
             s
         } as MutableList<String>
