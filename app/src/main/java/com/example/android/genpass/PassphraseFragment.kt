@@ -25,12 +25,14 @@ class PassphraseFragment: Fragment() {
     private var wordIds: WordListResult = WordListLoading
     private lateinit var passphrase: Pass
     private lateinit var passphraseError: PassphraseError
-    private val minWordLen: Int
-        get() = getPrefFromId<Int>(R.string.pref_passphrase_min_word_length,
-                R.integer.pref_default_passphrase_min_word_length)
-    private val maxWordLen: Int
-        get() = getPrefFromId<Int>(R.string.pref_passphrase_max_word_length,
-                R.integer.pref_default_passpharse_max_word_length)
+    private val minWordLen by prefDelId<Int>(
+            R.string.pref_passphrase_min_word_length,
+            R.integer.pref_default_passphrase_min_word_length
+    )
+    private val maxWordLen by prefDelId<Int>(
+            R.string.pref_passphrase_max_word_length,
+            R.integer.pref_default_passphrase_max_word_length
+    )
     private val fetchWords: FetchWordListTask
         get() = FetchWordListTask(
                 PreBuiltWordDBHelper(activity).readableDatabase,
@@ -53,9 +55,7 @@ class PassphraseFragment: Fragment() {
             wordIds = getIntArray(WORDS_TAG)?.run {
                 WordList(this, getInt(MIN_WORD_LEN_TAG), getInt(MAX_WORD_LEN_TAG))
             } ?: WordListError
-        } ?: run {
-            passphrase = DefaultPassphrase()
-        }
+        } ?: run { passphrase = DefaultPassphrase() }
     }
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -115,11 +115,11 @@ class PassphraseFragment: Fragment() {
     private fun createPhrase(wordIds: WordList): Pass {
         val numNum = getPrefFromId<Int>(
                 R.string.pref_passphrase_mandatory_numerals,
-                R.integer.pref_default_passpharse_mandatory_numerals
+                R.integer.pref_default_passphrase_mandatory_numerals
         )
         val numSymb = getPrefFromId<Int>(
                 R.string.pref_passphrase_mandatory_symbols,
-                R.integer.pref_default_passpharse_mandatory_symbols
+                R.integer.pref_default_passphrase_mandatory_symbols
         )
         val n = getPrefFromId<Int>(
                 R.string.pref_passphrase_num_words,

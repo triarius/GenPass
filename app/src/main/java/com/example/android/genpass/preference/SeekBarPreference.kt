@@ -20,8 +20,8 @@ import com.example.android.genpass.R
 
 class SeekBarPreference (context: Context, attrs: AttributeSet):
         DialogPreference(context, attrs), SeekBar.OnSeekBarChangeListener {
-    private val seekBar: SeekBar = SeekBar(context, null).apply {
-        setOnSeekBarChangeListener(this@SeekBarPreference)
+    private val seekBar: SeekBar = SeekBar(context, null).also {
+        it.setOnSeekBarChangeListener(this)
     }
     private val valueText: TextView = TextView(context, null).apply {
         gravity = Gravity.CENTER_HORIZONTAL
@@ -100,7 +100,7 @@ class SeekBarPreference (context: Context, attrs: AttributeSet):
     // handle saved states
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
-        return SavedState(superState).apply { value = this@SeekBarPreference.value }
+        return SavedState(superState).also { value = this.value }
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {

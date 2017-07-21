@@ -32,9 +32,9 @@ class SettingsFragment: PreferenceFragment(), SharedPreferences.OnSharedPreferen
                 IntDefaultID(R.integer.pref_default_passphrase_num_words),
                 StringDefaultID(R.string.pref_default_passphrase_delimiter),
                 IntDefaultID(R.integer.pref_default_passphrase_min_word_length),
-                IntDefaultID(R.integer.pref_default_passpharse_max_word_length),
-                IntDefaultID(R.integer.pref_default_passpharse_mandatory_numerals),
-                IntDefaultID(R.integer.pref_default_passpharse_mandatory_symbols)
+                IntDefaultID(R.integer.pref_default_passphrase_max_word_length),
+                IntDefaultID(R.integer.pref_default_passphrase_mandatory_numerals),
+                IntDefaultID(R.integer.pref_default_passphrase_mandatory_symbols)
         )
 
         prefKeyToId = prefIds.map(this::getString).zip(defaultIds).toMap()
