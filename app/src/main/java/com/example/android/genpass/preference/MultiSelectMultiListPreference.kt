@@ -166,6 +166,7 @@ class MultiSelectMultiListPreference(context: Context, attrs: AttributeSet):
         else selectedValues = makeSelectable(prefValues)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
         val def = defaultValue as? Map<String, Set<String>> ?: mapOf()
         persistValues(if (restorePersistedValue) getValuesFromResources(def) else def)

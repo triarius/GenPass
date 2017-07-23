@@ -14,9 +14,6 @@ import android.view.Gravity
 import com.example.android.genpass.data.NewWordDBHelper
 import com.example.android.genpass.data.WordContract
 import java.util.*
-import kotlin.properties.ReadOnlyProperty
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 /**
  * Created by narthana on 22/10/16.
@@ -164,72 +161,6 @@ internal inline fun <T> Fragment.getPref(
 ) = PreferenceManager.getDefaultSharedPreferences(activity).getVal(key, resources.getDefVal(defId))
 
 internal val stringArrayToSet: Resources.(Int) -> Set<String> = { getStringArray(it).toSet() }
-
-// https://hackernoon.com/kotlin-delegates-in-android-development-part-1-50346cf4aed7
-private inline fun <T> SharedPreferences.delegate(
-        key: String?,
-        defaultValue: T,
-        crossinline getter: SharedPreferences.(String, T) -> T,
-        crossinline setter: SharedPreferences.Editor.(String, T) -> SharedPreferences.Editor
-): ReadWriteProperty<Any, T> = object: ReadWriteProperty<Any, T> {
-    override fun getValue(thisRef: Any, property: KProperty<*>): T
-            = getter(key ?: property.name, defaultValue)
-
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T)
-            = edit().setter(key ?: property.name, value).apply()
-}
-
-internal fun Context.roIntPref(key: String? = null, defaultValue: Int)
-        = PreferenceManager.getDefaultSharedPreferences(this).roDelegate(key, defaultValue, SharedPreferences::getInt)
-
-internal fun SharedPreferences.boolean(key: String? = null, defaultValue: Boolean) =
-        delegate(key, defaultValue, SharedPreferences::getBoolean, SharedPreferences.Editor::putBoolean)
-
-internal fun SharedPreferences.int(key: String? = null, defaultValue: Int) =
-        delegate(key, defaultValue, SharedPreferences::getInt, SharedPreferences.Editor::putInt)
-
-internal fun SharedPreferences.string(key: String? = null, defaultValue: String) =
-        delegate(key, defaultValue, SharedPreferences::getString, SharedPreferences.Editor::putString)
-
-internal fun SharedPreferences.stringSet(key: String? = null, defaultValue: Set<String>) =
-        delegate(key, defaultValue, SharedPreferences::getStringSet, SharedPreferences.Editor::putStringSet)
-
-@Suppress("UNCHECKED_CAST")
-internal inline fun <reified T> Fragment.prefDelId(keyId: Int, defValueId: Int):
-        ReadOnlyProperty<Any, T> = resources.get<T>(defValueId).let {
-    when (it) {
-        is String -> activity.prefDel(SharedPreferences::getString, it, keyId)
-        is Int -> activity.prefDel(SharedPreferences::getInt, it, keyId)
-        is Boolean -> activity.prefDel(SharedPreferences::getBoolean, it, keyId)
-        is Set<*> -> activity.prefDel(SharedPreferences::getStringSet, it as Set<String>, keyId)
-        else -> throw UnsupportedOperationException()
-    } as ReadOnlyProperty<Any, T>
-}
-
-@Suppress("IMPLICIT_CAST_TO_ANY")
-internal inline operator fun <reified T> Resources.get(id: Int): T = when (T::class.java) {
-    String::class.java -> getString(id)
-    Int::class.javaObjectType, Int::class.javaPrimitiveType -> getInteger(id)
-    Boolean::class.javaObjectType, Boolean::class.javaPrimitiveType -> getBoolean(id)
-    Set::class.java -> stringArrayToSet(id)
-    else -> throw UnsupportedOperationException()
-} as T
-
-private inline fun <reified T> Context.prefDel(
-        crossinline getter: SharedPreferences.(String, T) -> T,
-        defaultValue: T,
-        keyId: Int?,
-        key: String? = keyId?.let { getString(it) }
-) = PreferenceManager.getDefaultSharedPreferences(this).roDelegate<T>(key, defaultValue!!, getter)
-
-private inline fun <T> SharedPreferences.roDelegate(
-        key: String?,
-        defaultValue: T,
-        crossinline getter: SharedPreferences.(String, T) -> T
-): ReadOnlyProperty<Any, T> = object: ReadOnlyProperty<Any, T> {
-    override fun getValue(thisRef: Any, property: KProperty<*>): T
-            = getter(key ?: property.name, defaultValue)
-}
 
 /**
  * Perform the actions in [f] and return true

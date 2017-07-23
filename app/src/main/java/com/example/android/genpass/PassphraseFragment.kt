@@ -25,20 +25,19 @@ class PassphraseFragment: Fragment() {
     private var wordIds: WordListResult = WordListLoading
     private lateinit var passphrase: Pass
     private lateinit var passphraseError: PassphraseError
-    private val minWordLen by prefDelId<Int>(
+    private val minWordLen get() = getPrefFromId<Int>(
             R.string.pref_passphrase_min_word_length,
             R.integer.pref_default_passphrase_min_word_length
     )
-    private val maxWordLen by prefDelId<Int>(
+    private val maxWordLen get() = getPrefFromId<Int>(
             R.string.pref_passphrase_max_word_length,
             R.integer.pref_default_passphrase_max_word_length
     )
-    private val fetchWords: FetchWordListTask
-        get() = FetchWordListTask(
-                PreBuiltWordDBHelper(activity).readableDatabase,
-                { wordIds = WordListLoading },
-                { wordIds = it }
-        )
+    private val fetchWords get() = FetchWordListTask(
+            PreBuiltWordDBHelper(activity).readableDatabase,
+            { wordIds = WordListLoading },
+            { wordIds = it }
+    )
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
